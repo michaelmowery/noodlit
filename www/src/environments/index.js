@@ -36,7 +36,9 @@
 //                                             //   supplies stampText() and calls applyDrafts().
 //   instance.dispose?()
 //
-// The toolbar's environment button cycles through `environments` in order.
+// Environments come in two families, picked with the Fade / Release toggle: Fade surfaces
+// decay on their own; Release surfaces (fades: false) keep the drawing until you let it go.
+// The toolbar's environment button cycles through the active family in order.
 
 import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';
@@ -45,6 +47,12 @@ import { whiteboard } from './whiteboard.js';
 import { stream } from './stream.js';
 
 export const environments = [showerDoor, waves, snow, whiteboard, stream];
+
+export const modeOf = (env) => (env.fades === false ? 'release' : 'fade');
+
+export function environmentsFor(mode) {
+  return environments.filter((e) => modeOf(e) === mode);
+}
 
 export function getEnvironment(id) {
   return environments.find((e) => e.id === id) || environments[0];
