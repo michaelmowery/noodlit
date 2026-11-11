@@ -128,8 +128,20 @@ html, body {
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-@media (max-width: 360px) {
-  .toolbar button { padding: 0 12px 0 10px; font-size: 14px; }
+/* Five buttons on a phone: tighten up so the bar never runs off the edges. */
+@media (max-width: 440px) {
+  .toolbar { gap: 2px; padding: 4px; }
+  .toolbar button { gap: 6px; padding: 0 12px 0 10px; }
+  .toolbar button.icon-only { padding: 0 10px; }
+}
+@media (max-width: 380px) {
+  .toolbar button { gap: 5px; padding: 0 9px 0 8px; font-size: 14px; }
+  .toolbar button.icon-only { padding: 0 9px; }
+}
+@media (max-width: 345px) {
+  .toolbar { padding: 3px; gap: 0; }
+  .toolbar button { gap: 4px; padding: 0 7px 0 6px; font-size: 13px; }
+  .toolbar button.icon-only { padding: 0 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

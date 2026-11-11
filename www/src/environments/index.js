@@ -25,7 +25,8 @@
 //   instance.clear()                          // start the clear animation
 //   instance.setFadeSeconds(s)                // roughly how long a fresh stroke lasts
 //   instance.setPaused(bool)                  // freeze decay ("hold this thought")
-//   instance.intro?(text)                     // optional: pre-draw a hint on first launch
+//   instance.intro?(text, { at })             // optional: pre-draw a hint/prompt; `at` = vertical
+//                                             //   centre as a fraction of height (env default if omitted)
 //   instance.dispose?()
 //
 // The toolbar's environment button cycles through `environments` in order.

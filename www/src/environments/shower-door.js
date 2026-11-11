@@ -279,7 +279,7 @@ class ShowerDoor {
   }
 
   // Pre-wipe a handwritten hint so the mechanic explains itself.
-  intro(text) {
+  intro(text, { at } = {}) {
     const { mw, mh, cell, W, H, clarity } = this;
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
@@ -297,7 +297,8 @@ class ShowerDoor {
     g.lineWidth = Math.max(2.5, size * 0.07);
     g.lineCap = g.lineJoin = 'round';
     g.fillStyle = g.strokeStyle = '#fff';
-    const y0 = H * 0.42 - ((lines.length - 1) * size * 1.15) / 2;
+    const block = (lines.length - 1) * size * 1.15;
+    const y0 = clamp(H * (at ?? 0.42) - block / 2, 56 + size * 0.6, H - 130 - block);
     lines.forEach((ln, n) => {
       g.fillText(ln, W / 2, y0 + n * size * 1.15);
       g.strokeText(ln, W / 2, y0 + n * size * 1.15);

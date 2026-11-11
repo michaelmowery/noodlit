@@ -8,7 +8,36 @@ const SPEEDS = [
   { id: 'flow', label: 'Flow', seconds: 20, hint: 'Steady fade · about 20 seconds' },
   { id: 'rush', label: 'Rush', seconds: 8, hint: 'Quick fade · about 8 seconds' },
 ];
+// Short prompts written onto the surface: on launch, on surface change, and from the
+// prompt button. Keep them brainstorm-flavoured and at most two short lines ("\n").
 const INTROS = ['let it flow', 'think out loud', 'just start', 'empty your head'];
+const PROMPTS = [
+  ...INTROS,
+  "what's the\nreal problem?",
+  'ten ideas,\nno filter',
+  'worst idea\nfirst',
+  'flip it',
+  'who is\nit for?',
+  "what's\nmissing?",
+  'make it\nweirder',
+  'what if it\nwere free?',
+  'smallest\nnext step?',
+  'connect two\nthings',
+  'what would\nyou cut?',
+  'draw the mess',
+  'why now?',
+  "what's the\nopposite?",
+  'say it badly\nfirst',
+  "what's stuck?",
+  'map it out',
+  'what if it\nwere huge?',
+];
+let lastPrompt = null;
+function pickPrompt(pool = PROMPTS) {
+  const options = pool.filter((p) => p !== lastPrompt);
+  lastPrompt = options[Math.floor(Math.random() * options.length)];
+  return lastPrompt;
+}
 
 const store = {
   get(k, d) { try { const v = localStorage.getItem('noodlit.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
@@ -22,6 +51,7 @@ const btnSpeed = document.getElementById('btn-speed');
 const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
 const btnEnv = document.getElementById('btn-env');
+const btnPrompt = document.getElementById('btn-prompt');
 const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
@@ -129,6 +159,25 @@ btnHold.addEventListener('click', () => {
 
 btnClear.addEventListener('click', () => {
   env.clear();
+  recentPrompts = [];
+  wake();
+});
+
+// Write a fresh prompt onto whatever surface is active, on top of what's already there.
+// While earlier prompts are still visible, put the new one in a free band so they don't pile up.
+const PROMPT_SLOTS = [undefined, 0.24, 0.62]; // undefined = the environment's own centre
+let recentPrompts = []; // { slot, time }
+function notePrompt(slot) {
+  recentPrompts.push({ slot, time: performance.now() });
+}
+btnPrompt.addEventListener('click', () => {
+  const now = performance.now();
+  const visibleFor = SPEEDS[speedIndex].seconds * 1000;
+  if (!held) recentPrompts = recentPrompts.filter((r) => now - r.time < visibleFor);
+  const busy = new Set(recentPrompts.slice(-2).map((r) => r.slot));
+  const slot = PROMPT_SLOTS.find((s) => !busy.has(s));
+  env.intro?.(pickPrompt(), { at: slot });
+  notePrompt(slot);
   wake();
 });
 
@@ -155,7 +204,10 @@ function useEnvironment(def, { announce = false } = {}) {
 btnEnv.addEventListener('click', () => {
   const next = environments[(environments.indexOf(envDef) + 1) % environments.length];
   useEnvironment(next, { announce: true });
-  env.intro?.(INTROS[Math.floor(Math.random() * INTROS.length)]);
+  recentPrompts = [];
+  env.intro?.(pickPrompt(INTROS));
+  notePrompt(undefined);
+  wake();
 });
 
 // ------------------------------------------------------------------ boot
@@ -166,7 +218,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) wake
 useEnvironment(getEnvironment(store.get('env', 'shower-door')));
 applySpeed(false);
 resize();
-env.intro?.(INTROS[Math.floor(Math.random() * INTROS.length)]);
+env.intro?.(pickPrompt(INTROS));
+notePrompt(undefined);
 wake();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
