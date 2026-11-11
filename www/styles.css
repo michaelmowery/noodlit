@@ -55,39 +55,169 @@ html, body {
   filter: drop-shadow(0 1px 2px rgba(10, 16, 30, 0.25));
 }
 
-/* Fade / Release: which family of surfaces you're in. */
-.mode {
+/* Scene chip: always says which scene you're on, and taps open the scene menu. */
+.scene-chip {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 10px);
   right: calc(env(safe-area-inset-right) + 12px);
+  appearance: none;
   display: flex;
-  padding: 3px;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  max-width: calc(100vw - 150px);
+  padding: 4px 10px 4px 12px;
   border-radius: 999px;
   background: var(--glass);
   border: 1px solid var(--glass-edge);
   -webkit-backdrop-filter: blur(14px) saturate(1.2);
   backdrop-filter: blur(14px) saturate(1.2);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   pointer-events: auto;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.35s ease, background 0.2s ease;
 }
-.mode button {
+.scene-chip:active { background: rgba(255, 255, 255, 0.14); }
+.scene-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.scene-chip svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.scene-chip .chev { width: 16px; height: 16px; opacity: 0.8; }
+.scene-chip-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.1; }
+.scene-chip-mode {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.scene-chip-name {
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#ui.drawing .scene-chip, #ui.typing .scene-chip { opacity: 0; pointer-events: none; }
+
+/* Scene menu: a bottom sheet on phones, a panel under the chip on wider screens. */
+.scenes { position: absolute; inset: 0; pointer-events: auto; z-index: 5; }
+.scenes[hidden] { display: none; }
+.scenes-backdrop { position: absolute; inset: 0; background: rgba(8, 12, 16, 0.38); animation: scenes-fade 0.2s ease; }
+.scenes-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(82vh, 640px);
+  max-height: min(82dvh, 640px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 18px) calc(env(safe-area-inset-left) + 16px);
+  border-radius: 22px 22px 0 0;
+  background: rgba(22, 30, 37, 0.9);
+  border: 1px solid var(--glass-edge);
+  border-bottom: 0;
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(1.2);
+  color: var(--ink);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
+  animation: scenes-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.scenes-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.scenes-head h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.scenes-close {
   appearance: none;
   border: 0;
+  width: 40px;
+  height: 40px;
+  margin-right: -8px;
+  border-radius: 999px;
   background: transparent;
   color: var(--ink);
-  min-height: 34px;
-  padding: 0 13px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  opacity: 0.75;
-  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
-.mode button[aria-pressed="true"] { background: var(--accent); color: #2a2016; opacity: 1; }
-.mode button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-#ui.drawing .mode, #ui.typing .mode { opacity: 0; pointer-events: none; }
+.scenes-close:active { background: rgba(255, 255, 255, 0.12); }
+.scenes-close:focus-visible { outline: 2px solid var(--accent); }
+.scenes-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+
+.scenes-group + .scenes-group { margin-top: 14px; }
+.scenes-group-head { display: flex; align-items: baseline; gap: 10px; margin: 8px 2px 10px; }
+.scenes-group-head h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.scenes-group-head p { margin: 0; font-size: 13px; opacity: 0.65; }
+
+.scenes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+@media (max-width: 340px) { .scenes-grid { grid-template-columns: 1fr 1fr; gap: 8px; } }
+.scene-tile {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 6px 6px 9px;
+  border-radius: 16px;
+  border: 1.5px solid transparent;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.scene-tile:active { background: rgba(255, 255, 255, 0.12); }
+.scene-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.scene-tile[aria-current="true"] { border-color: var(--accent); background: rgba(255, 217, 168, 0.12); }
+.scene-thumb {
+  display: block;
+  aspect-ratio: 5 / 4;
+  margin-bottom: 5px;
+  border-radius: 11px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03));
+}
+.scene-thumb canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+.scene-name { padding: 0 3px; font-size: 14.5px; font-weight: 600; }
+.scene-blurb { padding: 0 3px; font-size: 12px; line-height: 1.3; opacity: 0.65; }
+
+@media (min-width: 700px) {
+  .scenes-backdrop { background: rgba(8, 12, 16, 0.2); }
+  .scenes-panel {
+    left: auto;
+    bottom: auto;
+    top: calc(env(safe-area-inset-top) + 62px);
+    right: calc(env(safe-area-inset-right) + 12px);
+    width: min(600px, calc(100vw - 24px));
+    max-height: calc(100vh - 150px);
+    max-height: calc(100dvh - 150px);
+    border-radius: 20px;
+    border-bottom: 1px solid var(--glass-edge);
+    padding: 14px 16px 18px;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4);
+    animation: scenes-drop 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .scenes-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@keyframes scenes-fade { from { opacity: 0; } }
+@keyframes scenes-up { from { transform: translateY(40px); opacity: 0; } }
+@keyframes scenes-drop { from { transform: translateY(-8px); opacity: 0; } }
 
 .toolbar {
   position: absolute;
@@ -143,6 +273,7 @@ html, body {
 /* Get out of the way while the user is thinking with their finger. */
 #ui.drawing .toolbar { opacity: 0.12; transform: translateX(-50%) translateY(6px); pointer-events: none; }
 #ui.drawing .wordmark { opacity: 0; }
+#ui.choosing .toolbar { opacity: 0; pointer-events: none; }
 
 #toast {
   position: absolute;
@@ -163,7 +294,7 @@ html, body {
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* Six buttons on a phone: tighten up so the bar never runs off the edges. Hold shows its
+/* Five or six buttons on a phone: tighten up so the bar never runs off the edges. Hold shows its
    state by colour, so its label is the first to go; the clear label goes next. */
 @media (max-width: 440px) {
   #btn-hold .label { display: none; }
@@ -266,6 +397,7 @@ html, body {
 @keyframes caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .toolbar, #toast, .wordmark, .mode { transition: none; }
+  .toolbar, #toast, .wordmark, .scene-chip { transition: none; }
+  .scenes-panel, .scenes-backdrop { animation: none; }
   #type-spot.show { animation: none; opacity: 1; }
 }

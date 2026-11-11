@@ -10,6 +10,7 @@
 //   export const myEnv = {
 //     id: 'waves',                 // stable id, used for saved settings
 //     name: 'Waves',               // shown in the UI
+//     blurb: 'Wet sand, …',        // optional: one short line under the name in the scene menu
 //     clearLabel: 'Big wave',      // label for the clear button
 //     clearIcon: 'M3 15c…',        // optional: SVG path d (24x24) for the clear button
 //     surface: 'Wet sand …',       // optional: aria-label for the canvas
@@ -38,7 +39,7 @@
 //
 // Environments come in two families, picked with the Fade / Release toggle: Fade surfaces
 // decay on their own; Release surfaces (fades: false) keep the drawing until you let it go.
-// The toolbar's environment button cycles through the active family in order.
+// The scene menu (top right) lists both families, in the order below.
 
 import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';

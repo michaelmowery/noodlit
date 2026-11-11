@@ -14,6 +14,7 @@ const RISE = 9;
 export const lantern = {
   id: 'lantern',
   name: 'Paper lantern',
+  blurb: 'Light it and let it rise',
   clearLabel: 'Light it',
   clearIcon: 'M8 4h8l1.5 12h-11L8 4zM9.5 16l.5 3h4l.5-3M12 19v2',
   surface: 'A paper sky lantern to draw on. Drag the handle up to light it and let it rise.',
