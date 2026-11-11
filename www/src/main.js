@@ -295,6 +295,8 @@ function useEnvironment(def, { announce = false } = {}) {
   canvas.setAttribute('aria-label', def.surface || `${def.name} drawing surface`);
   btnEnv.setAttribute('aria-label', `Surface: ${def.name}. Tap to change.`);
   btnEnv.hidden = environments.length < 2;
+  // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
+  btnSpeed.hidden = btnHold.hidden = def.fades === false;
   store.set('env', def.id);
   if (announce) showToast(def.name);
   wake();
