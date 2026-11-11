@@ -12,6 +12,7 @@ const MAX_DRIPS = 40;
 export const showerDoor = {
   id: 'shower-door',
   name: 'Shower door',
+  surface: 'Fogged glass drawing surface',
   clearLabel: 'Steam up',
   create: () => new ShowerDoor(),
 };
