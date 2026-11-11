@@ -79,6 +79,7 @@ html, body {
   cursor: pointer;
   transition: background 0.2s ease;
 }
+.toolbar button.icon-only { padding: 0 12px; }
 .toolbar button:active { background: rgba(255, 255, 255, 0.14); }
 .toolbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .toolbar button[aria-pressed="true"] { background: rgba(255, 217, 168, 0.22); color: var(--accent); }

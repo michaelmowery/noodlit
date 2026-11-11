@@ -11,6 +11,8 @@
 //     id: 'waves',                 // stable id, used for saved settings
 //     name: 'Waves',               // shown in the UI
 //     clearLabel: 'Big wave',      // label for the clear button
+//     clearIcon: 'M3 15c…',        // optional: SVG path d (24x24) for the clear button
+//     surface: 'Wet sand …',       // optional: aria-label for the canvas
 //     create: () => instance,      // returns an object with the methods below
 //   };
 //
@@ -26,12 +28,13 @@
 //   instance.intro?(text)                     // optional: pre-draw a hint on first launch
 //   instance.dispose?()
 //
-// Planned: waves (strokes in wet sand, washed by incoming surf), sand (wind drift),
-// snow (fresh snowfall fills the marks), frost, chalkboard rain.
+// The toolbar's environment button cycles through `environments` in order.
+// Planned: sand (wind drift), snow (fresh snowfall fills the marks), whiteboard.
 
 import { showerDoor } from './shower-door.js';
+import { waves } from './waves.js';
 
-export const environments = [showerDoor];
+export const environments = [showerDoor, waves];
 
 export function getEnvironment(id) {
   return environments.find((e) => e.id === id) || environments[0];
