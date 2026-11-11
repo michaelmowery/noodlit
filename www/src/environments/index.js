@@ -27,6 +27,11 @@
 //   instance.setPaused(bool)                  // freeze decay ("hold this thought")
 //   instance.intro?(text, { at })             // optional: pre-draw a hint/prompt; `at` = vertical
 //                                             //   centre as a fraction of height (env default if omitted)
+//   instance.setDraft?(text, { x, y } | { at })  // optional: typed text, held at full strength
+//   instance.nextDraft?()                     //   while typing; nextDraft starts another block,
+//   instance.commitDraft?()                   //   commitDraft lets them all fade. Most of this
+//                                             //   comes from draftMethods in lib/util.js; an env
+//                                             //   supplies stampText() and calls applyDrafts().
 //   instance.dispose?()
 //
 // The toolbar's environment button cycles through `environments` in order.

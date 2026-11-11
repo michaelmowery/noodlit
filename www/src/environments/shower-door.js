@@ -4,7 +4,7 @@
 //   Decay: condensation creeps back unevenly (thin edges first, then patches).
 //   Clear: a roll of steam sweeps up from the bottom and fogs the whole door.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
 
 const HOLD = 0.35;       // extra clarity above 1.0 = a short "fully clear" hold before fog returns
 const MAX_DRIPS = 40;
@@ -32,6 +32,7 @@ class ShowerDoor {
 
   // ---------------------------------------------------------------- setup
   resize({ width, height, dpr }) {
+    this.dropDraft();
     // Clarity map: one float per cell. Upscaled with bilinear smoothing at render time,
     // which gives wiped edges a natural softness for free.
     const cell = Math.max(2, Math.ceil(Math.sqrt((width * height) / 220000)));
@@ -195,6 +196,7 @@ class ShowerDoor {
         }
       }
     }
+    if (this.applyDrafts()) alive = true;
     const dripping = this.updateDrips(dt);
 
     if (this.clearing) {
@@ -279,43 +281,40 @@ class ShowerDoor {
   }
 
   // Pre-wipe a handwritten hint so the mechanic explains itself.
-  intro(text, { at } = {}) {
+  intro(text, opts = {}) {
+    const o = this.stampText(text, opts);
+    o.overlay.apply();
+    this.dripUnder(o);
+  }
+
+  // Typed text (see draftMethods): held fully wiped while typing, then left to fog over.
+  onCommit(blocks) { for (const b of blocks) this.dripUnder(b); }
+
+  dripUnder({ lay, place }) {
+    const { W } = this;
+    const span = place.align === 'center' ? [W * 0.3, W * 0.4] : [place.x, Math.min(lay.widest, W - place.x)];
+    for (let n = 0; n < 3; n++) this.spawnDrip(span[0] + Math.random() * span[1], place.y0 + (lay.lines.length - 0.6) * lay.lh);
+  }
+
+  stampText(text, opts) {
     const { mw, mh, cell, W, H, clarity } = this;
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
-    const lines = text.split('\n');
-    const family = '"Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif';
-    // Start from a comfortable size, then shrink so the widest line fits with side margins.
-    let size = Math.min(W * 0.15, 76);
-    g.font = `300 ${size}px ${family}`;
-    const widest = Math.max(...lines.map((ln) => g.measureText(ln).width)) + size * 0.14;
-    const maxWidth = W * 0.82;
-    if (widest > maxWidth) size *= maxWidth / widest;
-    g.font = `300 ${size}px ${family}`;
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.lineWidth = Math.max(2.5, size * 0.07);
-    g.lineCap = g.lineJoin = 'round';
+    const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * 0.15, 76) });
     g.fillStyle = g.strokeStyle = '#fff';
-    const block = (lines.length - 1) * size * 1.15;
-    const y0 = clamp(H * (at ?? 0.42) - block / 2, 56 + size * 0.6, H - 130 - block);
-    lines.forEach((ln, n) => {
-      g.fillText(ln, W / 2, y0 + n * size * 1.15);
-      g.strokeText(ln, W / 2, y0 + n * size * 1.15);
-    });
+    drawText(g, lay, place, Math.max(2.5, lay.size * 0.07));
     const px = g.getImageData(0, 0, mw, mh).data;
+    const overlay = new TextOverlay();
     // Light 3x3 blur so the low-res raster gets the same soft edge as a finger wipe.
     for (let j = 1; j < mh - 1; j++) {
       for (let i = 1; i < mw - 1; i++) {
         let sum = 0;
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) sum += px[((j + dy) * mw + i + dx) * 4 + 3];
-        const k = j * mw + i;
         const v = smoothstep(0.15, 0.75, sum / (9 * 255)) * (1 + HOLD * 1.6);
-        if (v > clarity[k]) clarity[k] = v;
+        if (v > 0) overlay.put(clarity, j * mw + i, v);
       }
     }
-    // A couple of drips under the writing for life.
-    for (let n = 0; n < 3; n++) this.spawnDrip(W * (0.3 + Math.random() * 0.4), y0 + (lines.length - 0.6) * size * 1.15);
+    return { overlay, lay, place };
   }
 }
 
@@ -426,3 +425,5 @@ function paintFog(backdrop, W, H, dpr) {
   }
   return c;
 }
+
+Object.assign(ShowerDoor.prototype, draftMethods);

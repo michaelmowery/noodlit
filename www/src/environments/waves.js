@@ -6,7 +6,7 @@
 //          so marks near the water go first and marks further up the beach linger.
 //   Clear: one big wave runs up past the bottom of the screen and leaves the beach smooth.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
 
 const HOLD = 0.35;          // extra depth above 1.0 = a short "fully crisp" hold before slumping
 const RIPPLE = 1.9;         // berm reach, as a multiple of groove radius
@@ -37,6 +37,7 @@ class Waves {
 
   // ---------------------------------------------------------------- setup
   resize({ width, height, dpr }) {
+    this.dropDraft();
     const cell = Math.max(2, Math.ceil(Math.sqrt((width * height) / 220000)));
     const mw = Math.ceil(width / cell) + 1;
     const mh = Math.ceil(height / cell) + 1;
@@ -213,6 +214,8 @@ class Waves {
       berm[k] = b > r * 1.25 ? b - r * 1.25 : 0;
     }
 
+    if (this.hasDrafts()) content = true;
+
     // Waves only come while there is something on the sand (and the user isn't holding).
     if (!this.wave && content && !this.paused) {
       this.nextWave -= dt;
@@ -251,6 +254,8 @@ class Waves {
       if (w.big && p >= 0.999 && !w.cleared) { groove.fill(0); berm.fill(0); w.cleared = true; }
       if (w.t >= w.rise + w.hold + w.fall) this.wave = null;
     }
+
+    this.applyDrafts();
 
     // The wet line follows the water up and dries back slowly behind it.
     const rest = this.restY();
@@ -364,30 +369,21 @@ class Waves {
   }
 
   // Pre-carve a handwritten hint so the mechanic explains itself.
-  intro(text, { at } = {}) {
+  intro(text, opts = {}) {
+    this.stampText(text, opts).overlay.apply();
+  }
+
+  // Typed text (see draftMethods) is held crisp, even under the swash, until typing is done.
+
+  stampText(text, opts) {
     const { mw, mh, cell, W, H, groove, berm } = this;
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
-    const lines = text.split('\n');
-    const family = '"Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif';
-    let size = Math.min(W * 0.15, 76);
-    g.font = `300 ${size}px ${family}`;
-    const widest = Math.max(...lines.map((ln) => g.measureText(ln).width)) + size * 0.14;
-    const maxWidth = W * 0.82;
-    if (widest > maxWidth) size *= maxWidth / widest;
-    g.font = `300 ${size}px ${family}`;
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.lineWidth = Math.max(2.5, size * 0.07);
-    g.lineCap = g.lineJoin = 'round';
+    const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * 0.15, 76), defaultAt: 0.46 });
     g.fillStyle = g.strokeStyle = '#fff';
-    const block = (lines.length - 1) * size * 1.15;
-    const y0 = clamp(H * (at ?? 0.46) - block / 2, 56 + size * 0.6, H - 130 - block);
-    lines.forEach((ln, n) => {
-      g.fillText(ln, W / 2, y0 + n * size * 1.15);
-      g.strokeText(ln, W / 2, y0 + n * size * 1.15);
-    });
+    drawText(g, lay, place, Math.max(2.5, lay.size * 0.07));
     const px = g.getImageData(0, 0, mw, mh).data;
+    const overlay = new TextOverlay();
     const R = 2;
     for (let j = R; j < mh - R; j++) {
       for (let i = R; i < mw - R; i++) {
@@ -402,10 +398,11 @@ class Waves {
         const k = j * mw + i;
         const gv = smoothstep(0.15, 0.75, near / (9 * 255)) * (1 + HOLD * 1.6);
         const bv = smoothstep(0.05, 0.4, wide / (25 * 255)) * (1 + HOLD);
-        if (gv > groove[k]) groove[k] = gv;
-        if (bv > berm[k]) berm[k] = bv;
+        if (gv > 0) overlay.put(groove, k, gv);
+        if (bv > 0) overlay.put(berm, k, bv);
       }
     }
+    return { overlay, lay, place };
   }
 
   dispose() {
@@ -464,3 +461,5 @@ function paintSand(W, H, dpr, rest) {
   g.fillRect(0, 0, W, H);
   return c;
 }
+
+Object.assign(Waves.prototype, draftMethods);

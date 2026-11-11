@@ -6,7 +6,7 @@
 //          shallow edges first, until the field is smooth again. Hold stops the snowfall.
 //   Clear: a short squall blows through and lays a fresh blanket from the top down.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
 
 const HOLD = 0.35;        // extra depth above 1.0 = a short "freshly pressed" hold before filling starts
 const RIM = 0.22;         // height of the ridge of displaced snow beside a groove (as a fraction of depth)
@@ -43,6 +43,7 @@ class Snow {
 
   // ---------------------------------------------------------------- setup
   resize({ width, height, dpr }) {
+    this.dropDraft();
     // Depth map: one float per cell. Positive = pressed in, negative = pushed up.
     // Upscaled with bilinear smoothing at render time, which keeps groove edges soft.
     const cell = Math.max(2, Math.ceil(Math.sqrt((width * height) / 220000)));
@@ -210,6 +211,7 @@ class Snow {
     } else {
       for (let i = 0; i < depth.length; i++) if (depth[i] !== 0) { alive = true; break; }
     }
+    if (this.applyDrafts()) alive = true;
     this.filling = alive;
 
     if (this.clearing) {
@@ -303,30 +305,23 @@ class Snow {
   }
 
   // Pre-press a handwritten hint so the mechanic explains itself.
-  intro(text, { at } = {}) {
+  intro(text, opts = {}) {
+    this.stampText(text, opts).overlay.apply();
+    this.filling = true;
+  }
+
+  // Typed text (see draftMethods) stays freshly pressed while typing, then the snowfall buries it.
+  onDraftChange() { this.filling = true; }
+
+  stampText(text, opts) {
     const { mw, mh, cell, W, H, depth } = this;
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
-    const lines = text.split('\n');
-    const family = '"Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif';
-    let size = Math.min(W * 0.15, 76);
-    g.font = `300 ${size}px ${family}`;
-    const widest = Math.max(...lines.map((ln) => g.measureText(ln).width)) + size * 0.14;
-    const maxWidth = W * 0.82;
-    if (widest > maxWidth) size *= maxWidth / widest;
-    g.font = `300 ${size}px ${family}`;
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.lineWidth = Math.max(2.5, size * 0.07);
-    g.lineCap = g.lineJoin = 'round';
+    const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * 0.15, 76) });
     g.fillStyle = g.strokeStyle = '#fff';
-    const block = (lines.length - 1) * size * 1.15;
-    const y0 = clamp(H * (at ?? 0.42) - block / 2, 56 + size * 0.6, H - 130 - block);
-    lines.forEach((ln, n) => {
-      g.fillText(ln, W / 2, y0 + n * size * 1.15);
-      g.strokeText(ln, W / 2, y0 + n * size * 1.15);
-    });
+    drawText(g, lay, place, Math.max(2.5, lay.size * 0.07));
     const px = g.getImageData(0, 0, mw, mh).data;
+    const overlay = new TextOverlay();
     // 3x3 blur rounds the trench profile so the lighting reads as pressed snow.
     for (let j = 1; j < mh - 1; j++) {
       for (let i = 1; i < mw - 1; i++) {
@@ -334,10 +329,10 @@ class Snow {
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) sum += px[((j + dy) * mw + i + dx) * 4 + 3];
         const kk = j * mw + i;
         const v = smoothstep(0.1, 0.8, sum / (9 * 255)) * (1 + HOLD * 1.6) * this.grain[kk];
-        if (v > depth[kk]) depth[kk] = v;
+        if (v > 0) overlay.put(depth, kk, v);
       }
     }
-    this.filling = true;
+    return { overlay, lay, place };
   }
 }
 
@@ -430,3 +425,5 @@ function paintFlake() {
   g.fillRect(0, 0, s, s);
   return c;
 }
+
+Object.assign(Snow.prototype, draftMethods);
