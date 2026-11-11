@@ -282,14 +282,20 @@ class ShowerDoor {
     const { mw, mh, cell, W, H, clarity } = this;
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
-    const size = Math.min(W * 0.15, 76);
-    g.font = `300 ${size}px "Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif`;
+    const lines = text.split('\n');
+    const family = '"Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif';
+    // Start from a comfortable size, then shrink so the widest line fits with side margins.
+    let size = Math.min(W * 0.15, 76);
+    g.font = `300 ${size}px ${family}`;
+    const widest = Math.max(...lines.map((ln) => g.measureText(ln).width)) + size * 0.14;
+    const maxWidth = W * 0.82;
+    if (widest > maxWidth) size *= maxWidth / widest;
+    g.font = `300 ${size}px ${family}`;
     g.textAlign = 'center';
     g.textBaseline = 'middle';
-    g.lineWidth = Math.max(4, size * 0.07);
+    g.lineWidth = Math.max(2.5, size * 0.07);
     g.lineCap = g.lineJoin = 'round';
     g.fillStyle = g.strokeStyle = '#fff';
-    const lines = text.split('\n');
     const y0 = H * 0.42 - ((lines.length - 1) * size * 1.15) / 2;
     lines.forEach((ln, n) => {
       g.fillText(ln, W / 2, y0 + n * size * 1.15);
