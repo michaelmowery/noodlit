@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Noodlit</title>
+  <meta name="description" content="A fading scratchpad for getting ideas out of your head.">
+  <meta name="theme-color" content="#1b242b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Noodlit">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="stage" aria-label="Fogged glass drawing surface"></canvas>
+
+  <div id="ui">
+    <div class="wordmark" aria-hidden="true">noodlit</div>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <nav class="toolbar" aria-label="Controls">
+      <button id="btn-speed" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg>
+        <span class="label">Flow</span>
+      </button>
+      <button id="btn-hold" type="button" aria-pressed="false" aria-label="Hold: pause the fade">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>
+        <span class="label">Hold</span>
+      </button>
+      <button id="btn-clear" type="button" aria-label="Clear the glass">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .6-7.96A6 6 0 0 0 6.2 10 4 4 0 0 0 7 18z"/></svg>
+        <span class="label">Steam up</span>
+      </button>
+    </nav>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

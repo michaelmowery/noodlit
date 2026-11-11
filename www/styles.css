@@ -1,0 +1,125 @@
+:root {
+  --ink: #eef3f6;
+  --glass: rgba(18, 26, 32, 0.42);
+  --glass-edge: rgba(255, 255, 255, 0.16);
+  --accent: #ffd9a8;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #1b242b;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  font-family: ui-rounded, "SF Pro Rounded", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: block;
+  touch-action: none;
+}
+
+#ui { position: fixed; inset: 0; pointer-events: none; }
+
+.wordmark {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 14px);
+  left: calc(env(safe-area-inset-left) + 18px);
+  color: rgba(40, 52, 60, 0.42);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: opacity 0.4s ease;
+}
+
+.toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 18px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  pointer-events: auto;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.toolbar button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 16px 0 13px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.toolbar button:active { background: rgba(255, 255, 255, 0.14); }
+.toolbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.toolbar button[aria-pressed="true"] { background: rgba(255, 217, 168, 0.22); color: var(--accent); }
+
+.toolbar svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Get out of the way while the user is thinking with their finger. */
+#ui.drawing .toolbar { opacity: 0.12; transform: translateX(-50%) translateY(6px); pointer-events: none; }
+#ui.drawing .wordmark { opacity: 0; }
+
+#toast {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+  transform: translate(-50%, 8px);
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  color: var(--ink);
+  font-size: 14px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 360px) {
+  .toolbar button { padding: 0 12px 0 10px; font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toolbar, #toast, .wordmark { transition: none; }
+}

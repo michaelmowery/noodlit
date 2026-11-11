@@ -1,0 +1,18 @@
+{
+  "name": "Noodlit",
+  "short_name": "Noodlit",
+  "description": "A fading scratchpad for getting ideas out of your head.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1b242b",
+  "theme_color": "#1b242b",
+  "categories": ["productivity", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
