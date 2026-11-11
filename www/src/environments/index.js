@@ -30,8 +30,9 @@
 // snow (fresh snowfall fills the marks), frost, chalkboard rain.
 
 import { showerDoor } from './shower-door.js';
+import { snow } from './snow.js';
 
-export const environments = [showerDoor];
+export const environments = [showerDoor, snow];
 
 export function getEnvironment(id) {
   return environments.find((e) => e.id === id) || environments[0];
