@@ -32,11 +32,10 @@
 
 import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';
-import { sand } from './sand.js';
 import { snow } from './snow.js';
 import { whiteboard } from './whiteboard.js';
 
-export const environments = [showerDoor, waves, sand, snow, whiteboard];
+export const environments = [showerDoor, waves, snow, whiteboard];
 
 export function getEnvironment(id) {
   return environments.find((e) => e.id === id) || environments[0];
