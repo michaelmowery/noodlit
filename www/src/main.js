@@ -52,6 +52,10 @@ const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
 const btnEnv = document.getElementById('btn-env');
 const btnPrompt = document.getElementById('btn-prompt');
+const btnType = document.getElementById('btn-type');
+const compose = document.getElementById('compose');
+const input = document.getElementById('compose-input');
+const typeSpot = document.getElementById('type-spot');
 const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
@@ -70,6 +74,7 @@ function resize() {
   canvas.width = Math.round(W * dpr);
   canvas.height = Math.round(H * dpr);
   env.resize({ width: W, height: H, dpr });
+  if (typing) restampTyping();
   wake();
 }
 
@@ -102,6 +107,7 @@ const info = (e) => ({
 canvas.addEventListener('pointerdown', (e) => {
   if (e.button > 0) return;
   e.preventDefault();
+  if (typing) { moveTyping(e.clientX, e.clientY); return; }
   canvas.setPointerCapture?.(e.pointerId);
   pointers.add(e.pointerId);
   env.strokeStart(e.pointerId, e.clientX, e.clientY, info(e));
@@ -179,6 +185,99 @@ btnPrompt.addEventListener('click', () => {
   env.intro?.(pickPrompt(), { at: slot });
   notePrompt(slot);
   wake();
+});
+
+// ------------------------------------------------------------------ typing
+// Keyboard entry: words are written onto the surface in its own style as you type. They
+// stay at full strength while the keyboard is open (tap the surface to start another line
+// somewhere else) and all begin to fade together when you tap Done.
+let typing = null; // { x, y } or { at }, plus held: earlier blocks from this session
+
+function spotOpts() {
+  return typing.x != null ? { x: typing.x, y: typing.y } : { at: typing.at };
+}
+
+function startTyping(seed = '') {
+  if (typing) return;
+  typing = { at: 0.22, held: [] }; // upper part: the keyboard covers the bottom
+  ui.classList.add('typing');
+  compose.hidden = false;
+  input.value = seed;
+  input.focus({ preventScroll: true });
+  if (seed) input.setSelectionRange(seed.length, seed.length);
+  syncKeyboard();
+  updateDraft();
+}
+
+function updateDraft() {
+  autoGrow();
+  env.setDraft(input.value, spotOpts());
+  const empty = !input.value.trim();
+  typeSpot.classList.toggle('show', empty);
+  if (empty) {
+    typeSpot.style.left = `${typing.x ?? W / 2}px`;
+    typeSpot.style.top = `${typing.y ?? H * typing.at}px`;
+  }
+  wake();
+}
+
+// Tap while typing: start a new block there. What's already written stays put, still crisp.
+function moveTyping(x, y) {
+  if (input.value.trim()) {
+    typing.held.push({ text: input.value, opts: spotOpts() });
+    env.nextDraft();
+    input.value = '';
+  }
+  Object.assign(typing, { x, y });
+  updateDraft();
+  input.focus({ preventScroll: true });
+}
+
+function finishTyping() {
+  if (!typing) return;
+  env.commitDraft();
+  typing = null;
+  ui.classList.remove('typing');
+  compose.hidden = true;
+  typeSpot.classList.remove('show');
+  input.value = '';
+  input.blur();
+  wake();
+}
+
+// After a resize the environment rebuilds its maps, so write the open blocks again.
+function restampTyping() {
+  for (const b of typing.held) { env.setDraft(b.text, b.opts); env.nextDraft(); }
+  updateDraft();
+}
+
+function autoGrow() {
+  input.style.height = 'auto';
+  input.style.height = `${Math.min(input.scrollHeight, 112)}px`;
+}
+
+// Keep the compose bar sitting on top of the on-screen keyboard.
+function syncKeyboard() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  compose.style.setProperty('--kb', `${-covered}px`);
+}
+window.visualViewport?.addEventListener('resize', syncKeyboard);
+window.visualViewport?.addEventListener('scroll', syncKeyboard);
+
+btnType.addEventListener('click', () => startTyping());
+input.addEventListener('input', updateDraft);
+compose.addEventListener('submit', (e) => { e.preventDefault(); finishTyping(); });
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); finishTyping(); }
+});
+// With a hardware keyboard, just start typing.
+document.addEventListener('keydown', (e) => {
+  if (typing || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  if (e.key.length !== 1 || e.key === ' ' || e.target.closest?.('textarea, input')) return;
+  e.preventDefault();
+  startTyping(e.key);
 });
 
 // ------------------------------------------------------------------ environments

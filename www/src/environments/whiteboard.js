@@ -5,7 +5,7 @@
 //   Clear: a felt eraser sweeps the board in a few quick passes, leaving soft smudges
 //          that settle away like the ghosting on a real, well-used board.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from '../lib/util.js';
 
 const HOLD = 0.3;          // extra life above 1.0 = a short "fresh ink" hold before it starts to lift
 const GHOST = 0.13;        // opacity of the trace a stroke leaves behind
@@ -38,6 +38,7 @@ class Whiteboard {
 
   // ---------------------------------------------------------------- setup
   resize({ width, height, dpr }) {
+    this.dropDraft();
     // Two low-res maps drive the decay: `life` (fresh ink) and `ghost` (the trace left
     // behind). The full-res `ink` canvas only holds the shape of everything drawn.
     const cell = Math.max(1, Math.ceil(Math.sqrt((width * height) / 300000)));
@@ -185,6 +186,7 @@ class Whiteboard {
       for (let i = 0; i < life.length; i++) if (life[i] > 0 || ghost[i] > 0) { alive = true; break; }
     }
 
+    if (this.applyDrafts()) alive = true;
     if (this.clearing) this.updateEraser(dt);
 
     // Nothing left anywhere: drop the ink shapes so old lines can't resurface later.
@@ -316,48 +318,73 @@ class Whiteboard {
   }
 
   // Pre-write a hint in marker so the mechanic explains itself.
-  intro(text, { at } = {}) {
-    const { mw, mh, cell, W, H, life, ghost } = this;
-    const lines = text.split('\n');
-    const family = '"Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif';
-    const lay = (g) => {
-      let size = Math.min(W * 0.14, 68);
-      g.font = `400 ${size}px ${family}`;
-      const widest = Math.max(...lines.map((ln) => g.measureText(ln).width));
-      if (widest > W * 0.8) size *= (W * 0.8) / widest;
-      g.font = `400 ${size}px ${family}`;
-      g.textAlign = 'center';
-      g.textBaseline = 'middle';
-      g.lineWidth = Math.max(1.5, size * 0.035);
-      g.lineJoin = 'round';
-      const block = (lines.length - 1) * size * 1.15;
-      const y0 = clamp(H * (at ?? 0.42) - block / 2, 56 + size * 0.6, H - 130 - block);
-      lines.forEach((ln, n) => {
-        g.fillText(ln, W / 2, y0 + n * size * 1.15);
-        g.strokeText(ln, W / 2, y0 + n * size * 1.15);
-      });
-    };
-    // The ink itself, at full resolution.
+  intro(text, opts = {}) {
+    this.stampText(text, opts).overlay.apply();
+    this.inked = true;
+  }
+
+  // Typed text (see draftMethods): fresh ink while typing, then it dries and lifts like
+  // any line. The ink canvas only ever grows, so keep a copy of it from before typing
+  // started and redraw the typed blocks on top of it whenever one changes.
+  onDraftChange() {
+    if (!this.inkBase) {
+      this.inkBase = makeCanvas(this.ink.width, this.ink.height);
+      this.inkBase.getContext('2d').drawImage(this.ink, 0, 0);
+    }
+    this.restoreInk();
+    for (const d of [...(this.held || []), ...(this.draft ? [this.draft] : [])]) this.inkText(d);
+    if (this.hasDrafts()) this.inked = true;
+  }
+
+  onCommit() { this.inkBase = null; }
+
+  onDrop() {
+    if (this.inkBase) this.restoreInk();
+    this.inkBase = null;
+  }
+
+  restoreInk() {
+    const g = this.inkCtx;
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = 'copy';
+    g.drawImage(this.inkBase, 0, 0);
+    g.restore();
+  }
+
+  inkText({ lay, place }) {
     const ig = this.inkCtx;
-    ig.save(); lay(ig); ig.restore();
-    ig.lineCap = ig.lineJoin = 'round';
+    ig.save();
+    ig.font = `400 ${lay.size}px ${HAND}`;
+    drawText(ig, lay, place, Math.max(1.5, lay.size * 0.035));
+    ig.restore();
+  }
+
+  stampText(text, opts) {
+    const { mw, mh, cell, W, H, life, ghost } = this;
+    const style = { W, H, size: Math.min(W * 0.14, 68), maxFrac: 0.8, weight: 400, pad: 0 };
+    const { lay, place } = layoutFor(this.inkCtx, text, opts, style);
+    // The ink itself, at full resolution (typed drafts are inked in onDraftChange).
+    if (!opts.typed) this.inkText({ lay, place });
     // And its life, on the low-res map (dilated a touch so the mask fully covers the ink).
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
     g.fillStyle = g.strokeStyle = '#fff';
-    lay(g);
+    g.font = `400 ${lay.size}px ${HAND}`;
+    drawText(g, lay, place, Math.max(1.5, lay.size * 0.035));
     const px = g.getImageData(0, 0, mw, mh).data;
+    const overlay = new TextOverlay();
     for (let j = 1; j < mh - 1; j++) {
       for (let i = 1; i < mw - 1; i++) {
         let m = 0;
         for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) m = Math.max(m, px[((j + dy) * mw + i + dx) * 4 + 3]);
         if (m < 20) continue;
         const k = j * mw + i;
-        life[k] = Math.max(life[k], 1 + HOLD * 1.6);
-        ghost[k] = Math.max(ghost[k], GHOST);
+        overlay.put(life, k, 1 + HOLD * 1.6);
+        overlay.put(ghost, k, GHOST);
       }
     }
-    this.inked = true;
+    return { overlay, lay, place };
   }
 }
 
@@ -449,3 +476,5 @@ function paintGrain() {
   g.putImageData(img, 0, 0);
   return c;
 }
+
+Object.assign(Whiteboard.prototype, draftMethods);
