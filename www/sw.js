@@ -10,6 +10,7 @@ const SHELL = [
   './src/environments/index.js',
   './src/environments/shower-door.js',
   './src/environments/snow.js',
+  './src/environments/waves.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
