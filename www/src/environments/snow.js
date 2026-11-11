@@ -20,6 +20,7 @@ const LIGHT = [255, 255, 255];    // lit wall
 export const snow = {
   id: 'snow',
   name: 'Snow',
+  blurb: 'Fresh snow fills in the grooves',
   clearLabel: 'Fresh snow',
   clearIcon: 'M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9M9.5 4.5 12 7l2.5-2.5M9.5 19.5 12 17l2.5 2.5',
   surface: 'Snowfield drawing surface',

@@ -20,6 +20,7 @@ const WASH_UP = 0.9;
 export const stream = {
   id: 'stream',
   name: 'Stream',
+  blurb: 'Float it off downstream',
   clearLabel: 'Let it go',
   clearIcon: 'M5 12h11M12 7l5 5-5 5M20 5v14',
   surface: 'Driftwood drawing surface beside a stream. Drag the handle into the water to let it go.',

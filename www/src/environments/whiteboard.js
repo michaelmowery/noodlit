@@ -16,6 +16,7 @@ const INK = '#1f2d55';
 export const whiteboard = {
   id: 'whiteboard',
   name: 'Whiteboard',
+  blurb: 'Marker that dries and lifts away',
   clearLabel: 'Erase',
   clearIcon: 'M4 15l7-7a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L13 18H7zM9 10l5 5M13 18h7',
   surface: 'Whiteboard drawing surface',

@@ -15,6 +15,7 @@ const DRIFT = 8;
 export const bottle = {
   id: 'bottle',
   name: 'Message in a bottle',
+  blurb: 'Cast it out to sea',
   clearLabel: 'Cast it off',
   clearIcon: 'M10 3h4v3l1.5 2.5V20a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8.5L10 6V3zM8.5 12h7',
   surface: 'A parchment note on a beach. Drag the handle up to put it in a bottle and cast it out to sea.',

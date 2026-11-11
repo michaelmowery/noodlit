@@ -14,6 +14,7 @@ const RIPPLE = 1.9;         // berm reach, as a multiple of groove radius
 export const waves = {
   id: 'waves',
   name: 'Waves',
+  blurb: 'Wet sand, smoothed by the tide',
   surface: 'Wet sand drawing surface',
   clearLabel: 'Big wave',
   clearIcon: 'M3 15c2.5 0 3-3 6-3s3.5 3 6 3 3.5-3 6-3M3 19c2.5 0 3-3 6-3s3.5 3 6 3 3.5-3 6-3M6 9c1.5-3 4-4.5 6.5-4.5 2 0 3.5 1 4.5 2.5',

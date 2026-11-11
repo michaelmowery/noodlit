@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environments, environmentsFor, modeOf, getEnvironment } from './environments/index.js';
+import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 
 const SPEEDS = [
   { id: 'drift', label: 'Drift', seconds: 45, hint: 'Slow fade · about 45 seconds' },
@@ -50,7 +50,11 @@ const ui = document.getElementById('ui');
 const btnSpeed = document.getElementById('btn-speed');
 const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
-const btnEnv = document.getElementById('btn-env');
+const btnScene = document.getElementById('btn-scene');
+const sceneMode = document.getElementById('scene-mode');
+const sceneName = document.getElementById('scene-name');
+const scenes = document.getElementById('scenes');
+const scenesBody = document.getElementById('scenes-body');
 const btnPrompt = document.getElementById('btn-prompt');
 const btnType = document.getElementById('btn-type');
 const compose = document.getElementById('compose');
@@ -59,7 +63,6 @@ const typeSpot = document.getElementById('type-spot');
 const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
-const modeButtons = [...document.querySelectorAll('#mode button')];
 
 let envDef, env;
 let speedIndex = Math.max(0, SPEEDS.findIndex((s) => s.id === store.get('speed', 'flow')));
@@ -275,7 +278,7 @@ input.addEventListener('keydown', (e) => {
 });
 // With a hardware keyboard, just start typing.
 document.addEventListener('keydown', (e) => {
-  if (typing || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  if (typing || !scenes.hidden || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
   if (e.key.length !== 1 || e.key === ' ' || e.target.closest?.('textarea, input')) return;
   e.preventDefault();
   startTyping(e.key);
@@ -294,14 +297,13 @@ function useEnvironment(def, { announce = false } = {}) {
   btnClear.setAttribute('aria-label', def.clearLabel);
   clearIcon.setAttribute('d', def.clearIcon || defaultClearIcon);
   canvas.setAttribute('aria-label', def.surface || `${def.name} drawing surface`);
-  btnEnv.setAttribute('aria-label', `Surface: ${def.name}. Tap to change.`);
   const mode = modeOf(def);
-  btnEnv.hidden = environmentsFor(mode).length < 2;
-  for (const b of modeButtons) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
+  sceneMode.textContent = MODES[mode].label;
+  sceneName.textContent = def.name;
+  btnScene.setAttribute('aria-label', `Scene: ${def.name}, ${MODES[mode].label}. Choose a scene.`);
   // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
   btnSpeed.hidden = btnHold.hidden = mode === 'release';
   store.set('env', def.id);
-  store.set('env.' + mode, def.id); // so the toggle comes back to the surface you left
   if (announce) showToast(def.name);
   wake();
 }
@@ -315,23 +317,121 @@ function switchTo(def) {
   wake();
 }
 
-// The surface button cycles within the current family (Fade or Release).
-btnEnv.addEventListener('click', () => {
-  const group = environmentsFor(modeOf(envDef));
-  switchTo(group[(group.indexOf(envDef) + 1) % group.length]);
-});
+// ------------------------------------------------------------------ scene menu
+// One obvious place to pick a scene: a chip in the top corner opens a menu of every
+// surface, grouped by family, each with a small live preview of how it looks.
+const MODES = {
+  fade: { label: 'Fade', hint: 'Disappears on its own' },
+  release: { label: 'Release', hint: 'Stays until you let it go' },
+};
 
-// Fade / Release toggle: jump to the last surface you used in the other family.
-for (const b of modeButtons) {
-  b.addEventListener('click', () => {
-    const mode = b.dataset.mode;
-    if (mode === modeOf(envDef)) return;
+let lastFocus = null;
+function buildScenes() {
+  scenesBody.textContent = '';
+  for (const mode of Object.keys(MODES)) {
     const group = environmentsFor(mode);
-    if (!group.length) return;
-    const def = group.find((e) => e.id === store.get('env.' + mode, null)) || group[0];
-    switchTo(def);
+    if (!group.length) continue;
+    const section = document.createElement('section');
+    section.className = 'scenes-group';
+    const head = document.createElement('div');
+    head.className = 'scenes-group-head';
+    head.innerHTML = `<h3>${MODES[mode].label}</h3><p>${MODES[mode].hint}</p>`;
+    const grid = document.createElement('div');
+    grid.className = 'scenes-grid';
+    for (const def of group) {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'scene-tile';
+      tile.dataset.id = def.id;
+      const thumb = document.createElement('span');
+      thumb.className = 'scene-thumb';
+      thumb.dataset.id = def.id;
+      const name = document.createElement('span');
+      name.className = 'scene-name';
+      name.textContent = def.name;
+      tile.append(thumb, name);
+      if (def.blurb) {
+        const blurb = document.createElement('span');
+        blurb.className = 'scene-blurb';
+        blurb.textContent = def.blurb;
+        tile.append(blurb);
+      }
+      tile.addEventListener('click', () => {
+        closeScenes();
+        if (def !== envDef) switchTo(def);
+      });
+      grid.append(tile);
+    }
+    section.append(head, grid);
+    scenesBody.append(section);
+  }
+}
+
+// Previews: run each scene off-screen at a small phone-ish size with a scribble on it.
+// Rendered once, the first time the menu opens, so it costs nothing until then.
+const THUMB = 360; // CSS px; square, then cropped a little by the tile
+const thumbs = new Map();
+function renderThumb(def) {
+  if (thumbs.has(def.id)) return thumbs.get(def.id);
+  const c = document.createElement('canvas');
+  c.width = c.height = THUMB;
+  try {
+    const e = def.create();
+    e.setFadeSeconds(600);
+    e.resize({ width: THUMB, height: THUMB, dpr: 1 });
+    // Release scenes only take ink on their sheet; fade scenes take it anywhere.
+    const r = e.rect || { x: THUMB * 0.1, y: THUMB * 0.2, w: THUMB * 0.8, h: THUMB * 0.6 };
+    const info = { pointerType: 'touch', pressure: 0.5, width: 0, time: 0 };
+    const at = (t) => [r.x + r.w * (0.2 + 0.6 * t), r.y + r.h * (0.55 - 0.18 * Math.sin(t * Math.PI * 2.2))];
+    e.strokeStart('t', ...at(0), info);
+    for (let i = 1; i <= 40; i++) e.strokeMove('t', ...at(i / 40), { ...info, time: i * 16 });
+    e.strokeEnd('t');
+    for (let i = 0; i < 4; i++) e.update(0.016);
+    e.render(c.getContext('2d'));
+    e.dispose?.();
+  } catch { /* leave it blank: the name still says what it is */ }
+  thumbs.set(def.id, c);
+  return c;
+}
+
+function syncScenes() {
+  for (const tile of scenesBody.querySelectorAll('.scene-tile')) {
+    const on = tile.dataset.id === envDef.id;
+    tile.setAttribute('aria-current', on ? 'true' : 'false');
+  }
+}
+
+function openScenes() {
+  if (typing) finishTyping();
+  if (!scenesBody.childElementCount) buildScenes();
+  syncScenes();
+  scenes.hidden = false;
+  btnScene.setAttribute('aria-expanded', 'true');
+  ui.classList.add('choosing');
+  lastFocus = document.activeElement;
+  (scenesBody.querySelector('[aria-current="true"]') || scenesBody.querySelector('button'))?.focus({ preventScroll: true });
+  // Fill in the previews just after the menu shows, so opening it never stutters.
+  requestAnimationFrame(() => {
+    for (const slot of scenesBody.querySelectorAll('.scene-thumb:empty')) {
+      const def = getEnvironment(slot.dataset.id);
+      slot.append(renderThumb(def));
+    }
   });
 }
+
+function closeScenes() {
+  if (scenes.hidden) return;
+  scenes.hidden = true;
+  btnScene.setAttribute('aria-expanded', 'false');
+  ui.classList.remove('choosing');
+  if (lastFocus && lastFocus !== document.body) lastFocus.focus?.({ preventScroll: true });
+}
+
+btnScene.addEventListener('click', () => (scenes.hidden ? openScenes() : closeScenes()));
+for (const el of scenes.querySelectorAll('[data-close]')) el.addEventListener('click', closeScenes);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !scenes.hidden) { e.preventDefault(); closeScenes(); }
+}, true);
 
 // ------------------------------------------------------------------ boot
 window.addEventListener('resize', resize);
