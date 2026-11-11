@@ -9,6 +9,7 @@ const SHELL = [
   './src/lib/util.js',
   './src/environments/index.js',
   './src/environments/shower-door.js',
+  './src/environments/whiteboard.js',
   './src/environments/waves.js',
   './src/environments/sand.js',
   './src/environments/snow.js',
