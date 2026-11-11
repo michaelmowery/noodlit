@@ -13,6 +13,8 @@
 //     clearLabel: 'Big wave',      // label for the clear button
 //     clearIcon: 'M3 15c…',        // optional: SVG path d (24x24) for the clear button
 //     surface: 'Wet sand …',       // optional: aria-label for the canvas
+//     fades: false,                // optional: a Release surface (nothing decays; clear() is the
+//                                  //   release), so the shell hides fade speed and Hold
 //     create: () => instance,      // returns an object with the methods below
 //   };
 //
@@ -40,8 +42,9 @@ import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';
 import { snow } from './snow.js';
 import { whiteboard } from './whiteboard.js';
+import { stream } from './stream.js';
 
-export const environments = [showerDoor, waves, snow, whiteboard];
+export const environments = [showerDoor, waves, snow, whiteboard, stream];
 
 export function getEnvironment(id) {
   return environments.find((e) => e.id === id) || environments[0];
