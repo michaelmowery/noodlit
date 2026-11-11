@@ -45,11 +45,12 @@ import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';
 import { snow } from './snow.js';
 import { whiteboard } from './whiteboard.js';
+import { windshield } from './windshield.js';
 import { stream } from './stream.js';
 import { lantern } from './lantern.js';
 import { bottle } from './bottle.js';
 
-export const environments = [showerDoor, waves, snow, whiteboard, stream, bottle, lantern];
+export const environments = [showerDoor, waves, snow, whiteboard, windshield, stream, bottle, lantern];
 
 export const modeOf = (env) => (env.fades === false ? 'release' : 'fade');
 

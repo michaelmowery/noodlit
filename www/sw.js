@@ -13,6 +13,7 @@ const SHELL = [
   './src/environments/waves.js',
   './src/environments/snow.js',
   './src/environments/whiteboard.js',
+  './src/environments/windshield.js',
   './src/environments/stream.js',
   './src/environments/lantern.js',
   './src/environments/bottle.js',
