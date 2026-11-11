@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { getEnvironment } from './environments/index.js';
+import { environments, getEnvironment } from './environments/index.js';
 
 const SPEEDS = [
   { id: 'drift', label: 'Drift', seconds: 45, hint: 'Slow fade · about 45 seconds' },
@@ -21,10 +21,12 @@ const ui = document.getElementById('ui');
 const btnSpeed = document.getElementById('btn-speed');
 const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
+const btnEnv = document.getElementById('btn-env');
+const clearIcon = document.getElementById('clear-icon');
+const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
 
-const envDef = getEnvironment(store.get('env', 'shower-door'));
-const env = envDef.create();
+let envDef, env;
 let speedIndex = Math.max(0, SPEEDS.findIndex((s) => s.id === store.get('speed', 'flow')));
 let held = false;
 
@@ -125,10 +127,35 @@ btnHold.addEventListener('click', () => {
   wake();
 });
 
-btnClear.querySelector('.label').textContent = envDef.clearLabel;
 btnClear.addEventListener('click', () => {
   env.clear();
   wake();
+});
+
+// ------------------------------------------------------------------ environments
+// Swap the active surface live. The shell keeps speed and Hold; the new env starts blank.
+function useEnvironment(def, { announce = false } = {}) {
+  env?.dispose?.();
+  envDef = def;
+  env = def.create();
+  env.setFadeSeconds(SPEEDS[speedIndex].seconds);
+  env.setPaused(held);
+  if (W) env.resize({ width: W, height: H, dpr });
+  btnClear.querySelector('.label').textContent = def.clearLabel;
+  btnClear.setAttribute('aria-label', def.clearLabel);
+  clearIcon.setAttribute('d', def.clearIcon || defaultClearIcon);
+  canvas.setAttribute('aria-label', def.surface || `${def.name} drawing surface`);
+  btnEnv.setAttribute('aria-label', `Surface: ${def.name}. Tap to change.`);
+  btnEnv.hidden = environments.length < 2;
+  store.set('env', def.id);
+  if (announce) showToast(def.name);
+  wake();
+}
+
+btnEnv.addEventListener('click', () => {
+  const next = environments[(environments.indexOf(envDef) + 1) % environments.length];
+  useEnvironment(next, { announce: true });
+  env.intro?.(INTROS[Math.floor(Math.random() * INTROS.length)]);
 });
 
 // ------------------------------------------------------------------ boot
@@ -136,6 +163,7 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
 
+useEnvironment(getEnvironment(store.get('env', 'shower-door')));
 applySpeed(false);
 resize();
 env.intro?.(INTROS[Math.floor(Math.random() * INTROS.length)]);
