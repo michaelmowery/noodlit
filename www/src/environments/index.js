@@ -31,9 +31,6 @@
 // The toolbar's environment button cycles through `environments` in order.
 
 import { showerDoor } from './shower-door.js';
-import { whiteboard } from './whiteboard.js';
-
-export const environments = [showerDoor, whiteboard];
 import { waves } from './waves.js';
 import { sand } from './sand.js';
 import { snow } from './snow.js';
