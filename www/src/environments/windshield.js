@@ -19,6 +19,7 @@ export const windshield = {
   id: 'windshield',
   name: 'Windshield',
   surface: 'Rainy windshield drawing surface',
+  blurb: 'Rain beads up, wipers clear it',
   clearLabel: 'Wipe',
   clearIcon: 'M3.5 18A10 10 0 0 1 20.5 18M12 20.5 6.5 6.5M11 20.5h2',
   create: () => new Windshield(),
