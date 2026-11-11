@@ -1,5 +1,5 @@
 // Offline app shell. Bump VERSION whenever any cached file changes.
-const VERSION = 'noodlit-v5';
+const VERSION = 'noodlit-v6';
 const SHELL = [
   './',
   './index.html',
@@ -10,6 +10,9 @@ const SHELL = [
   './src/environments/index.js',
   './src/environments/shower-door.js',
   './src/environments/waves.js',
+  './src/environments/sand.js',
+  './src/environments/snow.js',
+  './src/environments/whiteboard.js',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png',
