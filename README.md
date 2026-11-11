@@ -22,3 +22,9 @@ Create `src/environments/<name>.js` exporting `{ id, name, clearLabel, create }`
 ## App stores later
 `www/` is already the default Capacitor `webDir`: `npm i @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android`,
 `npx cap init Noodlit com.example.noodlit --web-dir www`, then `npx cap add ios` / `android`.
+
+## Release scenes
+Release surfaces (`fades: false`) don't decay; you let the drawing go. Stream is self-contained;
+Message in a bottle and Paper lantern build on `www/src/lib/release.js`, which handles the sheet,
+ink, typing, the drag handle and the hand-off. A new scene supplies its layout, background,
+sheet texture and how it carries the sheet away (see the header comment in release.js).
