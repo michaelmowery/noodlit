@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environments, getEnvironment } from './environments/index.js';
+import { environments, environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 
 const SPEEDS = [
   { id: 'drift', label: 'Drift', seconds: 45, hint: 'Slow fade · about 45 seconds' },
@@ -59,6 +59,7 @@ const typeSpot = document.getElementById('type-spot');
 const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
+const modeButtons = [...document.querySelectorAll('#mode button')];
 
 let envDef, env;
 let speedIndex = Math.max(0, SPEEDS.findIndex((s) => s.id === store.get('speed', 'flow')));
@@ -294,22 +295,43 @@ function useEnvironment(def, { announce = false } = {}) {
   clearIcon.setAttribute('d', def.clearIcon || defaultClearIcon);
   canvas.setAttribute('aria-label', def.surface || `${def.name} drawing surface`);
   btnEnv.setAttribute('aria-label', `Surface: ${def.name}. Tap to change.`);
-  btnEnv.hidden = environments.length < 2;
+  const mode = modeOf(def);
+  btnEnv.hidden = environmentsFor(mode).length < 2;
+  for (const b of modeButtons) b.setAttribute('aria-pressed', String(b.dataset.mode === mode));
   // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
-  btnSpeed.hidden = btnHold.hidden = def.fades === false;
+  btnSpeed.hidden = btnHold.hidden = mode === 'release';
   store.set('env', def.id);
+  store.set('env.' + mode, def.id); // so the toggle comes back to the surface you left
   if (announce) showToast(def.name);
   wake();
 }
 
-btnEnv.addEventListener('click', () => {
-  const next = environments[(environments.indexOf(envDef) + 1) % environments.length];
-  useEnvironment(next, { announce: true });
+function switchTo(def) {
+  if (typing) finishTyping();
+  useEnvironment(def, { announce: true });
   recentPrompts = [];
   env.intro?.(pickPrompt(INTROS));
   notePrompt(undefined);
   wake();
+}
+
+// The surface button cycles within the current family (Fade or Release).
+btnEnv.addEventListener('click', () => {
+  const group = environmentsFor(modeOf(envDef));
+  switchTo(group[(group.indexOf(envDef) + 1) % group.length]);
 });
+
+// Fade / Release toggle: jump to the last surface you used in the other family.
+for (const b of modeButtons) {
+  b.addEventListener('click', () => {
+    const mode = b.dataset.mode;
+    if (mode === modeOf(envDef)) return;
+    const group = environmentsFor(mode);
+    if (!group.length) return;
+    const def = group.find((e) => e.id === store.get('env.' + mode, null)) || group[0];
+    switchTo(def);
+  });
+}
 
 // ------------------------------------------------------------------ boot
 window.addEventListener('resize', resize);
