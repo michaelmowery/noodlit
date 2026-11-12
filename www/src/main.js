@@ -1,11 +1,12 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environmentsFor, modeOf, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
+import { environmentsFor, modeOf, isPlus, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
+import { track } from './analytics.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -401,6 +402,7 @@ btnDemo.addEventListener('click', () => {
   popBubble({ quiet: true });
   cancelAutoDemo();
   store.set('demoSeen.' + envDef.id, true);
+  track('showme/' + envDef.id, `Show me: ${envDef.name}`);
   demo.start();
 });
 // "Show me everything" in About: the full tour of the toolbar, on the scene that's showing.
@@ -412,6 +414,7 @@ window.addEventListener('noodlit:tour', () => {
   closeScenes();
   popBubble({ quiet: true });
   cancelAutoDemo();
+  track('showme-everything', 'Show me everything');
   demo.start('tour');
 });
 // Any touch, click or key takes the surface back (the Stop button handles itself).
@@ -443,7 +446,8 @@ function scheduleAutoDemo(def) {
     if (demo.running || typing) return;
     autoDemo.id = null;
     store.set('demoSeen.' + envDef.id, true);
-    if (firstVisit && !toured) { toured = true; demo.start('tour'); } else demo.start();
+    if (firstVisit && !toured) { toured = true; track('showme-everything/first-visit', 'Show me everything (first visit)'); demo.start('tour'); }
+    else { track('showme-auto/' + envDef.id, `Show me (first open): ${envDef.name}`); demo.start(); }
   };
   autoDemo.timer = setTimeout(fire, 900);
 }
@@ -793,6 +797,7 @@ function stepPrompt(dir) {
   if (dir < 0) { if (promptAt <= 0) return; promptAt--; }
   else if (promptAt < promptHistory.length - 1) promptAt++;
   else dealPrompt();
+  track(dir < 0 ? 'prompt/previous' : 'prompt/next', dir < 0 ? 'Prompt: previous' : 'Prompt: next');
   setBubbleText(bubble, true);
   sfx.cue('bloop');
 }
@@ -816,7 +821,7 @@ function showPromptBubble() {
     bit.style.setProperty('--a', `${i * 45 + 20}deg`);
     el.append(bit);
   }
-  el.querySelector('.prompt-close').addEventListener('click', () => { if (bubble === el) popBubble(); });
+  el.querySelector('.prompt-close').addEventListener('click', () => { if (bubble === el) { track('prompt/close', 'Prompt: closed'); popBubble(); } });
   el.querySelector('.prompt-prev').addEventListener('click', () => { if (bubble === el) stepPrompt(-1); });
   el.querySelector('.prompt-next').addEventListener('click', () => { if (bubble === el) stepPrompt(1); });
   setBubbleText(el, false);
@@ -830,6 +835,7 @@ btnPrompt.addEventListener('click', () => {
   if (typing) finishTyping();
   closeSpeed();
   closeInk();
+  track('prompt/open', 'Prompt: opened');
   showPromptBubble();
 });
 // Left/Right step through prompts while the bubble is up, unless you're typing or a panel
@@ -1116,6 +1122,7 @@ function buildGroup(mode, group) {
       tile.append(blurb);
     }
     tile.addEventListener('click', () => {
+      trackPick(def);
       closeScenes();
       if (def.id !== envDef.id) switchTo(def);
     });
@@ -1123,6 +1130,16 @@ function buildGroup(mode, group) {
   }
   section.append(head, grid);
   return section;
+}
+
+// Which scenes and families people pick, and how often they reach for a Plus scene (all free
+// during the preview), to see what's worth building before the paid tier exists.
+function trackPick(def) {
+  const mode = modeInfo(modeOf(def)).label;
+  const plus = isPlus(def);
+  track('scene/' + def.id, `Scene: ${def.name} (${mode}${plus ? ', Plus' : ''})`);
+  track('mode/' + modeOf(def), `Mode: ${mode}`);
+  if (plus) track('plus/' + def.id, `Plus scene tapped: ${def.name}`);
 }
 
 // Previews: run each scene off-screen at a small phone-ish size with a scribble on it.
@@ -1189,7 +1206,9 @@ function closeScenes() {
   if (lastFocus && lastFocus !== document.body) lastFocus.focus?.({ preventScroll: true });
 }
 
-btnScene.addEventListener('click', () => (scenes.hidden ? openScenes() : closeScenes()));
+btnScene.addEventListener('click', () => {
+  if (scenes.hidden) { track('menu/open', 'Scene menu opened'); openScenes(); } else closeScenes();
+});
 for (const el of scenes.querySelectorAll('[data-close]')) el.addEventListener('click', closeScenes);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !scenes.hidden) { e.preventDefault(); closeScenes(); }
