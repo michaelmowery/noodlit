@@ -549,14 +549,17 @@ html, body {
   bottom: calc(env(safe-area-inset-bottom) + 84px);
   transform: translate(-50%, 8px);
   padding: 9px 16px;
-  border-radius: 999px;
+  border-radius: 20px;
   background: var(--glass);
   border: 1px solid var(--glass-edge);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   color: var(--ink);
   font-size: 14px;
-  white-space: nowrap;
+  /* One line where it fits; a long caption wraps on a narrow phone instead of running off. */
+  width: max-content;
+  max-width: calc(100% - 24px);
+  text-align: center;
   opacity: 0;
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
