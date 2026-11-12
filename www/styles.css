@@ -305,6 +305,75 @@ html, body {
 #ui.drawing .wordmark { opacity: 0; }
 #ui.choosing .toolbar { opacity: 0; pointer-events: none; }
 
+/* Fade speed slider: a small glass card that pops up above the toolbar. */
+.speed-pop {
+  position: absolute;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom) + 84px);
+  transform: translateX(-50%);
+  width: min(340px, calc(100vw - 32px));
+  padding: 12px 18px 10px;
+  border-radius: 20px;
+  background: rgba(22, 30, 37, 0.82);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  color: var(--ink);
+  pointer-events: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: speed-up 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 4;
+}
+.speed-pop[hidden] { display: none; }
+.speed-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 600; }
+.speed-value { color: var(--accent); font-variant-numeric: tabular-nums; }
+.speed-ends { display: flex; justify-content: space-between; font-size: 12px; opacity: 0.6; margin-top: -2px; }
+#speed-range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px; /* full finger-sized touch target; the visible track is thinner */
+  margin: 2px 0 0;
+  background: transparent;
+  touch-action: none;
+  cursor: pointer;
+}
+#speed-range:focus { outline: none; }
+#speed-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(238, 243, 246, 0.25), var(--accent));
+}
+#speed-range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(238, 243, 246, 0.25), var(--accent));
+}
+#speed-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -11px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+#speed-range::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+#speed-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(255, 217, 168, 0.6); }
+#speed-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(255, 217, 168, 0.6); }
+#btn-speed[aria-expanded="true"] { background: rgba(255, 255, 255, 0.12); }
+#ui.drawing .speed-pop, #ui.typing .speed-pop, #ui.choosing .speed-pop { display: none; }
+@keyframes speed-up { from { transform: translate(-50%, 8px); opacity: 0; } }
+
 #toast {
   position: absolute;
   left: 50%;
@@ -428,6 +497,6 @@ html, body {
 
 @media (prefers-reduced-motion: reduce) {
   .toolbar, #toast, .wordmark, .scene-chip { transition: none; }
-  .scenes-panel, .scenes-backdrop { animation: none; }
+  .scenes-panel, .scenes-backdrop, .speed-pop { animation: none; }
   #type-spot.show { animation: none; opacity: 1; }
 }
