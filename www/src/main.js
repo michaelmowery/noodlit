@@ -72,6 +72,7 @@ const btnSpeed = document.getElementById('btn-speed');
 const speedPop = document.getElementById('speed-pop');
 const speedRange = document.getElementById('speed-range');
 const speedValue = document.getElementById('speed-value');
+const speedTitle = document.getElementById('speed-title');
 const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
 const btnUndo = document.getElementById('btn-undo');
@@ -374,8 +375,20 @@ function applySpeed() {
   const z = speedZone(fadeSeconds);
   env.setFadeSeconds(fadeSeconds);
   btnSpeed.querySelector('.label').textContent = z.label;
-  btnSpeed.setAttribute('aria-label', `Fade speed: ${z.word}, about ${fadeSeconds} seconds`);
   speedRange.value = String(secondsToSlider(fadeSeconds));
+  if (modeOf(envDef) === 'become') {
+    // On Become scenes the same slider sets how long a pause it takes before the drawing changes.
+    const pause = Math.round(env.pauseSeconds * 10) / 10;
+    speedTitle.textContent = 'Pause before it changes';
+    speedRange.setAttribute('aria-label', 'Pause before it changes');
+    btnSpeed.setAttribute('aria-label', `Pause before it changes: about ${pause} seconds`);
+    speedRange.setAttribute('aria-valuetext', `about ${pause} seconds`);
+    speedValue.textContent = `${pause}s`;
+    return;
+  }
+  speedTitle.textContent = 'Fade speed';
+  speedRange.setAttribute('aria-label', 'Fade speed');
+  btnSpeed.setAttribute('aria-label', `Fade speed: ${z.word}, about ${fadeSeconds} seconds`);
   speedRange.setAttribute('aria-valuetext', `${z.label}, about ${fadeSeconds} seconds`);
   speedValue.textContent = `${z.label} · ${fadeSeconds}s`;
 }
@@ -579,7 +592,7 @@ function setHeld(on, announce) {
   env.setPaused(held);
   btnHold.setAttribute('aria-pressed', String(held));
   btnHold.querySelector('.label').textContent = held ? 'Holding' : 'Hold';
-  if (announce) showToast(held ? 'Holding this thought' : 'Letting it fade again');
+  if (announce) showToast(held ? 'Holding this thought' : modeOf(envDef) === 'become' ? 'Letting it change again' : 'Letting it fade again');
   wake();
 }
 btnHold.addEventListener('click', () => setHeld(!held, true));
@@ -606,12 +619,12 @@ btnClear.addEventListener('click', () => {
 
 // ------------------------------------------------------------------ undo
 // Release scenes keep the drawing until you let it go, so the last stroke or typed block can
-// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo
+// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo (Become scenes do, until the drawing changes)
 // (their marks are already on the way out). Letting the drawing go forgets the history.
 const TAP_SPREAD = 250, TAP_TIME = 400, TAP_SLOP = 12;
 let tap = null; // a gesture that might turn out to be a two-finger tap
 
-function undoable() { return modeOf(envDef) === 'release' && typeof env.undo === 'function'; }
+function undoable() { return modeOf(envDef) !== 'fade' && typeof env.undo === 'function'; }
 
 function syncUndo() {
   const can = undoable() && !typing && !demo.running && !!env.canUndo();
@@ -863,7 +876,7 @@ function useEnvironment(def, { announce = false, auto = true } = {}) {
   env?.dispose?.();
   envDef = def;
   env = def.create();
-  env.setFadeSeconds(fadeSeconds);
+  applySpeed();
   env.setPaused(held);
   if (W) env.resize({ width: W, height: H, dpr });
   btnClear.querySelector('.label').textContent = def.clearLabel;
@@ -900,6 +913,7 @@ function switchTo(def) {
 const MODES = {
   fade: { label: 'Fade', hint: 'Disappears on its own' },
   release: { label: 'Release', hint: 'Stays until you let it go' },
+  become: { label: 'Become', hint: 'Turns into something, then drifts off' },
 };
 
 let lastFocus = null;
@@ -969,6 +983,7 @@ function renderThumb(def) {
     e.strokeStart('t', ...at(0), info);
     for (let i = 1; i <= 40; i++) e.strokeMove('t', ...at(i / 40), { ...info, time: i * 16 });
     e.strokeEnd('t');
+    e.preview?.(); // Become scenes show the change part-way through
     for (let i = 0; i < 4; i++) e.update(0.016);
     e.render(c.getContext('2d'));
     e.dispose?.();

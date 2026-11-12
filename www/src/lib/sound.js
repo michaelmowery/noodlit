@@ -486,6 +486,18 @@ const SCENES = {
     },
     texture: { noise: 'white', f: 7000, q: 2, gain: 0.04, jitter: 0.2 },
   },
+  fireflies: {
+    ambient(s, amb) {
+      // A meadow at dusk: a breath of air and crickets trilling somewhere off in the grass.
+      s.bed(amb, 'brown', [s.filter('lowpass', 180)], 0.03);
+      s.bed(amb, 'pink', [s.filter('bandpass', 3000, 1.5)], 0.004);
+      s.every(amb, 0.7, 2.6, () => {
+        const f = 3900 + Math.random() * 700, n = 3 + Math.floor(Math.random() * 4);
+        for (let k = 0; k < n; k++) s.tone({ f, peak: 0.006, attack: 0.006, dur: 0.045, at: k * 0.075, dest: amb.bus });
+      });
+    },
+    texture: { noise: 'white', f: 6200, q: 2, gain: 0.035, jitter: 0.2 },
+  },
   'burning-page': {
     ambient(s, amb) {
       // A fire crackling in the hearth.
@@ -808,6 +820,15 @@ const CUES = {
     s.tone({ type: 'triangle', f: 262, peak: 0.03, attack: 0.8, dur: 2.6 });
     s.tone({ type: 'triangle', f: 392, peak: 0.02, attack: 1, dur: 2.4 });
     for (let k = 0; k < 4; k++) s.tone({ f: 3000 + k * 200, f2: 4000, peak: 0.015, attack: 0.008, dur: 0.07, at: 1 + k * 0.13 });
+  }, 0.5),
+
+  // Fireflies: the line wakes up, a soft rising shimmer of little lights.
+  fireflies: cue((s, { n = 40 } = {}) => {
+    const notes = [1175, 1319, 1568, 1760, 2093, 2349];
+    const count = Math.min(12, 4 + Math.round(n / 25));
+    for (let k = 0; k < count; k++) {
+      s.tone({ f: notes[Math.floor(Math.random() * notes.length)] * (k > count / 2 ? 1.5 : 1), peak: 0.01, attack: 0.02, dur: 0.6, at: (k / count) * 1.3 + Math.random() * 0.1 });
+    }
   }, 0.5),
 
   // A fresh sheet or board arrives.

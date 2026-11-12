@@ -294,6 +294,11 @@ export function createDemo(host, finger) {
       env.clear(); // the same as tapping the release button
       host.wake();
       await sleep(4200, me);
+    } else if (host.mode() === 'become') {
+      host.say('…pause, and watch what it becomes', 3200);
+      env.setPaused(false);
+      host.wake();
+      await sleep((env.becomeTime?.() ?? 10) * 1000, me);
     } else {
       if (viaButton) {
         if (!(await tap(host.tour.holdButton, me))) return;
