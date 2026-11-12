@@ -17,7 +17,7 @@ const B = (name, size, extra = {}) => ({ name, size, ...extra });
 
 const PEN = [B('Pen', 1), B('Fine liner', 0.55, { steady: 1 }), B('Marker', 2, { steady: 0.6 })];
 const MARKER = [B('Marker', 1), B('Fine marker', 0.55, { steady: 1 }), B('Fat marker', 2.2, { steady: 0.5 })];
-const SUMI = [B('Brush', 1, { flow: 0.6 }), B('Fine brush', 0.55, { flow: 0.6 }), B('Dry brush', 2, { dry: true })];
+const SUMI = [B('Brush', 1, { flow: 0.6 }), B('Fine brush', 0.55, { flow: 0.6 }), B('Dry brush', 2.4, { dry: true })];
 const FINGER_GLASS = [B('Fingertip', 1), B('Fingernail', 0.35, { steady: 0.7, soft: 0.85 })];
 
 export const BRUSHES = {
@@ -41,7 +41,7 @@ export const BRUSHES = {
   'lantern-flock': SUMI,
   'rice-paper': SUMI,
   mailbox: [B('Fountain pen', 1, { flow: 0.3 }), B('Fine liner', 0.55, { steady: 1 }), B('Felt tip', 1.8, { steady: 0.6 })],
-  burning: PEN,
+  'burning-page': PEN,
   shredder: PEN,
   'paper-airplane': PEN,
   'paper-boat': PEN,
@@ -75,19 +75,19 @@ export function brushRadius(base, info, speed, brush) {
 export function dryStroke(g, st, x0, y0, r0, x1, y1, r1) {
   if (!st.bristles) {
     st.bristles = [];
-    const n = 7;
+    const n = 9;
     for (let i = 0; i < n; i++) {
-      st.bristles.push({ o: (i / (n - 1)) * 2 - 1 + (Math.random() - 0.5) * 0.25, w: 0.5 + Math.random() * 0.7, on: Math.random() > 0.2 });
+      st.bristles.push({ o: (i / (n - 1)) * 1.8 - 0.9 + (Math.random() - 0.5) * 0.2, w: 0.45 + Math.random() * 0.75, on: Math.random() > 0.15 });
     }
   }
   const dx = x1 - x0, dy = y1 - y0, d = Math.hypot(dx, dy) || 1;
   const nx = -dy / d, ny = dx / d;
   const alpha = g.globalAlpha;
   for (const b of st.bristles) {
-    if (b.on ? Math.random() < d / 70 : Math.random() < d / 16) b.on = !b.on;
+    if (b.on ? Math.random() < d / 60 : Math.random() < d / 10) b.on = !b.on;
     if (!b.on) continue;
     g.globalAlpha = alpha * (0.55 + 0.45 * b.w);
-    g.lineWidth = Math.max(0.6, ((r0 + r1) / 2) * 0.32 * b.w);
+    g.lineWidth = Math.max(0.6, ((r0 + r1) / 2) * 0.5 * b.w);
     g.beginPath();
     g.moveTo(x0 + nx * b.o * r0, y0 + ny * b.o * r0);
     g.lineTo(x1 + nx * b.o * r1 + 0.01, y1 + ny * b.o * r1);
