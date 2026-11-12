@@ -102,7 +102,8 @@ export function createDemo(host, finger) {
       host.wake();
       return;
     }
-    env.clear();
+    // A scene whose clear is a show of its own (Flush) empties quietly here instead.
+    if (env.blank) env.blank(); else env.clear();
     host.wake();
     const t0 = performance.now();
     while (env.clearing && performance.now() - t0 < 2500) {
@@ -291,6 +292,23 @@ export function createDemo(host, finger) {
       env.clear();
       host.wake();
       await sleep(1600, me);
+    } else if (env.handleAt) {
+      // A scene with a handle of its own (Flush): the finger presses it, and away it goes.
+      const { x, y } = env.handleAt();
+      host.say('…then flush it away', 3200);
+      finger.classList.add('glide');
+      showFinger(x, y, false);
+      await sleep(620, me);
+      if (run !== me) return;
+      showFinger(x, y, true);
+      env.setPaused(false);
+      env.clear(); // the handle dips and the swirl starts on the press
+      host.wake();
+      await sleep(220, me);
+      showFinger(x, y, false);
+      await sleep(400, me);
+      finger.classList.remove('show', 'glide');
+      await sleep(2800, me);
     } else {
       if (viaButton) {
         if (!(await tap(host.tour.holdButton, me))) return;

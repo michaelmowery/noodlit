@@ -68,6 +68,16 @@ class Flush extends StirScene {
     super.strokeStart(id, x, y, info);
   }
 
+  // For Show me: where to press, and a way to empty the bowl without the flush (the demo
+  // saves that for the end).
+  handleAt() { const { pivot, arm } = this.plan; return { x: pivot.x + arm * 0.55, y: pivot.y }; }
+  blank() {
+    this.dropDraft();
+    this.strokes.clear();
+    this.lines = [];
+    this.whirl = 0;
+  }
+
   clear() {
     const had = this.lines.length > 0 && this.whirl <= 0;
     if (performance.now() - this.pressedAt > PRESS * 1000) this.pressedAt = performance.now();
