@@ -65,12 +65,16 @@ export const BRUSHES = {
   thaw: [B('Ice needle', 0.5, { steady: 0.8 }), B('Frost line', 1), B('Thick frost', 3)],
   // Reveal
   'scratch-card': [B('Fingernail', 0.4, { steady: 0.8 }), B('Coin', 1), B('Thumb', 2.4)],
-  // Grow
-  'moss-wall': [B('Tendril', 0.5, { steady: 0.8 }), B('Moss', 1), B('Thick moss', 2.4)],
+  'scratch-art': [B('Needle', 0.45, { steady: 0.9 }), B('Stylus', 1), B('Flat scraper', 3.2, { steady: 0.5 })],
+  'misty-window': [B('Fingernail', 0.35, { steady: 0.7 }), B('Fingertip', 1), B('Sleeve', 3.6)],
   // Stir (drag: a pick that pulls the milk around without pouring any)
   latte: [B('Fine pour', 0.5, { steady: 0.8 }), B('Milk pour', 1, { flow: 0.3 }), B('Latte pick', 1.3, { steady: 1, drag: true }), B('Big pour', 2.6)],
+  rinse: [B('Fine brush', 0.5, { steady: 0.6 }), B('Brush', 1, { flow: 0.4 }), B('Stir stick', 1.3, { steady: 1, drag: true }), B('Loaded brush', 2.6)],
+  kaleidoscope: [B('Thread', 0.5, { steady: 0.8 }), B('Ribbon', 1), B('Twist', 1.3, { steady: 1, drag: true }), B('Band', 2.6)],
   // Echo
   canyon: [B('Whisper', 0.5, { steady: 0.8 }), B('Call', 1), B('Shout', 2.6)],
+  neon: [B('Thin tube', 0.55, { steady: 1 }), B('Tube', 1, { steady: 0.8 }), B('Fat tube', 2.2, { steady: 0.8 })],
+  skywriting: [B('Thin trail', 0.5, { steady: 0.8 }), B('Smoke trail', 1), B('Wide trail', 2.4)],
 };
 
 // Smallest to largest, however a list above happens to be written.

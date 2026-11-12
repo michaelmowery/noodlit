@@ -1,5 +1,5 @@
 // Turn a laid-out block of typed text into points, for scenes whose marks are made of
-// particles rather than pixels (moss clumps, drops of milk).
+// particles rather than pixels (drops of milk, paint in water).
 
 import { makeCanvas, drawText, HAND } from './util.js';
 

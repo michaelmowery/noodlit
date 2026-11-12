@@ -631,7 +631,7 @@ btnClear.addEventListener('click', () => {
 
 // ------------------------------------------------------------------ undo
 // Release scenes keep the drawing until you let it go, so the last stroke or typed block can
-// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo (Become and Echo scenes do, until the drawing changes; Grow scenes do too)
+// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo (Become and Echo scenes do, until the drawing changes)
 // (their marks are already on the way out). Letting the drawing go forgets the history.
 const TAP_SPREAD = 250, TAP_TIME = 400, TAP_SLOP = 12;
 let tap = null; // a gesture that might turn out to be a two-finger tap
@@ -957,7 +957,7 @@ function useEnvironment(def, { announce = false, auto = true } = {}) {
   sceneMode.textContent = MODES[mode].label;
   sceneName.textContent = def.name;
   btnScene.setAttribute('aria-label', `Scene: ${def.name}, ${MODES[mode].label}. Choose a scene.`);
-  // Surfaces with no clock (Release, Reveal, Grow) have nothing for fade speed and Hold to do.
+  // Surfaces with no clock (Release, Reveal) have nothing for fade speed and Hold to do.
   const timeless = MODES[mode].clock === false;
   btnSpeed.hidden = btnHold.hidden = timeless;
   if (timeless) closeSpeed();
@@ -1002,7 +1002,6 @@ const MODES = {
   release: { label: 'Release', hint: 'Stays until you let it go', clock: false },
   become: { label: 'Become', hint: 'Turns into something, then drifts off', pause: 'Pause before it changes', resume: 'Letting it change again' },
   reveal: { label: 'Reveal', hint: 'Scratch or wipe to uncover something', clock: false },
-  grow: { label: 'Grow', hint: 'Stays, and builds up between visits', clock: false },
   stir: { label: 'Stir', hint: 'Swirls together, then mixes away', speed: 'Swirl speed', resume: 'Letting it swirl again' },
   echo: { label: 'Echo', hint: 'Plays back stroke by stroke, then fades', pause: 'Pause before it plays back', resume: 'Letting it play back again' },
 };
@@ -1090,7 +1089,6 @@ function renderThumb(def) {
   c.width = c.height = THUMB;
   try {
     const e = def.create();
-    e.setDemo?.(true); // a scene that saves what you draw (Grow) must not save the preview
     e.setFadeSeconds(600);
     e.resize({ width: THUMB, height: THUMB, dpr: 1 });
     // Release scenes only take ink on their sheet; fade scenes take it anywhere.

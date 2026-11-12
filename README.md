@@ -10,7 +10,7 @@ releases are planned.
 
 ## What's in the app
 
-### Seven modes, 39 scenes
+### Six modes, 44 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
 - **Fade** scenes disappear on their own at the pace you pick (13): Shower door, Waves, Snow,
@@ -23,15 +23,17 @@ Every scene is defined by how strokes look, how they decay, and how they clear.
 - **Become** scenes turn the drawing into something when you pause, and then it leaves (4):
   Fireflies, Bloom, Constellation, Thaw.
 
-Four newer modes have one sample scene each so far:
+Three newer modes have three scenes each, one of them free:
 
-- **Reveal**: scratch or wipe to uncover something. Scratch card hides a prompt under foil.
-- **Grow**: the drawing stays and builds up between visits (saved on the device). Moss wall grows
-  moss where you draw; moss from an earlier visit has come into flower. Scrape clean starts over.
-- **Stir**: the surface swirls the drawing together until it mixes away. Latte art winds your
-  lines of milk into spirals; the Latte pick brush drags the milk instead of pouring it.
-- **Echo**: pause, and the drawing plays back stroke by stroke, once more faintly, then fades.
-  Canyon echo.
+- **Reveal**: scratch or wipe to uncover something. Scratch card (free) hides a prompt under
+  foil; Scratch art scrapes through black wax to colours below; Misty window wipes mist off a
+  view (the colour picker chooses the colours or the view).
+- **Stir**: the surface swirls the drawing together until it mixes away. Latte art (free) winds
+  your lines of milk into spirals; Rinse water mingles paint in a rinse jar; Kaleidoscope
+  mirrors your lines six ways as they turn. One brush in each drags instead of drawing.
+- **Echo**: pause, and the drawing plays back stroke by stroke, then fades. Canyon echo (free)
+  repeats it once more faintly; Neon sign lights it up tube by tube; Skywriting has a plane
+  write it across the sky.
 
 The scene chip at the top right opens **Choose a scene**, with live previews grouped by mode.
 Within each mode the free scenes come first, then scenes marked **Plus**, each alphabetized.
@@ -50,7 +52,7 @@ every scene is free and nothing is locked.
 - **Prompts**: the lightbulb pops a suggestion bubble above the toolbar.
 - **Pause** (Become and Echo scenes): the same slider sets how long a pause it takes before the drawing
   changes (about 1.5 to 12 seconds). Hold stops the clock, and the tray button changes it now.
-- **Undo** (Release and Grow scenes, and Become and Echo scenes until the drawing changes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
+- **Undo** (Release scenes, and Become and Echo scenes until the drawing changes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
   stroke or typed block.
 - **Sound**: soft generated ambience and effects for each scene, with an on/off toggle.
 
@@ -98,6 +100,7 @@ new files need no listing anywhere.
 - `www/src/lib/release.js`: shared base for Release scenes (the sheet, ink, typing and hand-off)
 - `www/src/lib/become.js`: shared base for Become scenes (ink, the pause clock, turning lines
   into particles, typing, undo)
+- `www/src/lib/reveal.js`, `stir.js`, `echo.js`: shared bases for Reveal, Stir and Echo scenes
 - `www/src/lib/brushes.js`, `undo.js`, `sound.js`, `util.js`: brushes, Release undo, generated
   sound, helpers
 - `www/src/lib/prompts.js`, `textdots.js`: the lightbulb prompts (also printed on the Scratch
@@ -112,7 +115,7 @@ new files need no listing anywhere.
 1. Create `www/src/environments/<name>.js` exporting `{ id, name, blurb, clearLabel, create }`
    (see the contract at the top of `environments/index.js`). Set `fades: false` for a Release
    scene, or `mode: 'become'` for a Become scene. The catalogue line's mode can also be `reveal`,
-   `grow`, `stir` or `echo`; `MODES` in `main.js` says how the toolbar treats each.
+   `stir` or `echo` (base classes in `lib/reveal.js`, `lib/stir.js`, `lib/echo.js`); `MODES` in `main.js` says how the toolbar treats each.
 2. Build on `lib/fade.js`, `lib/release.js` or `lib/become.js` where you can; their header comments say what a
    scene supplies.
 3. Add one line for it to the `environments` catalogue in `environments/index.js` (id, name,

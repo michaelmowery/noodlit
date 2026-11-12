@@ -4,6 +4,18 @@
 import { prefs } from './prefs.js';
 import { loadEnvironment } from './environments/index.js';
 
+// Tidy up after scenes that have been retired, so nothing of theirs is left on the device.
+// (Moss wall, the one Grow scene, kept its wall in localStorage.)
+const RETIRED = ['moss-wall'];
+try {
+  localStorage.removeItem('noodlit.grow.moss-wall');
+  for (const id of RETIRED) {
+    for (const k of ['brush', 'ink', 'tip', 'demoSeen']) localStorage.removeItem(`noodlit.${k}.${id}`);
+    if (localStorage.getItem('noodlit.env') === JSON.stringify(id)) localStorage.removeItem('noodlit.env');
+    if (prefs.get('startScene') === id) prefs.set('startScene', 'last');
+  }
+} catch { /* storage blocked: nothing was saved either */ }
+
 // The same choice main.js makes: the scene pinned in Preferences, or wherever you left off.
 function startId() {
   const pinned = prefs.get('startScene');
