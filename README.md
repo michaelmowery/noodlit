@@ -26,8 +26,8 @@ lines**; that's what used to cause merge conflicts. New files still need adding 
 Create `src/environments/<name>.js` exporting `{ id, name, clearLabel, create }`, add it to the
 `environments` array, and add the file to `SHELL` in `sw.js`.
 
-Most Fade scenes (frosted window, steamy mirror, chalk sidewalk, water on hot stone, zen garden,
-shake sketch, light painting) build on `www/src/lib/fade.js`: a strength map that strokes raise and
+Most Fade scenes (frosted window, steamy mirror, chalk sidewalk, water on hot stone,
+shake sketch, light painting) and the Zen garden Release scene (`keep: true`) build on `www/src/lib/fade.js`: a strength map that strokes raise and
 time lowers. A scene supplies its background, its stroke or covering layer, how decay varies across
 the surface, and its clear animation (see the header comment in fade.js).
 

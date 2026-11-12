@@ -1,9 +1,9 @@
-// Zen garden: a Fade environment.
+// Zen garden: a Release environment.
 //   Look:  your finger cuts a furrow through raked gravel: shadow on one wall, light on the
 //          other. Three mossy stones sit in the garden.
-//   Decay: a bamboo rake drifts across the garden whenever there's something to smooth,
-//          combing the gravel back into straight lines behind it.
-//   Clear: the rake makes one quick pass over everything.
+//   Decay: none. The furrows stay until you let them go.
+//   Clear: tap "Rake it": a bamboo rake sweeps slowly across the garden, combing the gravel
+//          back into straight lines behind it.
 
 import { clamp, easeInOut, mulberry32, makeCanvas } from '../lib/util.js';
 import { MapFade, stageCanvas, speckle, mottle, blob } from '../lib/fade.js';
@@ -14,8 +14,9 @@ const SAND = '#d9cfbb';
 export const zen = {
   id: 'zen',
   name: 'Zen garden',
-  blurb: 'A rake slowly smooths the gravel',
-  surface: 'Raked gravel garden to draw furrows in',
+  blurb: 'Rake the gravel smooth again',
+  surface: 'Raked gravel garden to draw furrows in. Tap Rake it to smooth it over.',
+  fades: false,
   clearLabel: 'Rake it',
   clearIcon: 'M5 3v18M5 7h14M8 7v4M11 7v4M14 7v4M17 7v4',
   create: () => new Zen(),
@@ -23,10 +24,9 @@ export const zen = {
 
 class Zen extends MapFade {
   constructor() {
-    super({ brush: 9, soft: 0.5, seed: 61, textWeight: 500 });
+    super({ brush: 9, soft: 0.5, seed: 61, textWeight: 500, keep: true });
     this.textLine = 0.1;
-    this.decayScale = 0.12; // the rake does the real work; this only tidies stragglers
-    this.rake = { x: -60, on: false, speed: 0 };
+    this.rake = { x: -60, on: false };
   }
 
   paintBase() { return paintGarden(this); }
@@ -43,29 +43,12 @@ class Zen extends MapFade {
     this.rockArt = paintRocks(this);
   }
 
-  // The rake walks left to right at a pace set by the fade speed, then comes round again.
-  updateFx(dt) {
-    const rk = this.rake;
-    if (this.clearing) return true;
-    if (!rk.on && this.alive && !this.paused) { rk.on = true; rk.x = -60; sfx.cue('rake', { soft: true }); }
-    if (!rk.on) return false;
-    if (this.paused) return false;
-    rk.x += dt * (this.W + 120) / (this.fadeSeconds * 0.9);
-    this.smooth(rk.x);
-    if (rk.x > this.W + 60) { rk.on = false; rk.x = -60; }
-    return true;
-  }
-
-  smooth(x) {
-    const band = 26, { cell, mw, mh, map } = this;
-    const i0 = Math.max(0, ((x - band) / cell) | 0), i1 = Math.min(mw - 1, ((x + 4) / cell) | 0);
-    for (let j = 0; j < mh; j++) for (let i = i0; i <= i1; i++) map[j * mw + i] *= 0.5;
-  }
-
   clear() {
+    if (this.clearing) return;
     sfx.cue('rake');
     this.strokes.clear();
-    this.clearing = { t: 0, dur: 1.4 };
+    this.commitDraft?.();
+    this.clearing = { t: 0, dur: 2.4 };
   }
 
   clearStep(cl) {
