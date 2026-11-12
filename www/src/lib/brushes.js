@@ -1,6 +1,7 @@
 // Brushes: every scene offers a few ways to make a mark that suit its surface (a fingertip,
 // a fingernail or the side of your hand on fogged glass; a quill, a fine nib or a broad nib
-// on parchment). The first brush in each list is the scene's original stroke.
+// on parchment). The picker lists them from smallest to largest; the one with size 1 is the
+// scene's original stroke and the default.
 //
 // A brush is { name, size, steady?, flow?, soft?, dry? }:
 //   size    multiplies the scene's own stroke radius
@@ -53,7 +54,11 @@ export const BRUSHES = {
   leaf: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 1.9, { flow: 0.6 })],
 };
 
+// Smallest to largest, however a list above happens to be written.
+for (const id in BRUSHES) BRUSHES[id] = [...BRUSHES[id]].sort((a, b) => a.size - b.size);
+
 export const brushesFor = (def) => def.brushes || BRUSHES[def.id] || null;
+export const defaultBrush = (list) => list.find((b) => b.size === 1) || list[0];
 
 // Wrap a scene's own radiusFor(info, speed) so it draws with `brush`. The scene keeps its
 // character (a fingertip on glass is wider than a pen on paper); the brush scales and shapes it.

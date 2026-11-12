@@ -3,7 +3,7 @@
 
 import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 import { sfx } from './lib/sound.js';
-import { brushesFor, brushRadius } from './lib/brushes.js';
+import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -242,7 +242,7 @@ function brushFor(def) {
   const list = brushesFor(def);
   if (!list?.length) return null;
   const saved = store.get('brush.' + def.id, null);
-  return list.find((b) => b.name === saved) || list[0];
+  return list.find((b) => b.name === saved) || defaultBrush(list);
 }
 
 // Every scene answers radiusFor(info, speed); route it through the chosen brush.
