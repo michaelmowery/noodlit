@@ -6,7 +6,7 @@
 //          so marks near the water go first and marks further up the beach linger.
 //   Clear: one big wave runs up past the bottom of the screen and leaves the beach smooth.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, wipedTextLine } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;          // extra depth above 1.0 = a short "fully crisp" hold before slumping
@@ -384,7 +384,7 @@ class Waves {
     g.scale(1 / cell, 1 / cell);
     const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * 0.15, 76), defaultAt: 0.46 });
     g.fillStyle = g.strokeStyle = '#fff';
-    drawText(g, lay, place, Math.max(2.5, lay.size * 0.07));
+    drawText(g, lay, place, wipedTextLine(g, lay, opts));
     const px = g.getImageData(0, 0, mw, mh).data;
     const overlay = new TextOverlay();
     const R = 2;

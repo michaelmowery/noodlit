@@ -103,6 +103,15 @@ export function placeText(lay, { W, H, at, x, y, top = false, defaultAt = 0.42 }
   };
 }
 
+// Outline width for text wiped into a fog/frost/snow surface. Those surfaces soften every edge,
+// which thickens strokes, so typed text (smaller, on phones) gets a lighter outline and a little
+// letter spacing or its e's and o's fill in. Prompts keep the heavier outline (`k` x size).
+export function wipedTextLine(g, lay, opts, k = 0.07) {
+  if (!opts.typed) return Math.max(2.5, lay.size * k);
+  if ('letterSpacing' in g) g.letterSpacing = `${(lay.size * 0.05).toFixed(1)}px`;
+  return Math.max(1.2, lay.size * 0.03);
+}
+
 export function drawText(g, lay, place, lineWidth) {
   g.textAlign = place.align;
   g.textBaseline = 'middle';

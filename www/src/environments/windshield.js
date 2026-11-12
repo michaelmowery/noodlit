@@ -7,7 +7,7 @@
 //          later, ready for the next thought. Hold parks the wipers.
 //   Clear: the wipers sweep straight away.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, wipedTextLine } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;        // extra clarity above 1.0 = a short "fully clear" hold before rain returns
@@ -331,7 +331,7 @@ class Windshield {
     g.scale(1 / cell, 1 / cell);
     const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * 0.15, 76) });
     g.fillStyle = g.strokeStyle = '#fff';
-    drawText(g, lay, place, Math.max(2.5, lay.size * 0.07));
+    drawText(g, lay, place, wipedTextLine(g, lay, opts));
     const px = g.getImageData(0, 0, mw, mh).data;
     const overlay = new TextOverlay();
     for (let j = 1; j < mh - 1; j++) {

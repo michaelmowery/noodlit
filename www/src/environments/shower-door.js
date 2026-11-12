@@ -4,7 +4,7 @@
 //   Decay: condensation creeps back unevenly (thin edges first, then patches).
 //   Clear: a roll of steam sweeps up from the bottom and fogs the whole door.
 
-import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, wipedTextLine } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;       // extra clarity above 1.0 = a short "fully clear" hold before fog returns
@@ -306,7 +306,7 @@ class ShowerDoor {
     g.scale(1 / cell, 1 / cell);
     const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * 0.15, 76) });
     g.fillStyle = g.strokeStyle = '#fff';
-    drawText(g, lay, place, Math.max(2.5, lay.size * 0.07));
+    drawText(g, lay, place, wipedTextLine(g, lay, opts));
     const px = g.getImageData(0, 0, mw, mh).data;
     const overlay = new TextOverlay();
     // Light 3x3 blur so the low-res raster gets the same soft edge as a finger wipe.
