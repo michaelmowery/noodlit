@@ -161,6 +161,25 @@
   font-weight: 600;
   cursor: pointer;
 }
+.welcome-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.welcome-tour {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.welcome-tour svg { width: 14px; height: 14px; fill: var(--accent); }
+.welcome-tour:active { transform: scale(0.97); }
+.welcome-tour:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .welcome-ok:active { transform: scale(0.97); }
 .welcome-ok:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .welcome.leaving .welcome-card { animation: welcome-out 0.22s ease forwards; }
