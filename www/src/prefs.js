@@ -14,6 +14,7 @@ export const DEFAULTS = {
   prompts: true,        // show the lightbulb prompt button in the tray
   updateNote: true,     // show the early preview note again after each new version
   analytics: true,      // send anonymous usage counts (analytics.js); never drawings or words
+  sceneView: 'grouped', // scene menu: 'grouped' (Free / Plus / Premium tabs) or 'list' (every scene, A to Z)
 };
 export const SPEED_PRESETS = { drift: 45, flow: 20, rush: 8 };
 
@@ -63,6 +64,7 @@ function sync() {
   if (form.elements.startScene.value !== values.startScene) form.elements.startScene.value = 'last';
   form.elements.speed.value = values.speed;
   form.elements.brush.value = values.brush;
+  form.elements.sceneView.value = values.sceneView;
 }
 
 form.addEventListener('change', (e) => {
