@@ -9,11 +9,17 @@
 //   sfx.stroke(speed)       finger moving at `speed` CSS px/s; sfx.strokeEnd() when it lifts
 //   sfx.cue(name, opts)     one-off action sounds, fired by the environments themselves
 //   sfx.silently(fn)        run fn without any cues (used for the scene menu previews)
+//   sfx.active()            something just happened: bring the ambience back up from its idle hush
 //
 // Volumes are kept deliberately low: this is a thinking space, so the sound should sit under
 // your thoughts, never compete with them.
 
 const MASTER = 2;
+// A scene's ambience is a bed of soft noise. Once nothing has happened for a while it settles
+// back to a fraction of that, so a quiet screen doesn't sit there hissing; the next touch,
+// key or sound brings it back up.
+const IDLE_AFTER = 8000;  // ms without a touch, key, stroke or cue
+const IDLE_LEVEL = 0.2;   // how much of the ambience is left while idle
 
 class Sound {
   constructor() {
@@ -45,6 +51,7 @@ class Sound {
       s.start(0);
     }
     if (this.scene && !this.ambient) this.startScene(this.scene);
+    this.active();
   }
 
   build() {
@@ -60,6 +67,10 @@ class Sound {
     comp.release.value = 0.3;
     this.master.connect(comp).connect(ctx.destination);
     this.master.gain.setTargetAtTime(MASTER, ctx.currentTime, 0.4);
+    // Every scene's ambience goes through here, so it can be hushed while nothing is happening.
+    this.amb = ctx.createGain();
+    this.amb.gain.value = 1;
+    this.amb.connect(this.master);
 
     const sr = ctx.sampleRate, len = Math.floor(sr * 4);
     const white = ctx.createBuffer(1, len, sr), pink = ctx.createBuffer(1, len, sr);
@@ -112,6 +123,28 @@ class Sound {
     else this.ctx.resume?.().catch(() => {});
   }
 
+  // Something happened (a touch, a key, a stroke, a cue): full ambience, and start counting
+  // down to the idle hush again.
+  active() {
+    if (!this.ctx || !this.amb) return;
+    const now = performance.now();
+    if (!this.idle && now - (this.activeAt || 0) < 400) return; // strokes call this every frame
+    this.activeAt = now;
+    if (this.idle || this.idle === undefined) {
+      this.idle = false;
+      const t = this.ctx.currentTime;
+      this.amb.gain.cancelScheduledValues(t);
+      this.amb.gain.setTargetAtTime(1, t, 0.35);
+    }
+    clearTimeout(this.idleTimer);
+    this.idleTimer = setTimeout(() => {
+      this.idle = true;
+      const t = this.ctx.currentTime;
+      this.amb.gain.cancelScheduledValues(t);
+      this.amb.gain.setTargetAtTime(IDLE_LEVEL, t, 1.6); // sinks away over a few seconds
+    }, IDLE_AFTER);
+  }
+
   get live() { return !!this.ctx && this.enabled && this.ctx.state === 'running' && !this.quiet; }
 
   silently(fn) {
@@ -132,11 +165,12 @@ class Sound {
     const bus = ctx.createGain();
     bus.gain.setValueAtTime(0, t);
     bus.gain.linearRampToValueAtTime(1, t + 1.6);
-    bus.connect(this.master);
+    bus.connect(this.amb);
     const amb = { bus, nodes: [], timers: new Set() };
     def.ambient?.(this, amb);
     this.ambient = amb;
     this.setTexture(def.texture);
+    this.active();
   }
 
   stopScene() {
@@ -166,6 +200,7 @@ class Sound {
 
   // ---------------------------------------------------------------- drawing
   stroke(speed) {
+    this.active();
     if (!this.live || !this.tex.profile) return;
     const p = this.tex.profile, t = this.ctx.currentTime;
     const amt = Math.min(1, Math.max(0, (speed - 30) / 900));
@@ -190,6 +225,7 @@ class Sound {
     const now = this.ctx.currentTime;
     if (gap && now - (this.lastCue.get(name) ?? -1) < gap) return;
     this.lastCue.set(name, now);
+    this.active();
     fn(this, opts);
   }
 

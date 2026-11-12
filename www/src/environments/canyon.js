@@ -2,8 +2,8 @@
 //   Look:  a canyon at dusk. Your finger leaves a glowing line in the air between the walls.
 //   Echo:  pause, and the drawing goes quiet, then plays itself back stroke by stroke in the
 //          order you made it (typed words come back a letter at a time). The canyon answers
-//          once more, fainter and further off.
-//   Leave: then both fade.
+//          three times, each echo quicker, fainter and further off than the last.
+//   Leave: each fades in turn.
 //
 // The playback itself lives in lib/echo.js.
 
@@ -35,10 +35,13 @@ class Canyon extends EchoScene {
   constructor() {
     super({
       ink: PALETTE[0].color, brush: 3, seed: 41,
-      // The playback, then the canyon's answer: quicker, fainter, smaller and further off.
+      // The playback, then the canyon's three answers: each quicker, fainter, smaller and
+      // further off than the one before.
       passes: [
         { rate: 1, alpha: 1, scale: 1, hold: 0.3, fade: 1.6 },
-        { gap: 0.3, rate: 1.25, alpha: 0.42, scale: 0.88, hold: 0.4, fade: 1.3 },
+        { gap: 0.3, rate: 1.5, alpha: 0.5, scale: 0.88, hold: 0.3, fade: 1.3 },
+        { gap: 0.25, rate: 1.9, alpha: 0.3, scale: 0.77, hold: 0.3, fade: 1.2 },
+        { gap: 0.25, rate: 2.3, alpha: 0.17, scale: 0.67, hold: 0.4, fade: 1.2 },
       ],
     });
   }
