@@ -30,6 +30,11 @@ jobs:
           sed -i -E "s|^const VERSION = '[^']*';|const VERSION = 'noodlit-${BUILD}';|" www/sw.js
           sed -i -E "s|^const STAMP = '[^']*';|const STAMP = '${APP_VERSION}';|" www/src/about.js
           grep -q "^const VERSION = 'noodlit-${BUILD}';" www/sw.js
+          # The offline file list: every file in www/ except the worker itself and hosting files.
+          FILES=$(cd www && find . -type f ! -name sw.js ! -name CNAME ! -name .nojekyll | LC_ALL=C sort | sed "s|.*|'&'|" | paste -sd, -)
+          sed -i -E "s|^const SHELL = \[.*\];|const SHELL = ['./',${FILES}];|" www/sw.js
+          grep -q "^const SHELL = \['./','./about.css'" www/sw.js
+          grep -q "'./src/boot.js'" www/sw.js
           grep -q "^const STAMP = '${APP_VERSION}';" www/src/about.js
           echo "Deploying Noodlit ${APP_VERSION} (cache noodlit-${BUILD})" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-pages-artifact@v3

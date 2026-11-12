@@ -1,65 +1,11 @@
-// Offline app shell. VERSION is stamped by the deploy workflow (.github/workflows/pages.yml) on every
-// deploy, so each deploy gets a fresh cache. Don't edit it by hand; PRs never bump versions.
+// Offline app shell. VERSION and SHELL are stamped by the deploy workflow
+// (.github/workflows/pages.yml) on every deploy, so each deploy gets a fresh, complete cache.
+// Don't edit either by hand; PRs never bump versions or list files.
 const VERSION = 'noodlit-__BUILD__';
-const SHELL = [
-  './',
-  './index.html',
-  './styles.css',
-  './about.css',
-  './prefs.css',
-  './manifest.webmanifest',
-  './src/main.js',
-  './src/about.js',
-  './src/prefs.js',
-  './src/update.js',
-  './src/welcome.js',
-  './src/demo.js',
-  './src/lib/util.js',
-  './src/lib/release.js',
-  './src/lib/sound.js',
-  './src/lib/fade.js',
-  './src/lib/brushes.js',
-  './src/lib/undo.js',
-  './src/lib/become.js',
-  './src/environments/index.js',
-  './src/environments/shower-door.js',
-  './src/environments/waves.js',
-  './src/environments/snow.js',
-  './src/environments/whiteboard.js',
-  './src/environments/windshield.js',
-  './src/environments/stream.js',
-  './src/environments/lantern.js',
-  './src/environments/bottle.js',
-  './src/environments/mailbox.js',
-  './src/environments/frost.js',
-  './src/environments/chalk.js',
-  './src/environments/stone.js',
-  './src/environments/zen.js',
-  './src/environments/etch.js',
-  './src/environments/light.js',
-  './src/environments/breath.js',
-  './src/environments/tidepool.js',
-  './src/environments/ink.js',
-  './src/environments/sparkler.js',
-  './src/environments/starfield.js',
-  './src/environments/burning.js',
-  './src/environments/dandelion.js',
-  './src/environments/shredder.js',
-  './src/environments/kite.js',
-  './src/environments/lantern-flock.js',
-  './src/environments/rice-paper.js',
-  './src/environments/rocket.js',
-  './src/environments/paper-boat.js',
-  './src/environments/leaf.js',
-  './src/environments/balloon.js',
-  './src/environments/paper-airplane.js',
-  './src/environments/campfire.js',
-  './src/environments/fireflies.js',
-  './icons/icon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png',
-];
+// SHELL is the list of files to cache up front so the app works offline. The deploy workflow
+// rewrites the line below with every file in www/, so nobody keeps the list by hand. Run
+// locally, the app caches each file the first time it's fetched instead (see 'fetch' below).
+const SHELL = ['./', './index.html'];
 
 self.addEventListener('install', (e) => {
   // cache: 'reload' skips the browser's HTTP cache, so a new version never ships stale files.

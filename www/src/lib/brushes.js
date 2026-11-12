@@ -57,6 +57,11 @@ export const BRUSHES = {
   rocket: MARKER,
   dandelion: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 3.2, { flow: 0.6 })],
   leaf: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 3.2, { flow: 0.6 })],
+  // Become
+  fireflies: [B('Fine thread', 0.5, { steady: 0.8 }), B('Glow line', 1), B('Wide glow', 3.2)],
+  constellation: [B('Hairline', 0.55, { steady: 1 }), B('Silver line', 1), B('Bright line', 2.4)],
+  bloom: [B('Tendril', 0.5, { steady: 0.8 }), B('Stem', 1), B('Thick vine', 2.6)],
+  thaw: [B('Ice needle', 0.5, { steady: 0.8 }), B('Frost line', 1), B('Thick frost', 3)],
 };
 
 // Smallest to largest, however a list above happens to be written.

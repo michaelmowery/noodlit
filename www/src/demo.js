@@ -344,6 +344,8 @@ export function createDemo(host, finger) {
       await sleep(700, me);
       if (!(await tap(tile, me))) return false;
     }
+    await t.ready?.(id); // the scene's code, if it hasn't loaded yet
+    if (run !== me) return false;
     t.switchScene(id);
     finger.classList.remove('show');
     await sleep(700, me);

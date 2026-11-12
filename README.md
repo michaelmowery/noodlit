@@ -10,7 +10,7 @@ releases are planned.
 
 ## What's in the app
 
-### Two modes, 31 scenes
+### Three modes, 35 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
 - **Fade** scenes disappear on their own at the pace you pick (13): Shower door, Waves, Snow,
@@ -20,6 +20,8 @@ Every scene is defined by how strokes look, how they decay, and how they clear.
   a bottle, Mailbox, Stream, Whiteboard, Autumn leaf, Balloon, Burning page, Campfire, Dandelion,
   Kite, Lantern festival, Paper airplane, Paper boat, Rice paper, Rocket, Shake sketch, Shredder,
   Zen garden.
+- **Become** scenes turn the drawing into something when you pause, and then it leaves (4):
+  Fireflies, Bloom, Constellation, Thaw.
 
 The scene chip at the top right opens **Choose a scene**, with live previews grouped by mode.
 Within each mode the free scenes come first, then scenes marked **Plus**, each alphabetized.
@@ -36,7 +38,9 @@ every scene is free and nothing is locked.
 - **Typing**: the keyboard button (or just start typing on a hardware keyboard) writes on the
   surface in a hand-drawn style. Tap to place your words, or drag to move them.
 - **Prompts**: the lightbulb pops a suggestion bubble above the toolbar.
-- **Undo** (Release scenes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
+- **Pause** (Become scenes): the same slider sets how long a pause it takes before the drawing
+  changes (about 1.5 to 12 seconds). Hold stops the clock, and the tray button changes it now.
+- **Undo** (Release scenes, and Become scenes until the drawing changes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
   stroke or typed block.
 - **Sound**: soft generated ambience and effects for each scene, with an on/off toggle.
 
@@ -67,19 +71,23 @@ The deploy workflow stamps the version: About shows `0.<deploy run number>` and 
 cache becomes `noodlit-v<run>-<short sha>`, so every deploy gets a fresh cache and the "New
 version ready" pill. In the repo, `const VERSION` in `www/sw.js` and `const STAMP` in
 `www/src/about.js` keep the placeholders `__BUILD__` and `__APP_VERSION__`. **PRs must not edit
-these lines**; parallel PRs bumping them used to cause merge conflicts. New files still need
-adding to `SHELL` in `www/sw.js` so they work offline.
+these lines**; parallel PRs bumping them used to cause merge conflicts. The same step fills in
+`const SHELL` in `www/sw.js` (the files cached for offline use) with every file under `www/`, so
+new files need no listing anywhere.
 
 ## Code layout
 - `www/index.html`, `styles.css`, `about.css`, `prefs.css`: the shell, toolbar and panels
+- `www/src/boot.js`: loads the scene you open on, then the shell
 - `www/src/main.js`: canvas, multi-touch input, render loop, toolbar, scene menu, typing, undo
   gestures. Knows nothing about any particular scene.
-- `www/src/environments/index.js`: the scene registry, the contract every scene implements, the
-  free/Plus list and menu ordering
+- `www/src/environments/index.js`: the scene catalogue (scenes load on demand), the contract
+  every scene implements, the free/Plus list and menu ordering
 - `www/src/environments/*.js`: one file per scene
 - `www/src/lib/fade.js`: shared base for most Fade scenes (and Zen garden and Shake sketch): a
   strength map that strokes raise and time lowers
 - `www/src/lib/release.js`: shared base for Release scenes (the sheet, ink, typing and hand-off)
+- `www/src/lib/become.js`: shared base for Become scenes (ink, the pause clock, turning lines
+  into particles, typing, undo)
 - `www/src/lib/brushes.js`, `undo.js`, `sound.js`, `util.js`: brushes, Release undo, generated
   sound, helpers
 - `www/src/demo.js`: Show me and Show me everything
@@ -91,11 +99,11 @@ adding to `SHELL` in `www/sw.js` so they work offline.
 ## Adding a scene
 1. Create `www/src/environments/<name>.js` exporting `{ id, name, blurb, clearLabel, create }`
    (see the contract at the top of `environments/index.js`). Set `fades: false` for a Release
-   scene.
-2. Build on `lib/fade.js` or `lib/release.js` where you can; their header comments say what a
+   scene, or `mode: 'become'` for a Become scene.
+2. Build on `lib/fade.js`, `lib/release.js` or `lib/become.js` where you can; their header comments say what a
    scene supplies.
-3. Add it to the `environments` array in `environments/index.js` and the file to `SHELL` in
-   `www/sw.js`. New scenes are Plus unless added to `FREE_SCENES`.
+3. Add one line for it to the `environments` catalogue in `environments/index.js` (id, name,
+   mode, blurb and how to import it). New scenes are Plus unless added to `FREE_SCENES`.
 4. Add its brushes to `lib/brushes.js`.
 
 ## App stores

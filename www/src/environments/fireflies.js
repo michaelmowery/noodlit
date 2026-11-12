@@ -25,11 +25,6 @@ export const fireflies = {
   clearLabel: 'Become now',
   clearIcon: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z',
   palette: PALETTE,
-  brushes: [
-    { name: 'Glow line', size: 1 },
-    { name: 'Fine thread', size: 0.5, steady: 0.8 },
-    { name: 'Wide glow', size: 3.2 },
-  ],
   create: () => new Fireflies(),
 };
 
