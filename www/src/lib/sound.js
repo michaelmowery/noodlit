@@ -620,6 +620,13 @@ const CUES = {
     s.burst({ kind: 'white', f: 2600, q: 1.4, peak: 0.06, attack: 0.002, dur: 0.06 });
   }, 0.08),
 
+  // One bubble of bubble wrap: a short, dry snap, each a little different.
+  bubble: cue((s) => {
+    const f = 620 + Math.random() * 520;
+    s.tone({ f, f2: f * 0.3, peak: 0.075, attack: 0.001, dur: 0.05 });
+    s.burst({ kind: 'white', f: 3200 + Math.random() * 1200, q: 1.1, peak: 0.07, attack: 0.001, dur: 0.035 });
+  }, 0.028),
+
   // Undo: a quick soft swish backwards, like a stroke being lifted off.
   undo: cue((s) => {
     s.burst({ kind: 'pink', f: 2400, f2: 900, q: 0.9, peak: 0.07, attack: 0.01, dur: 0.14 });
@@ -876,8 +883,10 @@ SCENES.constellation = SCENES.starfield;
 SCENES.thaw = SCENES.frost;
 SCENES['scratch-card'] = { ...SCENES.etch, texture: { noise: 'grit', f: 2600, q: 1.2, gain: 0.2, jitter: 0.5 } }; // a coin on foil
 SCENES['scratch-art'] = SCENES['scratch-card'];
+SCENES['bubble-wrap'] = { ...SCENES.breath }; // the pops are the sound; the finger itself is soft
 SCENES['misty-window'] = SCENES.breath; // rain on the glass, a quiet room
 SCENES.rinse = SCENES.ink;
+SCENES.whirlpool = SCENES.waves;
 SCENES.kaleidoscope = SCENES.starfield;
 SCENES.neon = SCENES.light;           // a city at night, far away
 SCENES.skywriting = SCENES.kite;      // open air

@@ -10,7 +10,7 @@ releases are planned.
 
 ## What's in the app
 
-### Six modes, 44 scenes
+### Six modes, 46 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
 - **Fade** scenes disappear on their own at the pace you pick (13): Shower door, Waves, Snow,
@@ -23,14 +23,15 @@ Every scene is defined by how strokes look, how they decay, and how they clear.
 - **Become** scenes turn the drawing into something when you pause, and then it leaves (4):
   Fireflies, Bloom, Constellation, Thaw.
 
-Three newer modes have three scenes each, one of them free:
+Three newer modes have a free scene each and a few Plus ones:
 
 - **Reveal**: scratch or wipe to uncover something. Scratch card (free) hides a prompt under
   foil; Scratch art scrapes through black wax to colours below; Misty window wipes mist off a
-  view (the colour picker chooses the colours or the view).
+  view (the colour picker chooses the colours or the view); Bubble wrap pops, bubble by
+  bubble, down to a prompt on the parcel underneath.
 - **Stir**: the surface swirls the drawing together until it mixes away. Latte art (free) winds
   your lines of milk into spirals; Rinse water mingles paint in a rinse jar; Kaleidoscope
-  mirrors your lines six ways as they turn. One brush in each drags instead of drawing.
+  mirrors your lines six ways as they turn; Whirlpool draws them down into its eye. One brush in each drags instead of drawing.
 - **Echo**: pause, and the drawing plays back stroke by stroke, then fades. Canyon echo (free)
   repeats it once more faintly; Neon sign lights the drawing up in place; Skywriting has a plane
   write it across the sky.
