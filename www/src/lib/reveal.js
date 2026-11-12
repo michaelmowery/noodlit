@@ -11,7 +11,7 @@
 //
 // A scene subclass provides paintUnder() -> canvas (full-res) and paintCover(g) (CSS px), and
 // may set: brush (stroke radius), soft (0..1: how feathered the rubbed edge is), deal ('sweep'
-// or 'fade': how a fresh cover arrives), cue (sound for it), freshCaption (Show me's caption).
+// or 'fade': how a fresh cover arrives), cue (sound for it), revealCaption, freshCaption (Show me's captions).
 // Optional hooks: next() before a fresh cover is painted, rubbed(x, y, r) after each mark,
 // lifted(stroke) when a finger lifts, tick(dt) -> boolean for animation of its own.
 
@@ -28,6 +28,7 @@ export class RevealScene {
     this.soft = o.soft ?? 0;
     this.dealStyle = o.deal || 'sweep';
     this.cue = o.cue || 'fold';
+    this.revealCaption = o.revealCaption;
     this.freshCaption = o.freshCaption;
     this.textWeight = o.textWeight ?? 600;
     this.strokes = new Map();
