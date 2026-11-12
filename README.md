@@ -36,7 +36,7 @@ Three newer modes:
   away (tap its handle); Paper marbling floats inks to comb and print; Galaxy winds stardust
   into spiral arms. One brush in each drags instead of drawing.
 - **Echo** (6): pause, and the drawing plays back stroke by stroke, then fades. Canyon echo
-  repeats it once more faintly; Neon sign lights the drawing up in place; Skywriting has a plane
+  answers three times, each echo fainter and further off; Neon sign lights the drawing up in place; Skywriting has a plane
   write it across the sky; Music box punches and plays it as a tune; Pond ripples plays it back
   as ripples; Seismograph traces it onto a chart.
 
@@ -59,7 +59,8 @@ during the preview every scene is free and nothing is locked.
   changes (about 1.5 to 12 seconds). Hold stops the clock, and the tray button changes it now.
 - **Undo** (Release scenes, and Become and Echo scenes until the drawing changes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
   stroke or typed block.
-- **Sound**: soft generated ambience and effects for each scene, with an on/off toggle.
+- **Sound**: soft generated ambience and effects for each scene, with an on/off toggle. The
+  ambience settles to a hush after a few seconds of nothing happening and comes back when you touch the screen.
 
 ### Help, About and Preferences
 - **Show me** runs a short hands-off demo of the current scene, and each scene demos itself the
