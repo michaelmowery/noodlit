@@ -22,7 +22,7 @@
 //   setup()                          after every resize
 
 import { dryStroke } from './brushes.js';
-import { clamp, smoothstep, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from './util.js';
+import { clamp, smoothstep, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND, wipedTextLine } from './util.js';
 import { undoMethods, copyCanvas, pasteCanvas, restoreArray } from './undo.js';
 
 export class MapFade {
@@ -297,7 +297,7 @@ export class MapFade {
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
     const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * this.textSize, 76), weight: this.textWeight });
-    const lw = Math.max(2.5, lay.size * (this.textLine ?? 0.07));
+    const lw = wipedTextLine(g, lay, opts, this.textLine ?? 0.07);
     g.fillStyle = g.strokeStyle = '#fff';
     drawText(g, lay, place, lw);
     const px = g.getImageData(0, 0, mw, mh).data;

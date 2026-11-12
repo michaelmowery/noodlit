@@ -6,7 +6,7 @@
 //   Clear: one big breath fogs the whole pane, then it melts away from the edges, leaving
 //          clean glass.
 
-import { clamp, easeInOut, mulberry32, makeCanvas, smoothstep, valueNoise, layoutFor, drawText, TextOverlay } from '../lib/util.js';
+import { clamp, easeInOut, mulberry32, makeCanvas, smoothstep, valueNoise, layoutFor, drawText, TextOverlay, wipedTextLine } from '../lib/util.js';
 import { MapFade, stageCanvas, blurred, blob, mottle } from '../lib/fade.js';
 import { sfx } from '../lib/sound.js';
 
@@ -116,7 +116,7 @@ class Breath extends MapFade {
     const c = makeCanvas(mw, mh), g = c.getContext('2d');
     g.scale(1 / cell, 1 / cell);
     const { lay, place } = layoutFor(g, text, opts, { W, H, size: Math.min(W * this.textSize, 76), weight: this.textWeight });
-    const lw = Math.max(2.5, lay.size * this.textLine);
+    const lw = wipedTextLine(g, lay, opts, this.textLine);
     g.fillStyle = g.strokeStyle = '#fff';
     drawText(g, lay, place, lw);
     const px = g.getImageData(0, 0, mw, mh).data;
