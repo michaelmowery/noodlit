@@ -257,6 +257,18 @@ const demo = createDemo({
     // Leave the menu open if that's where the interrupting tap landed.
     closeScenes: (target) => { if (!(target && scenes.contains(target))) closeScenes(); },
     demoButton: btnDemo, clearButton: btnClear,
+    // Preferences: open About from the ⓘ button, then Preferences from inside it.
+    infoButton: document.getElementById('btn-info'),
+    prefsButton: document.getElementById('about-prefs-btn'),
+    openAbout: () => document.getElementById('btn-info').click(),
+    openPrefs: () => document.getElementById('about-prefs-btn').click(),
+    // Close About/Preferences unless that's where the interrupting tap landed.
+    closePanels(target) {
+      for (const id of ['about', 'prefs']) {
+        const el = document.getElementById(id);
+        if (!el.hidden && !(target && el.contains(target))) el.querySelector('.about-close').click();
+      }
+    },
   },
   snapshot: () => ({ id: envDef.id, brush: savedBrush(envDef.id), fade: fadeSeconds, held }),
   restore(snap) {
@@ -310,6 +322,9 @@ for (const type of ['pointerdown', 'keydown']) {
 // The first time someone opens a scene, Show me runs on its own once (remembered per scene).
 // It waits for the welcome note to be dismissed and gives the scene a beat to appear first.
 const welcomeNote = document.getElementById('welcome');
+// The very first visit (the welcome note hasn't been dismissed yet) gets the full tour instead.
+const firstVisit = (() => { try { return localStorage.getItem('noodlit.previewWelcomeSeen') !== '1'; } catch { return false; } })();
+let toured = false;
 const autoDemo = { timer: 0, id: null };
 function cancelAutoDemo() { clearTimeout(autoDemo.timer); autoDemo.timer = 0; autoDemo.id = null; }
 function scheduleAutoDemo(def) {
@@ -323,7 +338,7 @@ function scheduleAutoDemo(def) {
     if (demo.running || typing) return;
     autoDemo.id = null;
     store.set('demoSeen.' + envDef.id, true);
-    demo.start();
+    if (firstVisit && !toured) { toured = true; demo.start('tour'); } else demo.start();
   };
   autoDemo.timer = setTimeout(fire, 900);
 }
