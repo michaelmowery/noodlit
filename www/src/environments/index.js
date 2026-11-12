@@ -16,6 +16,8 @@
 //     surface: 'Wet sand …',       // optional: aria-label for the canvas
 //     fades: false,                // optional: a Release surface (nothing decays; clear() is the
 //                                  //   release), so the shell hides fade speed and Hold
+//     mode: 'become',              // optional: a Become surface (lib/become.js): the drawing turns
+//                                  //   into something after a pause; the speed slider sets the pause
 //     palette: [{ name, color }],  // optional: inks that suit the material, default first. The
 //                                  //   shell shows an ink picker and calls instance.setInk(color)
 //     create: () => instance,      // returns an object with the methods below
@@ -42,9 +44,10 @@
 //                                             //   (lib/brushes.js) and sets instance.brushType
 //   instance.dispose?()
 //
-// Environments come in two families, picked with the Fade / Release toggle: Fade surfaces
-// decay on their own; Release surfaces (fades: false) keep the drawing until you let it go.
-// The scene menu (top right) lists both families, sorted by environmentsFor() below.
+// Environments come in three families: Fade surfaces decay on their own; Release surfaces
+// (fades: false) keep the drawing until you let it go; Become surfaces (mode: 'become') turn
+// the drawing into something that leaves. The scene menu (top right) lists every family,
+// sorted by environmentsFor() below.
 
 import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';
@@ -77,6 +80,7 @@ import { leaf } from './leaf.js';
 import { balloon } from './balloon.js';
 import { paperAirplane } from './paper-airplane.js';
 import { campfire } from './campfire.js';
+import { fireflies } from './fireflies.js';
 
 export const environments = [
   // Fade
@@ -85,6 +89,8 @@ export const environments = [
   // Release
   stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, whiteboard, etch, rocket,
   paperBoat, leaf, balloon, paperAirplane, campfire,
+  // Become
+  fireflies,
 ];
 
 // Noodlit Plus: the free scenes, by id. Every other scene (including new ones) is Plus and
@@ -93,10 +99,11 @@ export const environments = [
 export const FREE_SCENES = new Set([
   'shower-door', 'waves', 'snow', // Fade
   'stream', 'bottle', 'mailbox', 'whiteboard', // Release
+  'fireflies', // Become
 ]);
 export const isPlus = (env) => !FREE_SCENES.has(env.id);
 
-export const modeOf = (env) => (env.fades === false ? 'release' : 'fade');
+export const modeOf = (env) => env.mode || (env.fades === false ? 'release' : 'fade');
 
 // Menu order within a family: free scenes first, then Plus, each alphabetized by name, so a
 // new scene lands in the right place on its own. (The default scene is still environments[0],
