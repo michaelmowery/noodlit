@@ -1,6 +1,6 @@
 // "Show me": a short, hands-off demo of the current scene. A ghost fingertip draws a little
 // lightbulb through the same stroke calls a real finger uses, so it works on every scene, then
-// the scene does its thing: Fade scenes fade (sped up so you don't wait 20 s), Release scenes
+// the scene does its thing (after wiping whatever was there): Fade scenes fade (sped up so you don't wait 20 s), Release scenes
 // send the sheet off. Any touch, tap or key stops it and hands the surface back.
 
 // The doodle, in a unit box (0..1, y down). Each entry is one stroke, as a list of points.
@@ -73,9 +73,30 @@ export function createDemo(host, finger) {
     finger.classList.add('show');
   }
 
+  // Start from a blank surface so the doodle doesn't land on the intro prompt. Fade scenes
+  // play their own clear (steam, eraser, rain…); Release scenes just get a fresh sheet in place.
+  async function blank(env, me) {
+    if (host.mode() === 'release') {
+      if (env.sheet && env.newSheet) { env.sheet = env.newSheet(); env.strokes?.clear(); }
+      else if (env.board && env.newBoard) { env.board = env.newBoard(); env.strokes?.clear(); }
+      host.wake();
+      return;
+    }
+    env.clear();
+    host.wake();
+    const t0 = performance.now();
+    while (env.clearing && performance.now() - t0 < 2500) {
+      await nextFrame();
+      if (run !== me) return;
+    }
+    await sleep(150, me);
+  }
+
   async function play() {
     const me = run;
     const env = host.env();
+    await blank(env, me);
+    if (run !== me) return;
     const { W, H } = host.size();
     const b = box(env, W, H);
     const strokes = lightbulb().map((s) => resample(s.map(([u, v]) => [b.x + u * b.s, b.y + v * b.s]), 4));
