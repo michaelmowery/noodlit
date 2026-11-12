@@ -797,7 +797,9 @@ html, body {
   pointer-events: none;
 }
 #ui.demoing .demo-tag { opacity: 1; }
-#ui.demoing #toast { bottom: calc(env(safe-area-inset-bottom) + 104px); }
+/* Only when the caption is at the bottom: the tour's peek, typing and the prompt bubble move it
+   to the top (bottom: auto), and setting bottom there too would stretch it to full height. */
+#ui.demoing:not(.demo-peek):not(.typing):not(.has-bubble) #toast { bottom: calc(env(safe-area-inset-bottom) + 104px); }
 /* On narrow phones a long demo caption wraps instead of running off the edges. */
 @media (max-width: 420px) {
   #ui.demoing #toast { white-space: normal; width: max-content; max-width: calc(100vw - 32px); text-align: center; border-radius: 18px; }
