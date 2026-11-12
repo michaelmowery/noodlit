@@ -313,7 +313,7 @@ export class MapFade {
       p.save();
       p.fillStyle = p.strokeStyle = this.ink;
       p.font = `${this.textWeight} ${lay.size}px ${HAND}`;
-      drawText(p, lay, place, lw + cell * 3);
+      drawText(p, lay, place, lw);
       p.restore();
     }
     return { overlay, lay, place };
