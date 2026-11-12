@@ -1,27 +1,32 @@
-// "Show me": a short, hands-off demo of the current scene. A ghost fingertip draws a little
-// lightbulb through the same stroke calls a real finger uses, so it works on every scene, then
-// the scene does its thing (after wiping whatever was there): Fade scenes fade (sped up so you don't wait 20 s), Release scenes
-// send the sheet off. Any touch, tap or key stops it and hands the surface back.
+// "Show me": a short, hands-off demo of the current scene. The surface is wiped, then a ghost
+// fingertip draws the Noodlit logo through the same stroke calls a real finger uses, so it works
+// on every scene. Then the scene does its thing: Fade scenes fade (sped up so you don't wait
+// 20 s), Release scenes send the sheet off. Any touch, tap or key stops it.
 
-// The doodle, in a unit box (0..1, y down). Each entry is one stroke, as a list of points.
-function lightbulb() {
-  const cx = 0.5, cy = 0.38, r = 0.25;
-  const arc = [];
-  for (let a = 125; a <= 415; a += 7) {
-    const t = (a * Math.PI) / 180;
-    arc.push([cx + r * Math.cos(t), cy + r * Math.sin(t)]);
+// The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
+// rings. Coordinates come from icons/icon.svg (a 512 box); each entry is one stroke.
+function logo() {
+  const ring = (r, from, to, step = 6) => {
+    const pts = [];
+    for (let a = from; a <= to; a += step) {
+      const t = (a * Math.PI) / 180;
+      pts.push([338 + r * Math.cos(t), 176 + r * Math.sin(t)]);
+    }
+    return pts;
+  };
+  const dot = [];
+  for (let k = 0; k <= 60; k++) {
+    const t = (k / 60) * Math.PI * 6, r = 2 + (k / 60) * 15; // a tight spiral reads as a filled dot
+    dot.push([338 + r * Math.cos(t), 176 + r * Math.sin(t)]);
   }
-  const rays = [210, 270, 330].map((deg) => {
-    const t = (deg * Math.PI) / 180;
-    return [[cx + r * 1.28 * Math.cos(t), cy + r * 1.28 * Math.sin(t)], [cx + r * 1.6 * Math.cos(t), cy + r * 1.6 * Math.sin(t)]];
-  });
-  return [
-    [[0.41, 0.76], ...arc, [0.59, 0.76]],
-    [[0.44, 0.5], [0.47, 0.42], [0.5, 0.5], [0.53, 0.42], [0.56, 0.5]],
-    [[0.4, 0.83], [0.6, 0.83]],
-    [[0.43, 0.91], [0.57, 0.91]],
-    ...rays,
+  const strokes = [
+    [[160, 360], [160, 180], [338, 352], [338, 196]],
+    dot,
+    ring(59.5, -90, 270),
+    ring(88.4, -150, 70),
   ];
+  // Fit the mark (x 130..440, y 80..380) into a unit box.
+  return strokes.map((s) => s.map(([x, y]) => [(x - 132) / 308, (y - 76) / 308]));
 }
 
 // Resample a polyline into evenly spaced points, so the ghost finger moves at a steady pace.
@@ -99,7 +104,7 @@ export function createDemo(host, finger) {
     if (run !== me) return;
     const { W, H } = host.size();
     const b = box(env, W, H);
-    const strokes = lightbulb().map((s) => resample(s.map(([u, v]) => [b.x + u * b.s, b.y + v * b.s]), 4));
+    const strokes = logo().map((s) => resample(s.map(([u, v]) => [b.x + u * b.s, b.y + v * b.s]), 4));
 
     host.say(host.mode() === 'release' ? "Write what's on your mind…" : 'Draw whatever comes to mind…', 2600);
     const [sx, sy] = strokes[0][0];

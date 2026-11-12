@@ -659,9 +659,7 @@ function switchTo(def) {
   demo.stop();
   if (typing) finishTyping();
   useEnvironment(def, { announce: true });
-  recentPrompts = [];
-  env.intro?.(pickPrompt(INTROS));
-  notePrompt(undefined);
+  recentPrompts = []; // scenes open blank; the lightbulb button writes a prompt on request
   wake();
 }
 
@@ -798,8 +796,6 @@ applySound(false);
 useEnvironment(getEnvironment(store.get('env', 'shower-door')));
 applySpeed();
 resize();
-env.intro?.(pickPrompt(INTROS));
-notePrompt(undefined);
 wake();
 
 // Service worker registration and update checks live in update.js.
