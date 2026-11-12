@@ -1,8 +1,9 @@
 // "Show me": a short, hands-off demo of the current scene. A ghost fingertip draws the Noodlit
 // logo through the same stroke calls a real finger uses and types "Noodlit" underneath, so it
 // works on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the
-// sheet off. "Show me everything" (from About) is the longer tour: it also opens the brush and
-// fade trays, floats a prompt, shows Hold or Undo, peeks at the scene menu and points out Show me.
+// sheet off. "Show me everything" (from About, and on the very first visit) is the longer tour: it
+// peeks at the scene menu first, then also opens the brush and fade trays, floats a prompt, shows
+// Hold or Undo, opens Preferences from About and points out Show me.
 // Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
@@ -278,6 +279,25 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
+  // About (ⓘ) → Preferences, for a look, then closed again.
+  async function showPrefs(me) {
+    const t = host.tour;
+    if (!t.infoButton || !t.prefsButton) return true;
+    if (!(await tap(t.infoButton, me))) return false;
+    t.openAbout();
+    host.say('ⓘ opens About', 1600);
+    await sleep(900, me);
+    if (run !== me) return false;
+    if (!(await tap(t.prefsButton, me))) return false;
+    finger.classList.remove('show');
+    t.openPrefs();
+    host.say('Make it yours in Preferences', 2800);
+    await sleep(2800, me);
+    t.closePanels();
+    await sleep(300, me);
+    return run === me;
+  }
+
   // Let the scene take it: Fade scenes fade, Release scenes let it go.
   async function letGo(env, me, viaButton) {
     if (host.mode() === 'release') {
@@ -314,6 +334,7 @@ export function createDemo(host, finger) {
     const env = host.env();
     const t = host.tour;
     host.onPeek(true); // keep the toolbar bright: the tour is about it
+    if (!(await peekScenes(me))) return; // first: where the scenes are
     await blank(env, me);
     if (run !== me) return;
     env.setPaused(true);
@@ -340,7 +361,7 @@ export function createDemo(host, finger) {
       await sleep(2000, me);
       if (run !== me) return;
     }
-    if (!(await peekScenes(me))) return;
+    if (!(await showPrefs(me))) return;
     if (!(await point(t.demoButton, 'Show me runs a quick demo of any scene', 2400, me))) return;
     await letGo(env, me, true);
   }
@@ -370,7 +391,7 @@ export function createDemo(host, finger) {
     const env = host.env();
     if (r.panel && !(e?.target && r.panel.pop.contains(e.target))) r.panel.close();
     host.onPeek(false);
-    if (r.kind === 'tour') { host.tour.popPrompt(); host.tour.closeScenes(e?.target); }
+    if (r.kind === 'tour') { host.tour.popPrompt(); host.tour.closeScenes(e?.target); host.tour.closePanels(e?.target); }
     if (r.down) { env.strokeEnd(ID); host.sfx.strokeEnd(); }
     if (r.typing) env.commitDraft();
     // Put back the user's own brush, fade speed and Hold.
