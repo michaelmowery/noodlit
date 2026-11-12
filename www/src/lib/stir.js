@@ -15,6 +15,7 @@
 //   body       opacity of the line itself
 //   spread     how much a line widens as it mixes in
 //   mirror     n > 0: a kaleidoscope with n mirrored wedges
+//   sink       > 0: lines are also drawn in towards the middle as they wind (a whirlpool)
 //   cue        sound for the whirl
 // and optionally onExpire(line) when a line has mixed in, drawUnder(ctx) between the base and
 // the lines (CSS px), and whirled() when the tray button's whirl ends.
@@ -37,6 +38,7 @@ export class StirScene {
     this.body = o.body ?? 0.94;
     this.spread = o.spread ?? 0.9;
     this.mirror = o.mirror || 0;
+    this.sink = o.sink || 0;
     this.cue = o.cue || 'pour';
     this.strokes = new Map();
     this.lines = [];        // { ink, pts: [x, y, …], r, age, dots? }
@@ -157,18 +159,20 @@ export class StirScene {
     for (const s of this.strokes.values()) if (s.line) pouring.add(s.line);
     let count = 0;
     for (const ln of this.lines) {
-      if (!pouring.has(ln) || this.whirl > 0) ln.age += dt * hurry;
+      const aged = !pouring.has(ln) || this.whirl > 0 ? dt * hurry : 0;
+      ln.age += aged;
       // Fresh milk sits for a moment before the swirl takes hold of it, so words stay readable.
       const grip = 0.12 + 0.88 * smoothstep(0.1, 0.65, ln.age / life);
       const turn = (omega * grip + boost) * dt;
+      const pullIn = this.sink ? Math.exp(-this.sink * 4 * grip * aged / life) : 1;
       const p = ln.pts;
       for (let i = 0; i < p.length; i += 2) {
         const dx = p[i] - cx, dy = p[i + 1] - cy;
         const q = Math.hypot(dx, dy) / R;
         const a = turn / (0.3 + Math.pow(q, 1.3));
         const c = Math.cos(a), s = Math.sin(a);
-        p[i] = cx + dx * c - dy * s;
-        p[i + 1] = cy + dx * s + dy * c;
+        p[i] = cx + (dx * c - dy * s) * pullIn;
+        p[i + 1] = cy + (dx * s + dy * c) * pullIn;
       }
       count += p.length / 2;
     }

@@ -99,12 +99,14 @@ export const environments = [
   scene('bloom', 'Bloom', 'become', 'Pause, and your stems sprout leaves and flowers', () => import('./bloom.js').then((m) => m.bloom)),
   scene('thaw', 'Thaw', 'become', 'Pause, and your frost lines melt and run', () => import('./thaw.js').then((m) => m.thaw)),
   // Reveal
+  scene('bubble-wrap', 'Bubble wrap', 'reveal', 'Pop the bubbles to see what is wrapped up', () => import('./bubble-wrap.js').then((m) => m.bubbleWrap)),
   scene('scratch-card', 'Scratch card', 'reveal', 'Scratch off the foil to find a prompt', () => import('./scratch-card.js').then((m) => m.scratchCard)),
   scene('scratch-art', 'Scratch art', 'reveal', 'Scrape through black to the colours below', () => import('./scratch-art.js').then((m) => m.scratchArt)),
   scene('misty-window', 'Misty window', 'reveal', 'Wipe the mist away to see the view', () => import('./misty-window.js').then((m) => m.mistyWindow)),
   // Stir
   scene('latte', 'Latte art', 'stir', 'Pour milk lines; the cup swirls them away', () => import('./latte.js').then((m) => m.latte)),
   scene('rinse', 'Rinse water', 'stir', 'Paint swirls and mingles in the rinse jar', () => import('./rinse.js').then((m) => m.rinse)),
+  scene('whirlpool', 'Whirlpool', 'stir', 'Your lines spiral down the middle and are gone', () => import('./whirlpool.js').then((m) => m.whirlpool)),
   scene('kaleidoscope', 'Kaleidoscope', 'stir', 'Your lines mirror, turn and melt together', () => import('./kaleidoscope.js').then((m) => m.kaleidoscope)),
   // Echo
   scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),

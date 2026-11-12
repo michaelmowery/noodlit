@@ -151,7 +151,9 @@ export class RevealScene {
     const { W, H, dpr } = this;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(this.under, 0, 0);
+    ctx.globalAlpha = this.cover.alpha ?? 1; // a cover can lift off as a whole
     ctx.drawImage(this.cover, 0, 0);
+    ctx.globalAlpha = 1;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     for (const d of this.held || []) this.drawBlock(ctx, d);
     if (this.draft) this.drawBlock(ctx, this.draft);
