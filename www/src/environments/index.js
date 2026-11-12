@@ -52,8 +52,9 @@ import { windshield } from './windshield.js';
 import { stream } from './stream.js';
 import { lantern } from './lantern.js';
 import { bottle } from './bottle.js';
+import { mailbox } from './mailbox.js';
 
-export const environments = [showerDoor, waves, snow, whiteboard, windshield, stream, bottle, lantern];
+export const environments = [showerDoor, waves, snow, whiteboard, windshield, stream, bottle, lantern, mailbox];
 
 export const modeOf = (env) => (env.fades === false ? 'release' : 'fade');
 

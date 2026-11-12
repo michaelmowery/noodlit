@@ -371,6 +371,20 @@ const SCENES = {
     },
     texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
   },
+  mailbox: {
+    ambient(s, amb) {
+      // A quiet morning yard: a soft breeze and songbirds now and then.
+      const bp = s.filter('bandpass', 450, 0.8);
+      const g = s.bed(amb, 'pink', [bp], 0.035);
+      s.lfo(bp.frequency, 450, 180, 11, amb.nodes);
+      s.lfo(g.gain, 0.035, 0.015, 6, amb.nodes);
+      s.every(amb, 2.5, 6, () => {
+        const base = 2600 + Math.random() * 1400, n = 2 + Math.floor(Math.random() * 3);
+        for (let k = 0; k < n; k++) s.tone({ f: base, f2: base * (1.15 + Math.random() * 0.3), peak: 0.012, attack: 0.01, dur: 0.08, at: k * 0.12, dest: amb.bus });
+      });
+    },
+    texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
 };
 
 // ------------------------------------------------------------------ cues
@@ -448,6 +462,37 @@ const CUES = {
     s.burst({ kind: 'pink', type: 'lowpass', f: 300, f2: 1400, q: 0.7, peak: 0.12, attack: 0.08, dur: 0.9 });
     s.tone({ f: 90, f2: 60, peak: 0.06, attack: 0.05, dur: 0.6 });
     for (let i = 0; i < 6; i++) s.burst({ f: 2000 + Math.random() * 3000, q: 3, peak: 0.03, dur: 0.03, at: 0.3 + Math.random() * 1.1 });
+  }, 0.3),
+
+  // Mailbox: a crisp paper crease as the letter folds.
+  fold: cue((s) => {
+    s.burst({ kind: 'white', f: 2600, f2: 1800, q: 0.9, peak: 0.06, attack: 0.01, dur: 0.14 });
+    s.burst({ kind: 'white', f: 4200, q: 1.5, peak: 0.03, attack: 0.005, dur: 0.06, at: 0.08 });
+  }, 0.2),
+
+  // Mailbox: the wax seal pressed onto the envelope.
+  seal: cue((s) => {
+    s.tone({ f: 170, f2: 90, peak: 0.07, attack: 0.004, dur: 0.16 });
+    s.burst({ kind: 'pink', type: 'lowpass', f: 900, q: 0.7, peak: 0.04, dur: 0.1 });
+  }, 0.3),
+
+  // Mailbox: the metal door swings open with a small creak.
+  creak: cue((s) => {
+    s.tone({ type: 'sawtooth', f: 260, f2: 380, peak: 0.008, attack: 0.08, dur: 0.35 });
+    s.burst({ f: 1400, f2: 2000, q: 6, peak: 0.02, attack: 0.08, dur: 0.3 });
+  }, 0.4),
+
+  // Mailbox: the door shuts with a tinny clunk.
+  clunk: cue((s) => {
+    s.tone({ type: 'triangle', f: 210, f2: 150, peak: 0.08, attack: 0.003, dur: 0.18 });
+    s.tone({ f: 1250, peak: 0.018, attack: 0.003, dur: 0.35 });
+    s.tone({ f: 1870, peak: 0.01, attack: 0.003, dur: 0.25 });
+    s.burst({ kind: 'white', type: 'lowpass', f: 2500, q: 0.6, peak: 0.05, dur: 0.07 });
+  }, 0.4),
+
+  // A songbird startles: two quick rising chirps.
+  chirp: cue((s) => {
+    for (let k = 0; k < 3; k++) s.tone({ f: 3000 + k * 250, f2: 4200 + k * 200, peak: 0.025, attack: 0.008, dur: 0.07, at: k * 0.1 });
   }, 0.3),
 
   // A fresh sheet or board arrives.
