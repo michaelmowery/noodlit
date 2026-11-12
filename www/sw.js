@@ -17,6 +17,7 @@ const SHELL = [
   './src/lib/sound.js',
   './src/lib/fade.js',
   './src/lib/brushes.js',
+  './src/lib/undo.js',
   './src/environments/index.js',
   './src/environments/shower-door.js',
   './src/environments/waves.js',

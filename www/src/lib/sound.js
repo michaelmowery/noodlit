@@ -558,6 +558,12 @@ const CUES = {
     s.burst({ kind: 'white', f: 2600, q: 1.4, peak: 0.06, attack: 0.002, dur: 0.06 });
   }, 0.08),
 
+  // Undo: a quick soft swish backwards, like a stroke being lifted off.
+  undo: cue((s) => {
+    s.burst({ kind: 'pink', f: 2400, f2: 900, q: 0.9, peak: 0.07, attack: 0.01, dur: 0.14 });
+    s.tone({ f: 520, f2: 330, peak: 0.025, attack: 0.004, dur: 0.1 });
+  }, 0.06),
+
   // Shower door: a drip lets go and runs down the glass.
   drip: cue((s) => s.tone({ f: 1300 + Math.random() * 400, f2: 700, peak: 0.035, dur: 0.09 }), 0.25),
 

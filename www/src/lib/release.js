@@ -23,6 +23,7 @@
 import { clamp, easeInOut, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from './util.js';
 import { sfx } from './sound.js';
 import { dryStroke } from './brushes.js';
+import { undoMethods, copyCanvas, pasteCanvas, markTypedBlock, endTypedBlock } from './undo.js';
 
 export class ReleaseScene {
   constructor(seed = 1) {
@@ -43,6 +44,7 @@ export class ReleaseScene {
   resize({ width, height, dpr }) {
     const old = this.sheet;
     this.drafts = { base: null, held: [], cur: null };
+    this.undoMarked = false; // undo snapshots survive: they're pasted back scaled to the new sheet
     Object.assign(this, { W: width, H: height, dpr });
     this.rect = this.layout();
     this.setup?.();
@@ -89,6 +91,7 @@ export class ReleaseScene {
       const lx = x - this.rect.x, ly = y - this.rect.y;
       if (lx >= 0 && ly >= 0 && lx <= this.rect.w && ly <= this.rect.h) {
         const r = this.radiusFor(info, 0);
+        if (!this.strokes.size) this.undoPush(); // two fingers at once make one undo step
         this.strokes.set(id, { x: lx, y: ly, r, t: info.time });
         if (!this.brushType?.dry) {
           const g = s.inkCtx;
@@ -131,6 +134,8 @@ export class ReleaseScene {
     if (!s || s.arrive < 1) return;
     this.strokes.clear();
     this.drafts = { base: null, held: [], cur: null };
+    this.undoReset();
+    this.undoMarked = false;
     this.compose(s);
     const { x, y, w, h } = this.rect;
     const f = {
@@ -289,6 +294,7 @@ export class ReleaseScene {
       d.base = makeCanvas(s.ink.width, s.ink.height);
       d.base.getContext('2d').drawImage(s.ink, 0, 0);
     }
+    markTypedBlock(this, text, !!d.cur);
     d.cur = text.trim() ? this.layoutOnSheet(text, opts, true) : null;
     const g = s.inkCtx;
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'copy'; g.drawImage(d.base, 0, 0); g.restore();
@@ -297,14 +303,37 @@ export class ReleaseScene {
   }
 
   nextDraft() {
+    endTypedBlock(this, !!this.drafts.cur);
     if (this.drafts.cur) this.drafts.held.push(this.drafts.cur);
     this.drafts.cur = null;
   }
 
-  commitDraft() { this.drafts = { base: null, held: [], cur: null }; }
+  commitDraft() {
+    endTypedBlock(this, !!this.drafts.cur);
+    this.drafts = { base: null, held: [], cur: null };
+  }
+
+  // ---------------------------------------------------------------- undo (see undo.js)
+  undoSnapshot() {
+    const s = this.sheet;
+    return s && { ink: copyCanvas(s.ink), inked: s.inked };
+  }
+
+  undoRestore(snap) {
+    const s = this.sheet;
+    if (!s) return;
+    pasteCanvas(s.ink, snap.ink);
+    s.inked = snap.inked;
+    s.dirty = true;
+  }
+
+  // Not while the sheet is still arriving, or while words are being typed onto it.
+  undoReady() { return !!this.sheet && this.sheet.arrive >= 1 && !this.drafts.base; }
 
   dispose() {}
 }
+
+Object.assign(ReleaseScene.prototype, undoMethods);
 
 // ------------------------------------------------------------------ helpers
 export function roundRect(ctx, x, y, w, h, r) {

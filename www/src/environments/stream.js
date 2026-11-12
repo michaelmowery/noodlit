@@ -12,6 +12,7 @@
 import { clamp, easeInOut, smoothstep, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
 import { inkSegment, roundRect } from '../lib/release.js';
+import { undoMethods, copyCanvas, pasteCanvas, markTypedBlock, endTypedBlock } from '../lib/undo.js';
 
 // Inks that read on driftwood: charcoal first (the default), then chalk and a few earthy colours.
 const PALETTE = [
@@ -55,6 +56,7 @@ class Stream {
   resize({ width, height, dpr }) {
     const old = this.board;
     this.drafts = { base: null, held: [], cur: null };
+    this.undoMarked = false; // undo snapshots survive: they're pasted back scaled to the new board
     Object.assign(this, { W: width, H: height, dpr });
     this.layout();
     this.scene = paintScene(this);
@@ -126,6 +128,7 @@ class Stream {
       const lx = x - b.x, ly = y - b.y;
       if (lx >= 0 && ly >= 0 && lx <= this.rect.w && ly <= this.rect.h) {
         const r = this.radiusFor(info, 0);
+        if (!this.strokes.size) this.undoPush(); // two fingers at once make one undo step
         this.strokes.set(id, { x: lx, y: ly, r, t: info.time });
         if (!this.brushType?.dry) {
           const g = b.inkCtx;
@@ -172,6 +175,8 @@ class Stream {
     if (!b || b.arrive < 1) return;
     this.strokes.clear();
     this.drafts = { base: null, held: [], cur: null };
+    this.undoReset();
+    this.undoMarked = false;
     sfx.cue('release');
     this.compose(b);
     const { w, h } = this.rect;
@@ -385,6 +390,7 @@ class Stream {
       d.base = makeCanvas(b.ink.width, b.ink.height);
       d.base.getContext('2d').drawImage(b.ink, 0, 0);
     }
+    markTypedBlock(this, text, !!d.cur);
     d.cur = text.trim() ? this.layoutOnBoard(text, opts, true) : null;
     const g = b.inkCtx;
     g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'copy'; g.drawImage(d.base, 0, 0); g.restore();
@@ -393,14 +399,36 @@ class Stream {
   }
 
   nextDraft() {
+    endTypedBlock(this, !!this.drafts.cur);
     if (this.drafts.cur) this.drafts.held.push(this.drafts.cur);
     this.drafts.cur = null;
   }
 
-  commitDraft() { this.drafts = { base: null, held: [], cur: null }; }
+  commitDraft() {
+    endTypedBlock(this, !!this.drafts.cur);
+    this.drafts = { base: null, held: [], cur: null };
+  }
+
+  // ---------------------------------------------------------------- undo (see lib/undo.js)
+  undoSnapshot() {
+    const b = this.board;
+    return b && { ink: copyCanvas(b.ink), inked: b.inked };
+  }
+
+  undoRestore(snap) {
+    const b = this.board;
+    if (!b) return;
+    pasteCanvas(b.ink, snap.ink);
+    b.inked = snap.inked;
+    b.dirty = true;
+  }
+
+  undoReady() { return !!this.board && this.board.arrive >= 1 && !this.drafts.base; }
 
   dispose() {}
 }
+
+Object.assign(Stream.prototype, undoMethods);
 
 // ------------------------------------------------------------------ critters
 function makeCritters(e) {

@@ -23,6 +23,7 @@
 
 import { dryStroke } from './brushes.js';
 import { clamp, smoothstep, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from './util.js';
+import { undoMethods, copyCanvas, pasteCanvas, restoreArray } from './undo.js';
 
 export class MapFade {
   constructor(o = {}) {
@@ -52,6 +53,7 @@ export class MapFade {
   // ---------------------------------------------------------------- setup
   resize({ width, height, dpr }) {
     this.dropDraft();
+    this.undoReset(); // the map may change shape
     const cell = Math.max(1, Math.ceil(Math.sqrt((width * height) / this.budget)));
     const mw = Math.ceil(width / cell) + 1;
     const mh = Math.ceil(height / cell) + 1;
@@ -112,6 +114,7 @@ export class MapFade {
   strokeStart(id, x, y, info) {
     const r = this.radiusFor(info, 0);
     const s = { x, y, r, t: info.time, dist: 0 };
+    if (!this.strokes.size && !this.clearing) this.undoPush(); // Release (keep) surfaces only
     this.strokes.set(id, s);
     this.cur = s;
     this.mark(x, y, r, x, y, r);
@@ -213,7 +216,7 @@ export class MapFade {
   }
 
   // ---------------------------------------------------------------- time
-  clear() { this.map.fill(0); this.strokes.clear(); }
+  clear() { this.map.fill(0); this.strokes.clear(); this.undoReset(); }
 
   update(dt) {
     this.time += dt;
@@ -322,7 +325,18 @@ export class MapFade {
   dispose() {}
 }
 
-Object.assign(MapFade.prototype, draftMethods);
+// Undo (see lib/undo.js) only on Release surfaces (keep: true); fading marks need none.
+Object.assign(MapFade.prototype, draftMethods, undoMethods, {
+  undoSnapshot() {
+    if (!this.keep || !this.map) return null;
+    return { map: this.map.slice(), paint: this.paint ? copyCanvas(this.paint) : null };
+  },
+  undoRestore(snap) {
+    restoreArray(this.map, snap.map);
+    if (snap.paint && this.paint) pasteCanvas(this.paint, snap.paint);
+  },
+  undoReady() { return !this.clearing && !this.hasDrafts(); },
+});
 
 // ------------------------------------------------------------------ painting helpers
 // A canvas the size of the stage, scaled so drawing is in CSS px.

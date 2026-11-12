@@ -88,6 +88,7 @@ export function createDemo(host, finger) {
     if (host.mode() === 'release' && ((env.sheet && env.newSheet) || (env.board && env.newBoard))) {
       if (env.sheet && env.newSheet) { env.sheet = env.newSheet(); env.strokes?.clear(); }
       else if (env.board && env.newBoard) { env.board = env.newBoard(); env.strokes?.clear(); }
+      env.undoReset?.(); // undo steps belonged to the old sheet
       host.wake();
       return;
     }

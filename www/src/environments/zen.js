@@ -48,6 +48,7 @@ class Zen extends MapFade {
     sfx.cue('rake');
     this.strokes.clear();
     this.commitDraft?.();
+    this.undoReset();
     this.clearing = { t: 0, dur: 2.4 };
   }
 

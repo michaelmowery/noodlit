@@ -153,16 +153,23 @@ export function layoutFor(g, text, opts, { W, H, size, maxFrac = 0.82, weight = 
 // Optional hooks: onDraftChange(), onCommit(blocks), onDrop().
 export const draftMethods = {
   setDraft(text, opts = {}) {
+    // On surfaces with undo (Release scenes), each typed block is one step: snapshot before
+    // its first letter lands. Inlined rather than imported from undo.js to avoid a cycle.
+    if (!this.draft && !this.undoMarked && text.trim()) this.undoMarked = !!this.undoPush?.();
     this.draft?.overlay.restore();
     this.draft = text.trim() ? this.stampText(text, { ...opts, typed: true }) : null;
     this.onDraftChange?.();
     this.draft?.overlay.apply();
   },
   nextDraft() {
+    if (this.undoMarked && !this.draft) this.undoDrop?.();
+    this.undoMarked = false;
     if (this.draft) (this.held ||= []).push(this.draft);
     this.draft = null;
   },
   commitDraft() {
+    if (this.undoMarked && !this.draft) this.undoDrop?.();
+    this.undoMarked = false;
     const blocks = [...(this.held || []), ...(this.draft ? [this.draft] : [])];
     this.held = [];
     this.draft = null;
@@ -173,6 +180,7 @@ export const draftMethods = {
     for (const d of (this.held || []).reverse()) d.overlay.restore();
     this.draft = null;
     this.held = [];
+    this.undoMarked = false;
     this.onDrop?.();
   },
   hasDrafts() { return !!this.draft || !!this.held?.length; },

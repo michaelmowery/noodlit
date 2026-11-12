@@ -7,6 +7,7 @@
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
+import { undoMethods, copyCanvas, pasteCanvas, restoreArray } from '../lib/undo.js';
 
 const HOLD = 0.3;          // extra life above 1.0 = a short "fresh ink" hold before it starts to lift
 const GHOST = 0.13;        // opacity of the trace a stroke leaves behind
@@ -56,6 +57,7 @@ class Whiteboard {
   // ---------------------------------------------------------------- setup
   resize({ width, height, dpr }) {
     this.dropDraft();
+    this.undoReset(); // the maps may change shape
     // Two low-res maps drive the decay: `life` (fresh ink) and `ghost` (the trace left
     // behind). The full-res `ink` canvas only holds the shape of everything drawn.
     const cell = Math.max(1, Math.ceil(Math.sqrt((width * height) / 300000)));
@@ -116,6 +118,7 @@ class Whiteboard {
 
   strokeStart(id, x, y, info) {
     const r = this.radiusFor(info, 0);
+    if (!this.strokes.size && !this.clearing) this.undoPush(); // two fingers at once make one undo step
     this.strokes.set(id, { x, y, r, t: info.time });
     const g = this.inkCtx;
     g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
@@ -179,6 +182,7 @@ class Whiteboard {
     };
     sfx.cue('erase', this.clearing);
     this.strokes.clear();
+    this.undoReset();
   }
 
   update(dt) {
@@ -486,4 +490,16 @@ function paintGrain() {
   return c;
 }
 
-Object.assign(Whiteboard.prototype, draftMethods);
+// Undo (see lib/undo.js): the marker shapes plus the maps that say where they show.
+Object.assign(Whiteboard.prototype, draftMethods, undoMethods, {
+  undoSnapshot() {
+    return this.ink && { ink: copyCanvas(this.ink), life: this.life.slice(), ghost: this.ghost.slice() };
+  },
+  undoRestore(snap) {
+    pasteCanvas(this.ink, snap.ink);
+    restoreArray(this.life, snap.life);
+    restoreArray(this.ghost, snap.ghost);
+    this.inked = true; // update() tidies the ink away if that left the board empty
+  },
+  undoReady() { return !this.clearing && !this.inkBase; },
+});
