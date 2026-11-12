@@ -52,7 +52,6 @@ import { snow } from './snow.js';
 import { whiteboard } from './whiteboard.js';
 import { windshield } from './windshield.js';
 import { stream } from './stream.js';
-import { lantern } from './lantern.js';
 import { bottle } from './bottle.js';
 import { mailbox } from './mailbox.js';
 import { frost } from './frost.js';
@@ -79,7 +78,7 @@ export const environments = [
   // Fade
   showerDoor, waves, snow, whiteboard, windshield, frost, mirror, chalk, stone, zen, etch, light,
   // Release
-  stream, bottle, lantern, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, rocket,
+  stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, rocket,
   paperBoat, leaf, balloon, paperAirplane, campfire,
 ];
 
