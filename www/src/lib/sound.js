@@ -396,15 +396,6 @@ const SCENES = {
     },
     texture: { noise: 'white', f: 3600, q: 1.6, gain: 0.09, jitter: 0.3 },
   },
-  mirror: {
-    ambient(s, amb) {
-      // An extractor fan and the odd drip from the tap.
-      s.bed(amb, 'brown', [s.filter('lowpass', 240)], 0.04);
-      s.bed(amb, 'pink', [s.filter('bandpass', 700, 2)], 0.012);
-      s.every(amb, 2.5, 6, () => s.tone({ f: 1200 + Math.random() * 500, f2: 600, peak: 0.02, dur: 0.1, dest: amb.bus }));
-    },
-    texture: { noise: 'white', f: 1700, q: 1.1, gain: 0.11, jitter: 0.25 },
-  },
   chalk: {
     ambient(s, amb) {
       // Light rain pattering on the pavement.
@@ -718,12 +709,6 @@ const CUES = {
     s.burst({ kind: 'white', f: 5000, f2: 8000, q: 1, peak: 0.05, attack: 0.3, dur: 1.4 });
     for (let i = 0; i < 14; i++) s.tone({ f: 2500 + Math.random() * 3500, peak: 0.012, attack: 0.002, dur: 0.05, at: Math.random() * 1.3 });
   }, 0.4),
-
-  // Steamy mirror: the hot tap gushes for a moment.
-  tap: cue((s) => {
-    s.burst({ kind: 'pink', f: 1500, q: 0.7, peak: 0.09, attack: 0.08, dur: 1.4 });
-    s.burst({ kind: 'white', f: 3500, q: 1, peak: 0.03, attack: 0.1, dur: 1.2 });
-  }, 0.5),
 
   // Chalk sidewalk: a downpour rushes in and passes.
   downpour: cue((s) => {

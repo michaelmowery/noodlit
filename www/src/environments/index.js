@@ -55,7 +55,6 @@ import { stream } from './stream.js';
 import { bottle } from './bottle.js';
 import { mailbox } from './mailbox.js';
 import { frost } from './frost.js';
-import { mirror } from './mirror.js';
 import { chalk } from './chalk.js';
 import { stone } from './stone.js';
 import { zen } from './zen.js';
@@ -81,7 +80,7 @@ import { campfire } from './campfire.js';
 
 export const environments = [
   // Fade
-  showerDoor, waves, snow, windshield, frost, mirror, chalk, stone, etch, light,
+  showerDoor, waves, snow, windshield, frost, chalk, stone, etch, light,
   breath, tidepool, ink, sparkler, starfield,
   // Release
   stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, whiteboard, rocket,
