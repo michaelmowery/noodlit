@@ -1,4 +1,4 @@
-// Sparkler: a Fade environment.
+// Fireworks (id 'sparkler', kept so saved scenes, brushes and inks still load): a Fade environment.
 //   Look:  a backyard at dusk on a summer night. You write with a lit sparkler: the tip
 //          fizzes and throws branching sparks, and the trail burns white-hot.
 //   Decay: the trail cools from white to gold to a dull red ember, then goes out, sending up
@@ -11,9 +11,9 @@ import { sfx } from '../lib/sound.js';
 
 export const sparkler = {
   id: 'sparkler',
-  name: 'Sparkler',
+  name: 'Fireworks',
   blurb: 'Sizzling trails cool to embers and smoke',
-  surface: 'Summer night to write on with a sparkler',
+  surface: 'Fireworks night to write on with a sparkler',
   clearLabel: 'Dunk it',
   clearIcon: 'M5 10h14l-1.5 10h-11zM8 10V7M12 10V4M16 10V7',
   create: () => new Sparkler(),
