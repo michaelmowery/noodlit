@@ -6,6 +6,7 @@ import { sfx } from './lib/sound.js';
 import { track } from './analytics.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
+import { createBrushCursor } from './cursor.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
 import { PROMPTS } from './lib/prompts.js';
 
@@ -117,6 +118,7 @@ function frame(t) {
   const active = env.update(dt);
   env.render(ctx);
   syncUndo();
+  brushCursor.recheck();
   if (active || pointers.size) requestAnimationFrame(frame);
   else running = false;
 }
@@ -201,6 +203,11 @@ const end = (e) => {
 canvas.addEventListener('pointerup', end);
 canvas.addEventListener('pointercancel', end);
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+// With a mouse, trackpad or hovering pen, the pointer over the canvas becomes a brush-sized ring.
+const brushCursor = createBrushCursor(canvas, document.getElementById('brush-cursor'), {
+  env: () => env,
+  busy: () => !!typing || demo.running,
+});
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 
 // ------------------------------------------------------------------ toolbar
@@ -514,6 +521,12 @@ function tipIcon(id) {
 }
 
 function applyInk() {
+  applyBrushAndInk();
+  // The ring cursor follows the brush, tip and ink (white on scenes with no ink choice).
+  const pal = envDef.palette;
+  brushCursor.refresh(pal?.length && env.setInk ? inkFor(envDef).color : null);
+}
+function applyBrushAndInk() {
   const pal = envDef.palette;
   const brushes = brushesFor(envDef);
   const hasInk = !!pal?.length && !!env.setInk;
