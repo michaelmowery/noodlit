@@ -19,6 +19,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # Stamp the version at deploy time so PRs never touch version numbers (no merge conflicts).
+      # 0.<deploy number> shows in About; the service-worker cache name also carries the commit,
+      # so every deploy installs a fresh cache and the "New version ready" pill fires.
+      # The whole line is rewritten, so a stray hand-edited number can't break it.
+      - name: Stamp version
+        run: |
+          APP_VERSION="0.${{ github.run_number }}"
+          BUILD="v${{ github.run_number }}-${GITHUB_SHA::7}"
+          sed -i -E "s|^const VERSION = '[^']*';|const VERSION = 'noodlit-${BUILD}';|" www/sw.js
+          sed -i -E "s|^const STAMP = '[^']*';|const STAMP = '${APP_VERSION}';|" www/src/about.js
+          grep -q "^const VERSION = 'noodlit-${BUILD}';" www/sw.js
+          grep -q "^const STAMP = '${APP_VERSION}';" www/src/about.js
+          echo "Deploying Noodlit ${APP_VERSION} (cache noodlit-${BUILD})" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: www

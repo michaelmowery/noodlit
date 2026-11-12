@@ -12,12 +12,19 @@ Live at https://noodlit.app (GitHub Pages, deployed by `.github/workflows/pages.
 - `www/src/environments/index.js`: environment registry and the contract every environment implements
   (how strokes look, how they decay, how they clear)
 - `www/src/environments/shower-door.js`: the MVP environment
-- `www/sw.js`: offline cache. Bump `VERSION` on every release.
+- `www/sw.js`: offline cache.
+
+## Versions (don't bump them in PRs)
+The deploy workflow stamps the version on every push to `main`: About shows `0.<deploy number>`
+(the workflow's run number) and the service-worker cache becomes `noodlit-v<run>-<short sha>`, so every
+deploy gets a fresh cache and the "New version ready" pill. In the repo, `sw.js` and `about.js` keep the
+placeholders `__BUILD__` and `__APP_VERSION__` (About shows "dev" locally). **PRs must not edit these
+lines**; that's what used to cause merge conflicts. New files still need adding to `SHELL` in `sw.js`.
 
 
 ## Adding an environment (waves, sand, snow...)
 Create `src/environments/<name>.js` exporting `{ id, name, clearLabel, create }`, add it to the
-`environments` array, and add the file to `sw.js`.
+`environments` array, and add the file to `SHELL` in `sw.js`.
 
 Most Fade scenes (frosted window, steamy mirror, chalk sidewalk, water on hot stone, zen garden,
 shake sketch, light painting) build on `www/src/lib/fade.js`: a strength map that strokes raise and
