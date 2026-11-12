@@ -81,6 +81,9 @@ import { balloon } from './balloon.js';
 import { paperAirplane } from './paper-airplane.js';
 import { campfire } from './campfire.js';
 import { fireflies } from './fireflies.js';
+import { constellation } from './constellation.js';
+import { bloom } from './bloom.js';
+import { thaw } from './thaw.js';
 
 export const environments = [
   // Fade
@@ -90,7 +93,7 @@ export const environments = [
   stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, whiteboard, etch, rocket,
   paperBoat, leaf, balloon, paperAirplane, campfire,
   // Become
-  fireflies,
+  fireflies, constellation, bloom, thaw,
 ];
 
 // Noodlit Plus: the free scenes, by id. Every other scene (including new ones) is Plus and

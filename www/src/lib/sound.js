@@ -498,6 +498,20 @@ const SCENES = {
     },
     texture: { noise: 'white', f: 6200, q: 2, gain: 0.035, jitter: 0.2 },
   },
+  bloom: {
+    ambient(s, amb) {
+      // A garden in the morning: a light breeze and a songbird now and then.
+      const bp = s.filter('bandpass', 700, 0.8);
+      const g = s.bed(amb, 'pink', [bp], 0.02);
+      s.lfo(g.gain, 0.02, 0.01, 8, amb.nodes);
+      s.every(amb, 3, 9, () => {
+        const f = 2600 + Math.random() * 900;
+        for (let k = 0; k < 3; k++) s.tone({ f: f + k * 220, f2: f + 500 + k * 200, peak: 0.008, attack: 0.008, dur: 0.08, at: k * 0.12, dest: amb.bus });
+      });
+    },
+    // A finger pressing a line into soft soil.
+    texture: { noise: 'grit', f: 900, q: 0.8, gain: 0.16, jitter: 0.4 },
+  },
   'burning-page': {
     ambient(s, amb) {
       // A fire crackling in the hearth.
@@ -831,8 +845,34 @@ const CUES = {
     }
   }, 0.5),
 
+  // Constellation: stars arrive one after another, a slow run of small bells.
+  constellation: cue((s, { n = 8 } = {}) => {
+    const notes = [1047, 1319, 1568, 1976, 2093, 2637];
+    const count = Math.min(9, Math.max(3, n));
+    for (let k = 0; k < count; k++) s.tone({ f: notes[k % notes.length], peak: 0.014, attack: 0.004, dur: 0.9, at: (k / count) * 1.1 });
+  }, 0.5),
+
+  // Bloom: leaves and flowers pop open, soft and woody.
+  bloom: cue((s, { n = 20 } = {}) => {
+    const count = Math.min(10, 3 + Math.round(n / 12));
+    for (let k = 0; k < count; k++) {
+      const f = 500 + Math.random() * 500;
+      s.tone({ type: 'triangle', f, f2: f * 1.5, peak: 0.022, attack: 0.004, dur: 0.12, at: (k / count) * 1.4 + Math.random() * 0.1 });
+    }
+  }, 0.5),
+
+  // Thaw: the frost ticks and cracks, then a few drops let go.
+  thaw: cue((s) => {
+    for (let i = 0; i < 9; i++) s.tone({ f: 2600 + Math.random() * 3200, peak: 0.011, attack: 0.002, dur: 0.05, at: Math.random() * 1.6 });
+    for (let k = 0; k < 4; k++) s.tone({ f: 1500 - k * 120, f2: 700, peak: 0.02, attack: 0.004, dur: 0.14, at: 1.8 + k * 0.45 + Math.random() * 0.2 });
+  }, 0.5),
+
   // A fresh sheet or board arrives.
   arrive: cue((s) => s.burst({ kind: 'pink', f: 1800, f2: 900, q: 1, peak: 0.04, attack: 0.08, dur: 0.35 }), 0.5),
 };
+
+// Scenes that share another scene's air.
+SCENES.constellation = SCENES.starfield;
+SCENES.thaw = SCENES.frost;
 
 export const sfx = new Sound();

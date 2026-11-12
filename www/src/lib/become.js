@@ -22,12 +22,15 @@
 // and optionally:
 //   paintSeg(g, x0, y0, r0, x1, y1, r1)   how the ink itself looks
 //   hurry(p)                           "Become now" with nothing left to change: leave sooner
+//   plan(paths, dots) -> seeds         choose the particles yourself instead of an even sampling
+//                                      along the lines: [{ x, y, r, ink, along, fixed?, …extras }]
+//                                      (extras are copied onto the particle; fixed = don't scatter)
 //   onBecome(n)                        a change has started with n new particles (sound…)
 //   updateFx(dt) -> boolean / drawBack(ctx) / drawFront(ctx)   animated scenery
 //   setup()                            after every resize
 // Config: ink, brush (stroke radius), spacing (CSS px between particles along a line), cap
-// (most particles alive at once), ghost (seconds the old ink takes to fade), settle (seconds a
-// change takes from start to empty, for the demo).
+// (most particles alive at once), ghost (seconds the old ink takes to fade), ghostHold (seconds
+// it stays first), settle (seconds a change takes from start to empty, for the demo).
 
 import { clamp, smoothstep, mulberry32, makeCanvas, layoutFor, drawText, draftMethods, HAND } from './util.js';
 import { undoMethods, copyCanvas, pasteCanvas } from './undo.js';
@@ -41,6 +44,7 @@ export class BecomeScene {
     this.spacing = o.spacing ?? 7;
     this.cap = o.cap ?? 1500;
     this.ghostSeconds = o.ghost ?? 1.4;
+    this.ghostHold = o.ghostHold ?? 0;
     this.settle = o.settle ?? 9;
     this.textWeight = o.textWeight ?? 400;
     this.rand = mulberry32(o.seed ?? 11);
@@ -145,6 +149,34 @@ export class BecomeScene {
     this.strokes.clear();
     this.undoReset();
 
+    const rand = this.rand;
+    const born = this.plan ? this.plan(this.paths, this.dots) : this.sample();
+    let along = 0;
+    for (const b of born) if (b.along > along) along = b.along;
+
+    // The change ripples along the drawing in the order it was drawn.
+    const span = Math.max(1, along);
+    for (const b of born) {
+      // A fat brush scatters its points across the stroke's width.
+      const a = rand() * Math.PI * 2, k = b.fixed ? 0 : Math.sqrt(rand()) * Math.max(0, b.r - 1.5);
+      const x = b.x + Math.cos(a) * k, y = b.y + Math.sin(a) * k;
+      const p = { ...b, x, y, hx: x, hy: y, delay: (b.along / span) * 0.9 + (b.fixed ? 0 : rand() * 0.35), t: 0 };
+      b.particle = p; // so a plan() can relate particles to each other (see Constellation)
+      this.spawn(p);
+      this.particles.push(p);
+    }
+
+    this.ghosts.push({ c: this.paint, t: 0 });
+    this.newPaint();
+    this.paths = [];
+    this.dots = [];
+    this.idle = 0;
+    this.onBecome?.(born.length);
+  }
+
+  // An even sampling along every line (and of typed letters), thinned to fit under the cap.
+  // Each seed knows how far along the drawing it is and which way the line runs there.
+  sample() {
     // Walk every path, dropping a point each `step` px; thin them out if that's too many.
     let total = 0;
     for (const { pts } of this.paths) {
@@ -160,38 +192,21 @@ export class BecomeScene {
     let along = 0;
     for (const { pts, ink } of this.paths) {
       let carry = step * rand(); // so parallel lines don't line their points up
-      born.push({ x: pts[0], y: pts[1], r: pts[2], ink, along });
+      born.push({ x: pts[0], y: pts[1], r: pts[2], ink, along, ang: pts.length > 3 ? Math.atan2(pts[4] - pts[1], pts[3] - pts[0]) : -Math.PI / 2 });
       for (let i = 3; i < pts.length; i += 3) {
         const x0 = pts[i - 3], y0 = pts[i - 2], r0 = pts[i - 1], x1 = pts[i], y1 = pts[i + 1], r1 = pts[i + 2];
         const d = Math.hypot(x1 - x0, y1 - y0);
         while (carry <= d) {
           const t = d ? carry / d : 0;
-          born.push({ x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t, r: r0 + (r1 - r0) * t, ink, along: along + carry });
+          born.push({ x: x0 + (x1 - x0) * t, y: y0 + (y1 - y0) * t, r: r0 + (r1 - r0) * t, ink, along: along + carry, ang: Math.atan2(y1 - y0, x1 - x0) });
           carry += step;
         }
         carry -= d;
         along += d;
       }
     }
-    for (const d of this.dots) if (rand() < thin) born.push({ ...d, along: (along += this.spacing) });
-
-    // The change ripples along the drawing in the order it was drawn.
-    const span = Math.max(1, along);
-    for (const b of born) {
-      // A fat brush scatters its points across the stroke's width.
-      const a = rand() * Math.PI * 2, k = Math.sqrt(rand()) * Math.max(0, b.r - 1.5);
-      const x = b.x + Math.cos(a) * k, y = b.y + Math.sin(a) * k;
-      const p = { x, y, hx: x, hy: y, r: b.r, ink: b.ink, delay: (b.along / span) * 0.9 + rand() * 0.35, t: 0 };
-      this.spawn(p);
-      this.particles.push(p);
-    }
-
-    this.ghosts.push({ c: this.paint, t: 0 });
-    this.newPaint();
-    this.paths = [];
-    this.dots = [];
-    this.idle = 0;
-    this.onBecome?.(born.length);
+    for (const d of this.dots) if (rand() < thin) born.push({ ...d, along: (along += this.spacing), ang: -Math.PI / 2, text: true });
+    return born;
   }
 
   // For the scene menu's preview: show the change part-way through.
@@ -215,7 +230,7 @@ export class BecomeScene {
 
     if (this.ghosts.length) {
       for (const g of this.ghosts) g.t += dt;
-      this.ghosts = this.ghosts.filter((g) => g.t < this.ghostSeconds);
+      this.ghosts = this.ghosts.filter((g) => g.t < this.ghostHold + this.ghostSeconds);
       alive = true;
     }
 
@@ -243,7 +258,7 @@ export class BecomeScene {
     this.drawBack?.(ctx);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     for (const g of this.ghosts) {
-      ctx.globalAlpha = 1 - smoothstep(0, this.ghostSeconds, g.t);
+      ctx.globalAlpha = 1 - smoothstep(this.ghostHold, this.ghostHold + this.ghostSeconds, g.t);
       ctx.drawImage(g.c, 0, 0);
     }
     ctx.globalAlpha = 1;
