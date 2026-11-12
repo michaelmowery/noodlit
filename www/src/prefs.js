@@ -14,14 +14,17 @@ export const DEFAULTS = {
   prompts: true,        // show the lightbulb prompt button in the tray
   updateNote: true,     // show the early preview note again after each new version
   analytics: true,      // send anonymous usage counts (analytics.js); never drawings or words
-  sceneView: 'grouped', // scene menu: 'grouped' (Free / Plus / Premium tabs) or 'list' (every scene, A to Z)
+  sceneView: 'list',    // scene menu: 'list' (every scene, A to Z) or 'grouped' (Free / Plus / Premium tabs)
 };
 export const SPEED_PRESETS = { drift: 45, flow: 20, rush: 8 };
 
-function load() {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; }
+// Only what the person has actually set is saved, so a changed default (like sceneView) reaches
+// everyone who never picked one.
+function loadSaved() {
+  try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch { return {}; }
 }
-let values = load();
+const saved = loadSaved();
+let values = { ...DEFAULTS, ...saved };
 
 function readSound() {
   try { return localStorage.getItem('noodlit.sound') !== 'false'; } catch { return true; }
@@ -31,7 +34,8 @@ export const prefs = {
   get: (k) => values[k],
   set(k, v) {
     values[k] = v;
-    try { localStorage.setItem(KEY, JSON.stringify(values)); } catch { /* private mode */ }
+    saved[k] = v;
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch { /* private mode */ }
     window.dispatchEvent(new CustomEvent('noodlit:prefs', { detail: { key: k, value: v } }));
   },
 };
