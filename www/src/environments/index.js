@@ -71,7 +71,7 @@ export const environments = [
   scene('light', 'Light painting', 'fade', 'Glowing trails fade like a long exposure', () => import('./light.js').then((m) => m.light)),
   scene('breath', 'Breath on glass', 'fade', 'Breathe on a cold window and draw in the fog', () => import('./breath.js').then((m) => m.breath)),
   scene('ink', 'Ink in water', 'fade', 'Lines bloom like ink drops, then clear', () => import('./ink.js').then((m) => m.ink)),
-  scene('sparkler', 'Sparkler', 'fade', 'Sizzling trails cool to embers and smoke', () => import('./sparkler.js').then((m) => m.sparkler)),
+  scene('sparkler', 'Fireworks', 'fade', 'Sizzling trails cool to embers and smoke', () => import('./sparkler.js').then((m) => m.sparkler)),
   scene('starfield', 'Starfield', 'fade', 'Join the stars; they fade as dawn comes up', () => import('./starfield.js').then((m) => m.starfield)),
   // Release
   scene('stream', 'Stream', 'release', 'Float it off downstream', () => import('./stream.js').then((m) => m.stream)),
