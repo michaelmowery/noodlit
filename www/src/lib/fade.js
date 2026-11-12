@@ -31,6 +31,7 @@ export class MapFade {
     this.cover = !!o.cover;
     this.usePaint = !!o.paint;
     this.blend = o.blend || 'source-over';
+    this.keep = !!o.keep;               // true: never decays (a Release surface); clear() lets it go
     this.edgeFirst = o.edgeFirst || 0;  // 0..1: thin, faint parts go first so lines shrink
     this.soft = o.soft ?? 0.55;          // inner fraction of a stroke at full strength
     this.brush = o.brush ?? 10;          // finger radius, CSS px
@@ -218,7 +219,9 @@ export class MapFade {
     this.time += dt;
     const { map, decay } = this;
     let alive = false;
-    if (!this.paused) {
+    if (this.keep) {
+      // A Release surface built on the map: nothing decays, and a finished drawing needs no frames.
+    } else if (!this.paused) {
       const rate = ((1 + this.hold) / this.fadeSeconds) * dt * (this.decayScale ?? 1);
       const ef = this.edgeFirst;
       for (let i = 0; i < map.length; i++) {

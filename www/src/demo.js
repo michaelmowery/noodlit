@@ -83,7 +83,8 @@ export function createDemo(host, finger) {
   // Start from a blank surface so the doodle doesn't land on the intro prompt. Fade scenes
   // play their own clear (steam, eraser, rain…); Release scenes just get a fresh sheet in place.
   async function blank(env, me) {
-    if (host.mode() === 'release') {
+    // Release scenes with a sheet just get a fresh one; the rest (the Zen garden) play their clear.
+    if (host.mode() === 'release' && (env.sheet || env.board)) {
       if (env.sheet && env.newSheet) { env.sheet = env.newSheet(); env.strokes?.clear(); }
       else if (env.board && env.newBoard) { env.board = env.newBoard(); env.strokes?.clear(); }
       host.wake();
