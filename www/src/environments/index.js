@@ -76,9 +76,9 @@ import { campfire } from './campfire.js';
 
 export const environments = [
   // Fade
-  showerDoor, waves, snow, whiteboard, windshield, frost, mirror, chalk, stone, etch, light,
+  showerDoor, waves, snow, windshield, frost, mirror, chalk, stone, etch, light,
   // Release
-  stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, rocket,
+  stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, whiteboard, rocket,
   paperBoat, leaf, balloon, paperAirplane, campfire,
 ];
 
