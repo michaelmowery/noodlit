@@ -25,8 +25,8 @@ function loadFadeSeconds() {
   if (typeof saved === 'number' && isFinite(saved)) return clampFade(saved);
   return LEGACY_SPEEDS[store.get('speed', 'flow')] ?? FADE_DEFAULT; // carry over the old preset
 }
-// Short prompts written onto the surface: on launch, on surface change, and from the
-// prompt button. Keep them brainstorm-flavoured and at most two short lines ("\n").
+// Prompts from the lightbulb button, shown in a bubble that floats above the surface.
+// Keep them brainstorm-flavoured and at most two short lines ("\n").
 const INTROS = ['let it flow', 'think out loud', 'just start', 'empty your head'];
 const PROMPTS = [
   ...INTROS,
@@ -251,6 +251,7 @@ btnDemo.addEventListener('click', () => {
   if (typing) finishTyping();
   closeSpeed();
   closeInk();
+  popBubble({ quiet: true });
   demo.start();
 });
 // Any touch, click or key takes the surface back (the Stop button handles itself).
@@ -275,6 +276,7 @@ function applySpeed() {
 function openSpeed() {
   if (typing) finishTyping();
   closeInk();
+  popBubble({ quiet: true });
   speedPop.hidden = false;
   btnSpeed.setAttribute('aria-expanded', 'true');
   speedRange.focus({ preventScroll: true });
@@ -431,6 +433,7 @@ function applyInk() {
 function openInk() {
   if (typing) finishTyping();
   closeSpeed();
+  popBubble({ quiet: true });
   inkPop.hidden = false;
   btnInk.setAttribute('aria-expanded', 'true');
   (brushOptions.querySelector('[aria-checked="true"]') || inkSwatches.querySelector('[aria-checked="true"]'))?.focus({ preventScroll: true });
@@ -474,27 +477,61 @@ for (const type of ['pointerdown', 'keydown']) document.addEventListener(type, (
 
 btnClear.addEventListener('click', () => {
   env.clear();
-  recentPrompts = [];
   wake();
 });
 
-// Write a fresh prompt onto whatever surface is active, on top of what's already there.
-// While earlier prompts are still visible, put the new one in a free band so they don't pile up.
-const PROMPT_SLOTS = [undefined, 0.24, 0.62]; // undefined = the environment's own centre
-let recentPrompts = []; // { slot, time }
-function notePrompt(slot) {
-  recentPrompts.push({ slot, time: performance.now() });
+// The lightbulb floats a prompt in a speech bubble above the surface. It isn't part of the
+// drawing, so it never fades, washes away or gets released. Tap the bubble to pop it;
+// tap the lightbulb again for a different prompt.
+let bubble = null;
+function placeBubble(el) {
+  const b = btnPrompt.getBoundingClientRect();
+  const w = el.offsetWidth, vw = window.innerWidth, edge = 14;
+  const bulb = b.left + b.width / 2;
+  const left = Math.max(edge, Math.min(vw - w - edge, bulb - Math.min(w * 0.3, 60)));
+  el.style.left = left + 'px';
+  el.style.setProperty('--tail-x', Math.max(22, Math.min(w - 22, bulb - left)) + 'px');
+}
+function popBubble({ quiet = false } = {}) {
+  const el = bubble;
+  if (!el) return;
+  bubble = null;
+  ui.classList.remove('has-bubble');
+  el.classList.add(quiet ? 'gone' : 'popping');
+  el.disabled = true;
+  if (!quiet) sfx.cue('pop');
+  setTimeout(() => el.remove(), quiet ? 200 : 380);
+}
+function showPromptBubble() {
+  const swap = !!bubble;
+  popBubble({ quiet: swap });
+  const el = document.createElement('button');
+  el.type = 'button';
+  el.className = 'prompt-bubble';
+  const text = pickPrompt();
+  el.setAttribute('aria-label', `Prompt: ${text.replace('\n', ' ')}. Tap to pop.`);
+  const span = document.createElement('span');
+  span.textContent = text;
+  el.append(span);
+  for (let i = 0; i < 8; i++) {
+    const bit = document.createElement('i');
+    bit.style.setProperty('--a', `${i * 45 + 20}deg`);
+    el.append(bit);
+  }
+  el.addEventListener('click', () => { if (bubble === el) popBubble(); });
+  ui.append(el);
+  placeBubble(el);
+  bubble = el;
+  ui.classList.add('has-bubble');
+  sfx.cue('bloop');
 }
 btnPrompt.addEventListener('click', () => {
-  const now = performance.now();
-  const visibleFor = fadeSeconds * 1000;
-  if (!held) recentPrompts = recentPrompts.filter((r) => now - r.time < visibleFor);
-  const busy = new Set(recentPrompts.slice(-2).map((r) => r.slot));
-  const slot = PROMPT_SLOTS.find((s) => !busy.has(s));
-  env.intro?.(pickPrompt(), { at: slot });
-  notePrompt(slot);
-  wake();
+  if (typing) finishTyping();
+  closeSpeed();
+  closeInk();
+  showPromptBubble();
 });
+window.addEventListener('resize', () => { if (bubble) placeBubble(bubble); });
 
 // ------------------------------------------------------------------ typing
 // Keyboard entry: words are written onto the surface in its own style as you type. They
@@ -684,7 +721,6 @@ function switchTo(def) {
   demo.stop();
   if (typing) finishTyping();
   useEnvironment(def, { announce: true });
-  recentPrompts = []; // scenes open blank; the lightbulb button writes a prompt on request
   wake();
 }
 
