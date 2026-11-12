@@ -328,6 +328,11 @@ export function createDemo(host, finger) {
     if (speed) speed.set(DEMO_SPEED);
     if (!(await drawAndType(env, me))) return;
     await letGo(env, me, false);
+    if (run !== me) return;
+    // Sign-off: the toolbar lights up and points at the rest of the settings.
+    host.signoff?.(true);
+    host.say('Check out the brushes and other settings in the tray', 3200);
+    await sleep(3000, me);
   }
 
   // The full tour, on whatever scene is showing.
@@ -392,6 +397,7 @@ export function createDemo(host, finger) {
     const env = host.env();
     if (r.panel && !(e?.target && r.panel.pop.contains(e.target))) r.panel.close();
     host.onPeek(false);
+    host.signoff?.(false);
     if (r.kind === 'tour') { host.tour.popPrompt(); host.tour.closeScenes(e?.target); host.tour.closePanels(e?.target); }
     if (r.down) { env.strokeEnd(ID); host.sfx.strokeEnd(); }
     if (r.typing) env.commitDraft();
