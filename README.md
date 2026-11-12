@@ -10,12 +10,12 @@ releases are planned.
 
 ## What's in the app
 
-### Six modes, 46 scenes
+### Six modes, 45 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
-- **Fade** scenes disappear on their own at the pace you pick (13): Shower door, Waves, Snow,
+- **Fade** scenes disappear on their own at the pace you pick (12): Shower door, Waves, Snow,
   Breath on glass, Chalk sidewalk, Frosted window, Ink in water, Light painting, Sparkler,
-  Starfield, Tide pool, Water on hot stone, Windshield.
+  Starfield, Water on hot stone, Windshield.
 - **Release** scenes keep the drawing until you let it go, and then carry it off (18): Message in
   a bottle, Mailbox, Stream, Whiteboard, Autumn leaf, Balloon, Burning page, Campfire, Dandelion,
   Kite, Lantern festival, Paper airplane, Paper boat, Rice paper, Rocket, Shake sketch, Shredder,

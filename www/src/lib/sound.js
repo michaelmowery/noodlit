@@ -450,17 +450,6 @@ const SCENES = {
     },
     texture: { noise: 'white', f: 2000, q: 1.2, gain: 0.1, jitter: 0.25 },
   },
-  tidepool: {
-    ambient(s, amb) {
-      // Gentle lapping close by, surf far off, and a gull now and then.
-      surf(s, amb, 0.05);
-      s.every(amb, 1.2, 3.5, () => s.burst({ kind: 'pink', f: 900 + Math.random() * 500, q: 1.2, peak: 0.025, attack: 0.08, dur: 0.35, dest: amb.bus }));
-      s.every(amb, 7, 16, () => {
-        for (let k = 0; k < 3; k++) s.tone({ type: 'triangle', f: 1300, f2: 900, peak: 0.008, attack: 0.03, dur: 0.28, at: k * 0.34, dest: amb.bus });
-      });
-    },
-    texture: { noise: 'grit', f: 2000, q: 0.7, gain: 0.24, jitter: 0.3 },
-  },
   ink: {
     ambient(s, amb) {
       // A still room; the odd soft plink of water.

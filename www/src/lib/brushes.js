@@ -36,7 +36,6 @@ export const BRUSHES = {
   zen: [B('Finger', 1), B('Stick', 0.45, { steady: 0.6 }), B('Hand', 3.6)],
   etch: [B('Fine', 1, { steady: 1 }), B('Bold', 1.9, { steady: 1 }), B('Heavy', 5.1, { steady: 1 })],
   breath: [...FINGER_GLASS, B('Side of hand', 3.9, { soft: 0.3 })],
-  tidepool: [B('Finger', 1), B('Shell edge', 0.45, { steady: 0.7 }), B('Palm', 3.6)],
   ink: [B('Dropper', 1, { flow: 0.4 }), B('Fine pipette', 0.5, { steady: 0.8 }), B('Ink brush', 3.2, { flow: 0.6 })],
   sparkler: [B('Sparkler', 1), B('Birthday sparkler', 0.55, { steady: 0.7 }), B('Fountain', 3.2)],
   starfield: [B('Fingertip', 1), B('Fine line', 0.5, { steady: 1 }), B('Comet', 3.4)],
