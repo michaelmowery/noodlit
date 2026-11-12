@@ -5,8 +5,7 @@
 // Become scenes change, Stir scenes
 // swirl it away, Echo scenes play it back. "Show me everything" (from About, and on the very
 // first visit) is the longer tour: it picks one scene from each family off the scene menu and runs
-// that same script on each, floats a prompt after the first, then opens Preferences and points
-// out Show me.
+// that same script on each, then opens Preferences, points out Show me and ends with a prompt.
 // Reveal scenes skip the logo and the words: the finger just rubs the cover off to show what
 // is underneath, then starts a fresh one.
 // Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
@@ -360,7 +359,7 @@ export function createDemo(host, finger) {
   }
 
   // The full tour: one scene from each family, picked from the scene menu, each running its
-  // own Show me script; a prompt along the way, then Preferences and the sign-off. The user's
+  // own Show me script; then Preferences, the Show me pointer, a prompt and the sign-off. The user's
   // own scene, brushes and settings come back at the end.
   const TOUR = [
     ['shower-door', 'Fade scenes disappear on their own'],
@@ -373,26 +372,40 @@ export function createDemo(host, finger) {
   async function playTour(me) {
     const t = host.tour;
     host.onPeek(true); // keep the toolbar bright: the tour is about it
-    for (const [k, [id, caption]] of TOUR.entries()) {
+    for (const [id, caption] of TOUR) {
       if (!(await chooseScene(id, caption, me))) return;
       if (!(await sceneScript(me))) return;
-      // After the first scene: a prompt floats up from the lightbulb, then pops
-      // (unless prompts are off in Preferences).
-      if (!k && !t.promptButton.hidden) {
-        if (!(await tap(t.promptButton, me))) return;
-        t.showPrompt();
-        host.say('Stuck? Tap the bulb for a prompt', 3600);
-        await sleep(3600, me); // long enough to read a full-sentence prompt
-        if (run !== me) return;
-        t.popPrompt();
-        await sleep(400, me);
-        if (run !== me) return;
-      }
     }
 
     // The rest.
     if (!(await showPrefs(me))) return;
     if (!(await point(t.demoButton, 'Show me runs a quick demo of any scene', 2600, me))) return;
+    // Last: a prompt floats up from the lightbulb, then pops (unless prompts are off in
+    // Preferences).
+    if (!t.promptButton.hidden) {
+      if (!(await tap(t.promptButton, me))) return;
+      t.showPrompt();
+      host.say('Stuck? Tap the bulb for a prompt', 3600);
+      await sleep(3600, me); // long enough to read a full-sentence prompt
+      if (run !== me) return;
+      // The arrows flip to another prompt; the X puts it away.
+      const next = t.promptBubble?.()?.querySelector('.prompt-next');
+      if (next) {
+        if (!(await tap(next, me))) return;
+        next.click();
+        host.say('Use the arrows for another one', 3200);
+        await sleep(3200, me);
+        if (run !== me) return;
+      }
+      const close = t.promptBubble?.()?.querySelector('.prompt-close');
+      if (close) {
+        if (!(await tap(close, me))) return;
+        close.click();
+      } else t.popPrompt();
+      finger.classList.remove('show');
+      await sleep(500, me);
+      if (run !== me) return;
+    }
     await signOff(me);
   }
 
