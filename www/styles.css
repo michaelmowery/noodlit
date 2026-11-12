@@ -464,6 +464,8 @@ html, body {
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* While typing the keyboard covers the bottom, so hints show up top instead. */
+#ui.typing #toast { bottom: auto; top: calc(env(safe-area-inset-top) + 18px); }
 
 /* Five or six buttons on a phone: tighten up so the bar never runs off the edges. Hold shows its
    state by colour, so its label is the first to go; the clear label goes next. */
@@ -565,6 +567,7 @@ html, body {
   pointer-events: none;
 }
 #type-spot.show { animation: caret 1.05s steps(1) infinite; }
+#type-spot.dragging { animation: none; opacity: 1; }
 @keyframes caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {

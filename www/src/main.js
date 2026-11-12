@@ -10,6 +10,7 @@ import { brushesFor, brushRadius } from './lib/brushes.js';
 // Slider left = slow (Drift), right = fast (Rush). The old three presets survive as zone names.
 const FADE_MIN = 5, FADE_MAX = 60, FADE_DEFAULT = 20;
 const LEGACY_SPEEDS = { drift: 45, flow: 20, rush: 8 };
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 const clampFade = (s) => Math.min(FADE_MAX, Math.max(FADE_MIN, Math.round(s)));
 const sliderToSeconds = (v) => clampFade(FADE_MAX * Math.pow(FADE_MIN / FADE_MAX, v / 100));
 const secondsToSlider = (s) => Math.round((100 * Math.log(s / FADE_MAX)) / Math.log(FADE_MIN / FADE_MAX));
@@ -139,7 +140,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (e.button > 0) return;
   e.preventDefault();
   sfx.unlock();
-  if (typing) { moveTyping(e.clientX, e.clientY); return; }
+  if (typing) { typingPointerDown(e); return; }
   canvas.setPointerCapture?.(e.pointerId);
   pointers.add(e.pointerId);
   lastPos.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp });
@@ -150,6 +151,7 @@ canvas.addEventListener('pointerdown', (e) => {
   wake();
 });
 canvas.addEventListener('pointermove', (e) => {
+  if (placing?.id === e.pointerId) { typingPointerMove(e); return; }
   if (!pointers.has(e.pointerId)) return;
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
   for (const ce of events.length ? events : [e]) env.strokeMove(e.pointerId, ce.clientX, ce.clientY, info(ce));
@@ -164,6 +166,7 @@ canvas.addEventListener('pointermove', (e) => {
   wake();
 });
 const end = (e) => {
+  if (placing?.id === e.pointerId) { typingPointerUp(e); return; }
   if (!pointers.delete(e.pointerId)) return;
   lastPos.delete(e.pointerId);
   if (!pointers.size) sfx.strokeEnd();
@@ -410,6 +413,15 @@ function startTyping(seed = '') {
   if (seed) input.setSelectionRange(seed.length, seed.length);
   syncKeyboard();
   updateDraft();
+  hintPlacing();
+}
+
+// The first couple of times, say that words can go anywhere.
+function hintPlacing() {
+  const n = store.get('placeHint', 0);
+  if (n >= 2) return;
+  showToast('Tap to place your words · drag to move');
+  store.set('placeHint', n + 1);
 }
 
 function updateDraft() {
@@ -418,13 +430,66 @@ function updateDraft() {
   const empty = !input.value.trim();
   typeSpot.classList.toggle('show', empty);
   if (empty) {
-    typeSpot.style.left = `${typing.x ?? W / 2}px`;
-    typeSpot.style.top = `${typing.y ?? H * typing.at}px`;
+    let x = typing.x ?? W / 2, y = typing.y ?? H * typing.at;
+    // On a Release sheet the words land on the sheet, so show the caret there too.
+    const a = env.textArea?.(), r = env.rect;
+    if (a && r) {
+      x = clamp(x, r.x + a.x, r.x + a.x + a.w);
+      y = clamp(y, r.y + a.y + 17, r.y + a.y + a.h - 17);
+    }
+    typeSpot.style.left = `${x}px`;
+    typeSpot.style.top = `${y}px`;
   }
   wake();
 }
 
-// Tap while typing: start a new block there. What's already written stays put, still crisp.
+// Placing words while typing. A tap picks a spot: before the first letter it just moves the
+// caret, after that it starts a new block there (what's written stays put, still crisp).
+// Press and drag instead to slide the block you're typing around until it sits right.
+let placing = null; // { id, x, y, dragging, from: { x, y } } while a finger is down in type mode
+const DRAG_SLOP = 8;
+
+function typingPointerDown(e) {
+  if (placing) return;
+  canvas.setPointerCapture?.(e.pointerId);
+  placing = { id: e.pointerId, x: e.clientX, y: e.clientY, dragging: false };
+}
+
+function typingPointerMove(e) {
+  const dx = e.clientX - placing.x, dy = e.clientY - placing.y;
+  if (!placing.dragging) {
+    if (Math.hypot(dx, dy) < DRAG_SLOP) return;
+    placing.dragging = true;
+    placing.from = blockOrigin();
+    typeSpot.classList.add('dragging');
+  }
+  Object.assign(typing, { x: placing.from.x + dx, y: placing.from.y + dy });
+  if (!placing.raf) placing.raf = requestAnimationFrame(() => { if (placing) placing.raf = 0; updateDraft(); });
+}
+
+function typingPointerUp(e) {
+  const p = placing;
+  placing = null;
+  if (p.raf) cancelAnimationFrame(p.raf);
+  typeSpot.classList.remove('dragging');
+  if (!typing) return;
+  if (p.dragging) updateDraft();
+  else moveTyping(p.x, p.y);
+  input.focus({ preventScroll: true });
+}
+
+// Where the current block starts, in screen pixels, read back from the surface (which keeps
+// words on screen), so a drag moves it without a jump even from the centred default spot.
+function blockOrigin() {
+  const sheet = env.drafts?.cur; // Release surfaces keep blocks relative to their sheet
+  const d = sheet || env.draft;
+  if (!d?.place || !d.lay) return { x: typing.x ?? W / 2, y: typing.y ?? H * typing.at };
+  const { lay, place } = d;
+  const left = place.align === 'center' ? place.x - lay.widest / 2 : place.x;
+  if (sheet) return { x: left + env.rect.x, y: place.y0 + env.rect.y };
+  return { x: left + lay.size * 0.12, y: place.y0 };
+}
+
 function moveTyping(x, y) {
   if (input.value.trim()) {
     typing.held.push({ text: input.value, opts: spotOpts() });
@@ -438,6 +503,8 @@ function moveTyping(x, y) {
 
 function finishTyping() {
   if (!typing) return;
+  if (placing?.raf) cancelAnimationFrame(placing.raf);
+  placing = null;
   env.commitDraft();
   typing = null;
   ui.classList.remove('typing');
