@@ -166,7 +166,13 @@
         <p id="welcome-update" class="welcome-update" hidden></p>
         <p id="welcome-body">Noodlit is in early preview. New scenes land often, and now and then something may wobble. Thanks for joining us. Got an idea? Noodlit.</p>
         <p id="welcome-optout" class="welcome-optout" hidden>Don't need this after every update? Turn it off in <button type="button" class="welcome-prefs" data-open-prefs>Preferences</button>.</p>
-        <button type="button" class="welcome-ok" data-dismiss>Got it</button>
+        <div class="welcome-actions">
+          <button type="button" class="welcome-ok" data-dismiss>Got it</button>
+          <button type="button" class="welcome-tour" data-tour>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z"/></svg>
+            Show me everything
+          </button>
+        </div>
       </div>
     </div>
     <div id="toast" role="status" aria-live="polite"></div>

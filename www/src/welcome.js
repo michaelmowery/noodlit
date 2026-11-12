@@ -53,6 +53,8 @@ if (newVersion && !prefs.get('updateNote')) {
 
 note.addEventListener('click', (e) => {
   if (e.target.closest('[data-dismiss]')) dismiss();
+  // "Show me everything": close the note, then the shell (main.js) runs the full tour.
+  else if (e.target.closest('[data-tour]')) dismiss(() => window.dispatchEvent(new Event('noodlit:tour')));
   else if (e.target.closest('[data-open-prefs]')) {
     dismiss(() => window.dispatchEvent(new Event('noodlit:open-prefs')));
   }
@@ -64,7 +66,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && note.contains(document.activeElement) && document.activeElement.matches('button')) { e.preventDefault(); document.activeElement.click(); }
   else if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); dismiss(); }
   else if (e.key === 'Tab') {
-    // Cycle between the visible buttons (Got it, and Preferences when it's shown).
+    // Cycle between the visible buttons (Got it, Show me everything, and Preferences when shown).
     e.preventDefault();
     const items = [...note.querySelectorAll('button')].filter((b) => b.offsetParent);
     const i = items.indexOf(document.activeElement);
