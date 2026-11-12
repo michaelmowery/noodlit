@@ -111,7 +111,6 @@ export const environments = [
   scene('flush', 'Flush', 'stir', 'Your lines swirl round the bowl and are flushed away', () => import('./flush.js').then((m) => m.flush)),
   scene('kaleidoscope', 'Kaleidoscope', 'stir', 'Your lines mirror, turn and melt together', () => import('./kaleidoscope.js').then((m) => m.kaleidoscope)),
   scene('marbling', 'Paper marbling', 'stir', 'Float inks, comb them, and pull a print', () => import('./marbling.js').then((m) => m.marbling)),
-  scene('tea-leaves', 'Tea leaves', 'stir', 'Swirl the cup and see what the leaves say', () => import('./tea-leaves.js').then((m) => m.teaLeaves)),
   scene('galaxy', 'Galaxy', 'stir', 'Your lines turn to stardust and wind into spiral arms', () => import('./galaxy.js').then((m) => m.galaxy)),
   // Echo
   scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),

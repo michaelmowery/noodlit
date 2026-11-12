@@ -10,7 +10,7 @@ releases are planned.
 
 ## What's in the app
 
-### Six modes, 54 scenes
+### Six modes, 53 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
 - **Fade** scenes disappear on their own at the pace you pick (12): Shower door, Waves, Snow,
@@ -30,11 +30,11 @@ Three newer modes:
   (the colour picker chooses the colours or the view); Bubble wrap pops, bubble by bubble, down
   to a prompt on the parcel underneath; Invisible ink warms a hidden note out of the page;
   Pencil rubbing shades up what is carved below; Beach dig brushes sand off a message.
-- **Stir** (7): the surface swirls the drawing together until it mixes away. Latte art winds
+- **Stir** (6): the surface swirls the drawing together until it mixes away. Latte art winds
   your lines of milk into spirals; Rinse water mingles paint in a rinse jar; Kaleidoscope
   mirrors your lines six ways as they turn; Flush is a toilet bowl that swirls them down and
-  away (tap its handle); Paper marbling floats inks to comb and print; Tea leaves swirls the
-  cup; Galaxy winds stardust into spiral arms. One brush in each drags instead of drawing.
+  away (tap its handle); Paper marbling floats inks to comb and print; Galaxy winds stardust
+  into spiral arms. One brush in each drags instead of drawing.
 - **Echo** (6): pause, and the drawing plays back stroke by stroke, then fades. Canyon echo
   repeats it once more faintly; Neon sign lights the drawing up in place; Skywriting has a plane
   write it across the sky; Music box punches and plays it as a tune; Pond ripples plays it back

@@ -76,7 +76,6 @@ export const BRUSHES = {
   flush: [B('Fine line', 0.5), B('Line', 1), B('Swish', 1.3, { steady: 1, drag: true }), B('Wide line', 2.6)],
   kaleidoscope: [B('Thread', 0.5, { steady: 0.8 }), B('Ribbon', 1), B('Twist', 1.3, { steady: 1, drag: true }), B('Band', 2.6)],
   marbling: [B('Fine brush', 0.5, { steady: 0.6 }), B('Brush', 1, { flow: 0.4 }), B('Comb', 1.3, { steady: 1, drag: true }), B('Ink drop', 2.4)],
-  'tea-leaves': [B('Pinch', 0.6, { steady: 0.8 }), B('Leaves', 1), B('Spoon', 1.3, { steady: 1, drag: true }), B('Handful', 2.2)],
   galaxy: [B('Star trail', 0.5, { steady: 0.8 }), B('Stardust', 1), B('Gravity', 1.3, { steady: 1, drag: true }), B('Nebula', 2.8)],
   // Echo
   canyon: [B('Whisper', 0.5, { steady: 0.8 }), B('Call', 1), B('Shout', 2.6)],
