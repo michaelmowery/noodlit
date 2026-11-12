@@ -15,6 +15,7 @@
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="about.css">
+  <link rel="stylesheet" href="prefs.css">
 </head>
 <body>
   <canvas id="stage" aria-label="Fogged glass drawing surface"></canvas>
@@ -57,6 +58,10 @@
           <h2 id="about-title">noodlit</h2>
           <p class="about-tag">A fading scratchpad for getting ideas out of your head.</p>
         </header>
+        <button type="button" id="about-prefs-btn" class="about-prefs-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+          Preferences
+        </button>
         <p>Noodlit is a place to think out loud. Scribble, sketch, or type whatever is rattling around, and let it go. There is nothing to save, sort, or judge, so the next idea always has room.</p>
         <p>It started on a foggy shower door, where the good ideas seem to show up. You write one in the steam, and the fog quietly takes it back.</p>
         <div class="about-modes">
@@ -84,6 +89,61 @@
           <p>Made by Mount M Technologies, LLC</p>
           <p>© <span id="about-year">2026</span> Mount M Technologies, LLC</p>
         </footer>
+      </div>
+    </div>
+    <div id="prefs" class="about prefs" role="dialog" aria-modal="true" aria-labelledby="prefs-title" hidden>
+      <div class="about-backdrop" data-close></div>
+      <div class="about-panel prefs-panel">
+        <button type="button" class="about-close" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <h2 id="prefs-title" class="prefs-title">Preferences</h2>
+        <p class="prefs-note">Saved on this device.</p>
+        <form id="prefs-form" class="prefs-form">
+          <section class="prefs-group">
+            <label class="pref-row">
+              <span class="pref-text"><span class="pref-name">Show me on first visit</span><span class="pref-hint">Each scene demos itself the first time you open it</span></span>
+              <input type="checkbox" name="autoDemo" class="pref-switch" role="switch">
+            </label>
+            <div class="pref-row pref-row-sub">
+              <button type="button" id="pref-replay-demos" class="pref-link">Show the scene demos again</button>
+              <p id="pref-replay-status" class="pref-status" role="status" aria-live="polite"></p>
+            </div>
+            <label class="pref-row">
+              <span class="pref-text"><span class="pref-name">Sound</span><span class="pref-hint">Drawing sounds and scene effects</span></span>
+              <input type="checkbox" name="sound" class="pref-switch" role="switch">
+            </label>
+            <label class="pref-row">
+              <span class="pref-text"><span class="pref-name">Prompt button</span><span class="pref-hint">The lightbulb that suggests something to noodle on</span></span>
+              <input type="checkbox" name="prompts" class="pref-switch" role="switch">
+            </label>
+          </section>
+          <section class="prefs-group">
+            <h3>When Noodlit opens</h3>
+            <label class="pref-row">
+              <span class="pref-name">Start on</span>
+              <select name="startScene" id="pref-start-scene" class="pref-select"><option value="last">Last scene used</option></select>
+            </label>
+            <label class="pref-row">
+              <span class="pref-name">Fade speed</span>
+              <select name="speed" class="pref-select">
+                <option value="last">Last used</option>
+                <option value="drift">Drift · 45s</option>
+                <option value="flow">Flow · 20s</option>
+                <option value="rush">Rush · 8s</option>
+              </select>
+            </label>
+            <label class="pref-row">
+              <span class="pref-text"><span class="pref-name">Brush</span><span class="pref-hint">Each scene's brushes, by size</span></span>
+              <select name="brush" class="pref-select">
+                <option value="last">Last used</option>
+                <option value="fine">Fine</option>
+                <option value="regular">Regular</option>
+                <option value="bold">Bold</option>
+              </select>
+            </label>
+          </section>
+        </form>
       </div>
     </div>
     <div id="welcome" class="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-body" hidden>

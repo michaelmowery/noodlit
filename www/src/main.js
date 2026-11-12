@@ -5,6 +5,7 @@ import { environmentsFor, modeOf, getEnvironment, isPlus } from './environments/
 import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
+import { prefs, SPEED_PRESETS } from './prefs.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -21,6 +22,9 @@ function speedZone(s) {
   return { label: 'Drift', word: 'Slow fade' };
 }
 function loadFadeSeconds() {
+  // Preferences can pin a speed for every launch; otherwise it's whatever you last set.
+  const pinned = SPEED_PRESETS[prefs.get('speed')];
+  if (pinned) return pinned;
   const saved = store.get('fadeSeconds', null);
   if (typeof saved === 'number' && isFinite(saved)) return clampFade(saved);
   return LEGACY_SPEEDS[store.get('speed', 'flow')] ?? FADE_DEFAULT; // carry over the old preset
@@ -246,10 +250,10 @@ const demo = createDemo({
   typeButton: btnType,
   // A random lightbulb prompt, typed in quotes under "Noodlit" (line breaks become spaces).
   prompt: () => pickPrompt().replace(/\n/g, ' '),
-  snapshot: () => ({ id: envDef.id, brush: store.get('brush.' + envDef.id, null), fade: fadeSeconds }),
+  snapshot: () => ({ id: envDef.id, brush: savedBrush(envDef.id), fade: fadeSeconds }),
   restore(snap) {
     if (snap.id !== envDef.id) return;
-    store.set('brush.' + snap.id, snap.brush);
+    saveBrush(snap.id, snap.brush);
     fadeSeconds = snap.fade;
     store.set('fadeSeconds', fadeSeconds);
     applySpeed();
@@ -290,7 +294,7 @@ const autoDemo = { timer: 0, id: null };
 function cancelAutoDemo() { clearTimeout(autoDemo.timer); autoDemo.timer = 0; autoDemo.id = null; }
 function scheduleAutoDemo(def) {
   cancelAutoDemo();
-  if (store.get('demoSeen.' + def.id, false)) return;
+  if (!prefs.get('autoDemo') || store.get('demoSeen.' + def.id, false)) return;
   autoDemo.id = def.id;
   const fire = () => {
     autoDemo.timer = 0;
@@ -362,11 +366,25 @@ function tipFor(def) {
   const saved = store.get('tip.' + def.id, 'round');
   return TIPS.find((t) => t.id === saved) || TIPS[0];
 }
+// The brush you pick is remembered per scene, unless Preferences sets a starting size
+// (Fine, Regular or Bold): then picks last until the app closes, and every scene opens at that size.
+const sessionBrush = new Map();
+const pinnedBrush = () => (prefs.get('brush') === 'last' ? null : prefs.get('brush'));
+function savedBrush(id) {
+  return pinnedBrush() ? sessionBrush.get(id) ?? null : store.get('brush.' + id, null);
+}
+function saveBrush(id, name) {
+  if (pinnedBrush()) sessionBrush.set(id, name);
+  else store.set('brush.' + id, name);
+}
 function brushFor(def) {
   const list = brushesFor(def);
   if (!list?.length) return null;
-  const saved = store.get('brush.' + def.id, null);
-  return list.find((b) => b.name === saved) || defaultBrush(list);
+  const saved = savedBrush(def.id);
+  const pinned = pinnedBrush();
+  const bySize = [...list].sort((a, b) => a.size - b.size);
+  const start = pinned === 'fine' ? bySize[0] : pinned === 'bold' ? bySize[bySize.length - 1] : defaultBrush(list);
+  return list.find((b) => b.name === saved) || start;
 }
 
 // Every scene answers radiusFor(info, speed); route it through the chosen brush.
@@ -425,7 +443,7 @@ function applyInk() {
     btn.setAttribute('aria-checked', String(b === brush));
     btn.innerHTML = `${brushIcon(b)}<span>${b.name}</span>`;
     btn.addEventListener('click', () => {
-      store.set('brush.' + envDef.id, b.name);
+      saveBrush(envDef.id, b.name);
       applyInk();
       sfx.unlock();
     });
@@ -949,7 +967,21 @@ document.addEventListener('visibilitychange', () => {
 
 sfx.enabled = store.get('sound', true) !== false;
 applySound(false);
-useEnvironment(getEnvironment(store.get('env', 'shower-door')));
+const startScene = prefs.get('startScene');
+useEnvironment(getEnvironment(startScene !== 'last' ? startScene : store.get('env', 'shower-door')));
+btnPrompt.hidden = !prefs.get('prompts');
+
+// Preferences (prefs.js) apply as soon as they change.
+window.addEventListener('noodlit:prefs', ({ detail: { key, value } }) => {
+  if (key === 'sound') { sfx.setEnabled(value); applySound(false); }
+  else if (key === 'prompts') { btnPrompt.hidden = !value; if (!value) popBubble({ quiet: true }); }
+  else if (key === 'autoDemo' && !value) cancelAutoDemo();
+  else if (key === 'speed' && SPEED_PRESETS[value]) {
+    fadeSeconds = SPEED_PRESETS[value];
+    store.set('fadeSeconds', fadeSeconds);
+    applySpeed();
+  } else if (key === 'brush') { sessionBrush.clear(); applyInk(); }
+});
 applySpeed();
 resize();
 wake();
