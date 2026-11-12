@@ -1,8 +1,8 @@
-// Shake sketch: a Fade environment inspired by the classic red drawing toy.
+// Shake sketch: a Release environment inspired by the classic red drawing toy.
 //   Look:  fine dark lines scratched through silver powder on a grey screen, inside a red
 //          plastic frame with two white knobs that turn as you draw.
-//   Decay: the powder slowly drifts back over the lines.
-//   Clear: shake the phone (or tap "Shake"): the screen jiggles and the powder washes
+//   Decay: none. The lines stay until you let them go.
+//   Clear: shake the phone (or tap "Shake it"): the screen jiggles and the powder washes
 //          down over everything. On iPhone the first tap asks for motion access.
 
 import { clamp, easeInOut, mulberry32, makeCanvas } from '../lib/util.js';
@@ -12,9 +12,10 @@ import { sfx } from '../lib/sound.js';
 export const etch = {
   id: 'etch',
   name: 'Shake sketch',
-  blurb: 'Lines drift away; shake to wipe it',
-  surface: 'Powder drawing screen. Shake the device or tap Shake to wipe it.',
-  clearLabel: 'Shake',
+  blurb: 'Shake it to wipe the screen clean',
+  surface: 'Powder drawing screen. Shake the device or tap Shake it to wipe it.',
+  fades: false,
+  clearLabel: 'Shake it',
   clearIcon: 'M7 4h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM3 8v8M21 8v8',
   create: () => new Etch(),
 };
@@ -23,7 +24,7 @@ let motionAsked = false;
 
 class Etch extends MapFade {
   constructor() {
-    super({ cover: true, brush: 1.9, soft: 0.7, seed: 4, budget: 420000, edgeFirst: 0.15, textSize: 0.12 });
+    super({ cover: true, brush: 1.9, soft: 0.7, seed: 4, budget: 420000, textSize: 0.12, keep: true });
     this.textLine = 0.035;
     this.textWeight = 400;
     this.knobs = { l: 0, r: 0 };
@@ -103,16 +104,22 @@ class Etch extends MapFade {
   clear() {
     // On iPhone, motion access can only be asked from a tap, so ask the first time.
     const DM = window.DeviceMotionEvent;
+    // (Show me clears without a tap; that request fails, so let a real tap ask again.)
     if (!motionAsked && DM && typeof DM.requestPermission === 'function') {
       motionAsked = true;
-      DM.requestPermission().then((r) => { if (r === 'granted') window.addEventListener('devicemotion', this.onMotion); }).catch(() => {});
+      DM.requestPermission().then((r) => { if (r === 'granted') window.addEventListener('devicemotion', this.onMotion); })
+        .catch(() => { motionAsked = false; });
     }
     this.shake();
   }
 
   shake() {
+    if (this.clearing) return;
     sfx.cue('shake');
     this.strokes.clear();
+    this.commitDraft?.();
+    this.undoReset(); // nothing left to take back
+    this.tip = null;
     this.clearing = { t: 0, dur: 1.1 };
   }
 
