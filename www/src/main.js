@@ -30,33 +30,100 @@ function loadFadeSeconds() {
   return LEGACY_SPEEDS[store.get('speed', 'flow')] ?? FADE_DEFAULT; // carry over the old preset
 }
 // Prompts from the lightbulb button, shown in a bubble that floats above the surface.
-// Keep them brainstorm-flavoured and at most two short lines ("\n").
-const INTROS = ['let it flow', 'think out loud', 'just start', 'empty your head'];
+// Question-style nudges to get ideas out of your head: one or two short sentences each,
+// brainstorm-flavoured (never therapy). The bubble wraps them, so no manual line breaks.
 const PROMPTS = [
-  ...INTROS,
-  "what's the\nreal problem?",
-  'ten ideas,\nno filter',
-  'worst idea\nfirst',
-  'flip it',
-  'who is\nit for?',
-  "what's\nmissing?",
-  'make it\nweirder',
-  'what if it\nwere free?',
-  'smallest\nnext step?',
-  'connect two\nthings',
-  'what would\nyou cut?',
-  'draw the mess',
-  'why now?',
-  "what's the\nopposite?",
-  'say it badly\nfirst',
-  "what's stuck?",
-  'map it out',
-  'what if it\nwere huge?',
+  "What's on your mind right now? Get it all down, messy is fine.",
+  "What have you been thinking about in the shower lately?",
+  "What's one idea you keep coming back to?",
+  "Start with a word. What does it make you think of next?",
+  "What would you work on today if nothing else was due?",
+  "What's taking up the most room in your head right now?",
+  "What problem are you really trying to solve here?",
+  "What's one thing you keep putting off, and why?",
+  "What's the part of this you don't understand yet?",
+  "If this were already solved, what would be different?",
+  "What's the question behind the question?",
+  "Where does this usually get stuck?",
+  "What would make this ten times easier?",
+  "What are you assuming that might not be true?",
+  "What's the simplest version of this that could work?",
+  "What keeps going wrong, and what does it have in common?",
+  "Can you list ten ideas in two minutes? No judging allowed.",
+  "What's the worst possible idea? Now, what's good about it?",
+  "Write down every option, even the silly ones. Which one surprises you?",
+  "What are three ways to do this that you haven't tried?",
+  "What idea would you be embarrassed to say out loud?",
+  "What if you did the exact opposite?",
+  "What if you had a hundred times the budget? What if you had none?",
+  "What if it had to be done by tomorrow?",
+  "What if it were twice as big? What if it were tiny?",
+  "How would a kid solve this?",
+  "How would someone from a totally different field approach this?",
+  "What would you do if you knew it couldn't fail?",
+  "What if you removed the most important part?",
+  "What would this look like if it were fun?",
+  "What if it had to work without any screens?",
+  "What would your favorite brand do with this idea?",
+  "Who is this really for? Picture one person.",
+  "What does that person need that nobody is giving them?",
+  "Who would hate this idea, and what would they say?",
+  "What would a friend tell you to do here?",
+  "Who has already solved something like this?",
+  "What would surprise the people who know you best?",
+  "Pick two unrelated things you saw today. How could they connect?",
+  "What does this remind you of?",
+  "What would happen if you combined your two favorite ideas?",
+  "What's a pattern you've noticed lately that nobody talks about?",
+  "What did you learn recently that could apply here?",
+  "What would you cut if you could only keep one thing?",
+  "What's the one next step you could take in five minutes?",
+  "What's essential, and what's just nice to have?",
+  "What could you stop doing to make room for this?",
+  "If you had to explain it in one sentence, what would you say?",
+  "What would make this good enough to share?",
+  "Can you draw the problem instead of writing it?",
+  "Sketch how the pieces connect. Where are the gaps?",
+  "Draw a quick map: where you are, and where you want to be.",
+  "Doodle the first thing that comes to mind. What does it say?",
+  "Draw it as a picture a stranger could understand.",
+  "Why does this matter to you?",
+  "Why now? What changed?",
+  "What happens if you do nothing at all?",
+  "What would you regret not trying?",
+  "What would this look like a year from now?",
+  "What's the story you'd want to tell about this later?",
+  "If this took off, what would the first headline say?",
+  "What would version two look like?",
+  "What are you curious about this week?",
+  "What's something you wish existed?",
+  "What small annoyance could become a big idea?",
+  "What question would you love someone to ask you?",
+  "What's a skill you'd love to use more?",
+  "What's an idea you dropped too soon?",
+  "What would you make if no one ever saw it?",
+  "What's the most interesting thing you could try this week?",
+  "Say it badly first. You can fix it later.",
+  "Talk it through like you're explaining it to a friend. What do you say first?",
+  "What's the rough, unpolished version of your idea?",
+  "What words keep coming up when you think about this?",
+  "What's missing from the picture?",
+  "Where's the energy in this idea? Follow it.",
 ];
+// Deal prompts from a shuffled deck so none repeats until you've seen them all, and the
+// first card of a new deck is never the one you just saw.
+let promptDeck = [];
 let lastPrompt = null;
-function pickPrompt(pool = PROMPTS) {
-  const options = pool.filter((p) => p !== lastPrompt);
-  lastPrompt = options[Math.floor(Math.random() * options.length)];
+function pickPrompt() {
+  if (!promptDeck.length) {
+    promptDeck = PROMPTS.slice();
+    for (let i = promptDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [promptDeck[i], promptDeck[j]] = [promptDeck[j], promptDeck[i]];
+    }
+    if (promptDeck[promptDeck.length - 1] === lastPrompt) promptDeck.unshift(promptDeck.pop());
+  }
+  lastPrompt = promptDeck.pop();
   return lastPrompt;
 }
 
@@ -675,7 +742,7 @@ function showPromptBubble() {
   el.type = 'button';
   el.className = 'prompt-bubble';
   const text = pickPrompt();
-  el.setAttribute('aria-label', `Prompt: ${text.replace('\n', ' ')}. Tap to pop.`);
+  el.setAttribute('aria-label', `Prompt: ${text} Tap to pop.`);
   const span = document.createElement('span');
   span.textContent = text;
   el.append(span);
