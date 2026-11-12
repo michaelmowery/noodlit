@@ -139,6 +139,59 @@ html, body {
 .sound-btn[aria-pressed="false"] .sound-off { display: inline; }
 #ui.drawing .sound-btn, #ui.typing .sound-btn, #ui.choosing .sound-btn { opacity: 0; pointer-events: none; }
 
+/* Show me: a small pill under the sound toggle that plays a hands-off demo of the scene. */
+.demo-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 114px);
+  right: calc(env(safe-area-inset-right) + 12px);
+  appearance: none;
+  height: 36px;
+  padding: 0 13px 0 9px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: opacity 0.35s ease, background 0.2s ease;
+}
+.demo-btn:active { background: rgba(255, 255, 255, 0.14); }
+.demo-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.demo-btn svg { width: 18px; height: 18px; fill: currentColor; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+.demo-btn .demo-stop { display: none; }
+.demo-btn[aria-pressed="true"] { color: var(--accent); }
+.demo-btn[aria-pressed="true"] .demo-play { display: none; }
+.demo-btn[aria-pressed="true"] .demo-stop { display: inline; }
+#ui.drawing .demo-btn, #ui.typing .demo-btn, #ui.choosing .demo-btn { opacity: 0; pointer-events: none; }
+#ui.demoing .toolbar { opacity: 0.35; }
+
+/* The ghost fingertip that draws during the demo. */
+.demo-finger {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0 38%, rgba(255, 255, 255, 0.18) 40% 62%, rgba(255, 255, 255, 0) 64%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  scale: 1.15;
+  transition: opacity 0.25s ease, scale 0.18s ease;
+  pointer-events: none;
+  will-change: transform;
+}
+.demo-finger.show { opacity: 0.85; }
+.demo-finger.down { scale: 0.85; }
+
 /* Scene menu: a bottom sheet on phones, a panel under the chip on wider screens. */
 .scenes { position: absolute; inset: 0; pointer-events: auto; z-index: 5; }
 .scenes[hidden] { display: none; }

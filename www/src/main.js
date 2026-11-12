@@ -4,6 +4,7 @@
 import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
+import { createDemo } from './demo.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -83,6 +84,8 @@ const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
 const btnSound = document.getElementById('btn-sound');
+const btnDemo = document.getElementById('btn-demo');
+const demoFinger = document.getElementById('demo-finger');
 const btnInk = document.getElementById('btn-ink');
 const inkPop = document.getElementById('ink-pop');
 const inkSwatches = document.getElementById('ink-swatches');
@@ -193,11 +196,43 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 
 // ------------------------------------------------------------------ toolbar
 let toastTimer;
-function showToast(text) {
+function showToast(text, ms = 1800) {
   toast.textContent = text;
   toast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
+}
+
+// ------------------------------------------------------------------ show me
+// A ghost finger draws a doodle on the current scene, then the scene fades or releases it.
+const demo = createDemo({
+  env: () => env,
+  mode: () => modeOf(envDef),
+  size: () => ({ W, H }),
+  wake: () => wake(),
+  fadeSeconds: () => fadeSeconds,
+  held: () => held,
+  say: showToast,
+  sfx,
+  onChange(on) {
+    ui.classList.toggle('demoing', on);
+    btnDemo.setAttribute('aria-pressed', String(on));
+    btnDemo.querySelector('.label').textContent = on ? 'Stop' : 'Show me';
+    btnDemo.setAttribute('aria-label', on ? 'Stop the demo' : 'Show me how this scene works');
+  },
+}, demoFinger);
+btnDemo.addEventListener('click', () => {
+  if (demo.running) { demo.stop(); return; }
+  if (typing) finishTyping();
+  closeSpeed();
+  closeInk();
+  demo.start();
+});
+// Any touch, click or key takes the surface back (the Stop button handles itself).
+for (const type of ['pointerdown', 'keydown']) {
+  document.addEventListener(type, (e) => {
+    if (demo.running && !btnDemo.contains(e.target)) demo.stop();
+  }, true);
 }
 
 function applySpeed() {
@@ -621,6 +656,7 @@ function useEnvironment(def, { announce = false } = {}) {
 }
 
 function switchTo(def) {
+  demo.stop();
   if (typing) finishTyping();
   useEnvironment(def, { announce: true });
   recentPrompts = [];
