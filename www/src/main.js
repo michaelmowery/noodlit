@@ -3,10 +3,10 @@
 
 import { environmentsFor, modeOf, isPlus, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
 import { sfx } from './lib/sound.js';
+import { track } from './analytics.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
-import { track } from './analytics.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
