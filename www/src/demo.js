@@ -106,7 +106,7 @@ export function createDemo(host, finger) {
     if (env.blank) env.blank(); else env.clear();
     host.wake();
     const t0 = performance.now();
-    while (env.clearing && performance.now() - t0 < 2500) {
+    while (env.clearing && performance.now() - t0 < 3500) {
       await nextFrame();
       if (run !== me) return;
     }

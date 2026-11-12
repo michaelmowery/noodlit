@@ -188,6 +188,8 @@ class Windshield {
     this.strokes.clear();
     this.startSweep(0.55);
   }
+  // True while the wipers are moving, so Show me waits for them before drawing.
+  get clearing() { return !!this.sweep; }
 
   startSweep(leg = 0.75) {
     if (this.sweep) return;
