@@ -3,8 +3,10 @@
 
 import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from './update.js';
 
-// Bump with each release (keep in step with VERSION in sw.js).
-export const APP_VERSION = '0.30';
+// Stamped at deploy time by .github/workflows/pages.yml (0.<deploy number>). Don't edit by hand;
+// running locally it shows "dev".
+const STAMP = '__APP_VERSION__';
+export const APP_VERSION = STAMP.startsWith('__') ? 'dev' : STAMP;
 
 const ui = document.getElementById('ui');
 const btns = [document.getElementById('btn-info'), document.getElementById('btn-about')];

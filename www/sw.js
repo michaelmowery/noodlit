@@ -1,5 +1,6 @@
-// Offline app shell. Bump VERSION whenever any cached file changes.
-const VERSION = 'noodlit-v30';
+// Offline app shell. VERSION is stamped by the deploy workflow (.github/workflows/pages.yml) on every
+// deploy, so each deploy gets a fresh cache. Don't edit it by hand; PRs never bump versions.
+const VERSION = 'noodlit-__BUILD__';
 const SHELL = [
   './',
   './index.html',
