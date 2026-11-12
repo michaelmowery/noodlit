@@ -360,7 +360,8 @@ function scheduleAutoDemo(def) {
   const fire = () => {
     autoDemo.timer = 0;
     if (autoDemo.id !== envDef.id) return;
-    if (!welcomeNote.hidden) { autoDemo.timer = setTimeout(fire, 700); return; } // after the note
+    // After the note (and Preferences, which the note can open on its way out).
+    if (!welcomeNote.hidden || ui.classList.contains('prefs-open')) { autoDemo.timer = setTimeout(fire, 700); return; }
     if (demo.running || typing) return;
     autoDemo.id = null;
     store.set('demoSeen.' + envDef.id, true);

@@ -121,6 +121,10 @@
               <span class="pref-text"><span class="pref-name">Prompt button</span><span class="pref-hint">The lightbulb that suggests something to noodle on</span></span>
               <input type="checkbox" name="prompts" class="pref-switch" role="switch">
             </label>
+            <label class="pref-row">
+              <span class="pref-text"><span class="pref-name">Note after updates</span><span class="pref-hint">Show the early preview note when a new version arrives</span></span>
+              <input type="checkbox" name="updateNote" class="pref-switch" role="switch">
+            </label>
           </section>
           <section class="prefs-group">
             <h3>When Noodlit opens</h3>
@@ -155,7 +159,9 @@
       <div class="welcome-card">
         <p class="welcome-kicker">Early preview</p>
         <h2 id="welcome-title">Welcome to noodlit</h2>
+        <p id="welcome-update" class="welcome-update" hidden></p>
         <p id="welcome-body">Noodlit is in early preview. New scenes land often, and now and then something may wobble. Thanks for noodling with us.</p>
+        <p id="welcome-optout" class="welcome-optout" hidden>Don't need this after every update? Turn it off in <button type="button" class="welcome-prefs" data-open-prefs>Preferences</button>.</p>
         <button type="button" class="welcome-ok" data-dismiss>Got it</button>
       </div>
     </div>
