@@ -875,7 +875,12 @@ const CUES = {
 SCENES.constellation = SCENES.starfield;
 SCENES.thaw = SCENES.frost;
 SCENES['scratch-card'] = { ...SCENES.etch, texture: { noise: 'grit', f: 2600, q: 1.2, gain: 0.2, jitter: 0.5 } }; // a coin on foil
-SCENES['moss-wall'] = SCENES.bloom;   // a garden wall: breeze and a songbird
+SCENES['scratch-art'] = SCENES['scratch-card'];
+SCENES['misty-window'] = SCENES.breath; // rain on the glass, a quiet room
+SCENES.rinse = SCENES.ink;
+SCENES.kaleidoscope = SCENES.starfield;
+SCENES.neon = SCENES.light;           // a city at night, far away
+SCENES.skywriting = SCENES.kite;      // open air
 SCENES.latte = SCENES.ink;            // liquid in a cup
 SCENES.canyon = SCENES.starfield;     // night stillness
 

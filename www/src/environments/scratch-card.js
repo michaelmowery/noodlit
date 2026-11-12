@@ -63,6 +63,8 @@ class ScratchCard {
     this.revealed = false;
     this.foilAlpha = 1;
     this.deal = null;       // { t, base, foil } while a new card sweeps in
+    this.revealCaption = '…scratch it off to find a prompt'; // Show me's captions
+    this.freshCaption = '…then deal a fresh card';
     this.calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 

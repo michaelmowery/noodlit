@@ -42,17 +42,13 @@
 //   instance.setInk?(color)                   // optional (with palette): colour for new strokes/words
 //   instance.radiusFor(info, speed)           // stroke radius; the shell wraps it with the chosen brush
 //                                             //   (lib/brushes.js) and sets instance.brushType
-//   instance.setDemo?(bool)                   // optional: Show me (or a menu preview) is using the
-//                                             //   surface. A scene that saves what you draw sets
-//                                             //   your work aside and saves nothing until it ends
 //   instance.dispose?()
 //
 // Environments come in families: Fade surfaces decay on their own; Release surfaces
 // (fades: false) keep the drawing until you let it go; Become surfaces (mode: 'become') turn
-// the drawing into something that leaves. Four more have one sample scene each so far:
-// Reveal (scratch or wipe to uncover something), Grow (the drawing stays and builds up between
-// visits, saved on the device), Stir (the surface swirls the drawing together) and Echo (the
-// drawing plays back stroke by stroke, then fades). The scene menu (top right) lists every
+// the drawing into something that leaves. Three newer ones: Reveal (scratch or wipe to uncover
+// something, lib/reveal.js), Stir (the surface swirls the drawing together, lib/stir.js) and
+// Echo (the drawing plays back stroke by stroke, then fades, lib/echo.js). The scene menu (top right) lists every
 // family, sorted by environmentsFor() below; main.js (MODES) says how the shell treats each.
 //
 // Scenes load on demand. The list below is the catalogue: what the menu and Preferences need
@@ -104,12 +100,16 @@ export const environments = [
   scene('thaw', 'Thaw', 'become', 'Pause, and your frost lines melt and run', () => import('./thaw.js').then((m) => m.thaw)),
   // Reveal
   scene('scratch-card', 'Scratch card', 'reveal', 'Scratch off the foil to find a prompt', () => import('./scratch-card.js').then((m) => m.scratchCard)),
-  // Grow
-  scene('moss-wall', 'Moss wall', 'grow', 'Moss grows where you draw, and stays for next time', () => import('./moss-wall.js').then((m) => m.mossWall)),
+  scene('scratch-art', 'Scratch art', 'reveal', 'Scrape through black to the colours below', () => import('./scratch-art.js').then((m) => m.scratchArt)),
+  scene('misty-window', 'Misty window', 'reveal', 'Wipe the mist away to see the view', () => import('./misty-window.js').then((m) => m.mistyWindow)),
   // Stir
   scene('latte', 'Latte art', 'stir', 'Pour milk lines; the cup swirls them away', () => import('./latte.js').then((m) => m.latte)),
+  scene('rinse', 'Rinse water', 'stir', 'Paint swirls and mingles in the rinse jar', () => import('./rinse.js').then((m) => m.rinse)),
+  scene('kaleidoscope', 'Kaleidoscope', 'stir', 'Your lines mirror, turn and melt together', () => import('./kaleidoscope.js').then((m) => m.kaleidoscope)),
   // Echo
   scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),
+  scene('neon', 'Neon sign', 'echo', 'Pause, and your lines light up tube by tube', () => import('./neon.js').then((m) => m.neon)),
+  scene('skywriting', 'Skywriting', 'echo', 'Pause, and a plane writes it across the sky', () => import('./skywriting.js').then((m) => m.skywriting)),
 ];
 
 // Noodlit Plus: the free scenes, by id. Every other scene (including new ones) is Plus and
@@ -119,6 +119,9 @@ export const FREE_SCENES = new Set([
   'shower-door', 'waves', 'snow', // Fade
   'stream', 'bottle', 'mailbox', 'whiteboard', // Release
   'fireflies', // Become
+  'scratch-card', // Reveal
+  'latte', // Stir
+  'canyon', // Echo
 ]);
 export const isPlus = (env) => !FREE_SCENES.has(env.id);
 
