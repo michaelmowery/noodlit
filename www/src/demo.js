@@ -2,7 +2,8 @@
 // fingertip draws the Noodlit logo through the same stroke calls a real finger uses and types
 // "Get it out.", "Let go." and, after a pause, "Noodlit." underneath, so it works on every
 // scene. Then the scene does its thing: Fade scenes fade, Release scenes send the sheet off,
-// Become scenes change. "Show me everything" (from About, and on the very first visit) is the longer tour: it
+// Become scenes change, Reveal scenes uncover their prompt, Grow scenes grow in, Stir scenes
+// swirl it away, Echo scenes play it back. "Show me everything" (from About, and on the very first visit) is the longer tour: it
 // picks Shower door from the scene menu for the Fade features (brush and fade trays, prompt, Hold),
 // then Mailbox for the Release ones (Undo, send), then Fireflies for Become (the pause, the lift-off),
 // opens Preferences and points out Show me.
@@ -323,17 +324,39 @@ export function createDemo(host, finger) {
       env.clear(); // the same as tapping the release button
       host.wake();
       await sleep(4200, me);
-    } else if (host.mode() === 'become') {
-      host.say('…pause, and watch what it becomes', 3200);
+    } else if (host.mode() === 'become' || host.mode() === 'echo') {
+      host.say(host.mode() === 'echo' ? '…pause, and watch it play back' : '…pause, and watch what it becomes', 3200);
       env.setPaused(false);
       host.wake();
       await sleep((env.becomeTime?.() ?? 10) * 1000, me);
+    } else if (host.mode() === 'reveal') {
+      // Scratch the rest off to show what was underneath, then deal a fresh card.
+      host.say('…scratch it off to find a prompt', 3000);
+      env.revealAll?.();
+      host.wake();
+      await sleep(3200, me);
+      if (run !== me) return;
+      host.say('…then deal a fresh card', 2400);
+      env.clear();
+      host.wake();
+      await sleep(1600, me);
+    } else if (host.mode() === 'grow') {
+      // Nothing leaves here: it grows in, and would still be there next time. (The demo's own
+      // doodle isn't kept: see setDemo.)
+      host.say('…it stays, and keeps growing', 3200);
+      host.wake();
+      await sleep(4200, me);
+      if (run !== me) return;
+      host.say('Start over whenever you like', 2400);
+      env.clear();
+      host.wake();
+      await sleep(2000, me);
     } else {
       if (viaButton) {
         if (!(await tap(host.tour.holdButton, me))) return;
         host.tour.setHeld(false);
       }
-      host.say('…and watch it fade', 3000);
+      host.say(host.mode() === 'stir' ? '…and watch it swirl away' : '…and watch it fade', 3000);
       env.setPaused(false);
       host.wake();
       await sleep(host.fadeSeconds() * 1000 + 1500, me);
@@ -343,6 +366,9 @@ export function createDemo(host, finger) {
   // The scene demo: draw, type, let go. It quietly uses a quick fade so nobody waits.
   async function playScene(me) {
     const env = host.env();
+    // A scene that keeps what you draw sets your own work aside for the demo (stop() brings it back).
+    env.setDemo?.(true);
+    me.demoEnv = env;
     await blank(env, me);
     if (run !== me) return;
     env.setPaused(true); // hold the fade until the drawing and the word are both done
@@ -486,6 +512,7 @@ export function createDemo(host, finger) {
     if (r.kind === 'tour') { host.tour.popPrompt(); host.tour.closeScenes(e?.target); host.tour.closePanels(e?.target); }
     if (r.down) { env.strokeEnd(ID); host.sfx.strokeEnd(); }
     if (r.typing) env.commitDraft();
+    r.demoEnv?.setDemo?.(false);
     // Put back the user's own brush, fade speed and Hold.
     host.restore(r.snap);
     env.setPaused(host.held());

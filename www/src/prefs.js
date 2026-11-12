@@ -43,7 +43,7 @@ let lastFocus = null;
 
 function fillScenes() {
   if (sceneSelect.options.length > 1) return;
-  for (const [mode, label] of [['fade', 'Fade'], ['release', 'Release'], ['become', 'Become']]) {
+  for (const [mode, label] of [['fade', 'Fade'], ['release', 'Release'], ['become', 'Become'], ['reveal', 'Reveal'], ['grow', 'Grow'], ['stir', 'Stir'], ['echo', 'Echo']]) {
     const group = document.createElement('optgroup');
     group.label = label;
     for (const def of environmentsFor(mode)) group.append(new Option(def.name, def.id));

@@ -874,5 +874,9 @@ const CUES = {
 // Scenes that share another scene's air.
 SCENES.constellation = SCENES.starfield;
 SCENES.thaw = SCENES.frost;
+SCENES['scratch-card'] = { ...SCENES.etch, texture: { noise: 'grit', f: 2600, q: 1.2, gain: 0.2, jitter: 0.5 } }; // a coin on foil
+SCENES['moss-wall'] = SCENES.bloom;   // a garden wall: breeze and a songbird
+SCENES.latte = SCENES.ink;            // liquid in a cup
+SCENES.canyon = SCENES.starfield;     // night stillness
 
 export const sfx = new Sound();

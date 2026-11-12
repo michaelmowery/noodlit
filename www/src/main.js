@@ -6,6 +6,7 @@ import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
+import { PROMPTS } from './lib/prompts.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -29,87 +30,6 @@ function loadFadeSeconds() {
   if (typeof saved === 'number' && isFinite(saved)) return clampFade(saved);
   return LEGACY_SPEEDS[store.get('speed', 'flow')] ?? FADE_DEFAULT; // carry over the old preset
 }
-// Prompts from the lightbulb button, shown in a bubble that floats above the surface.
-// Question-style nudges to get ideas out of your head: one or two short sentences each,
-// brainstorm-flavoured (never therapy). The bubble wraps them, so no manual line breaks.
-const PROMPTS = [
-  "What's on your mind right now? Get it all down, messy is fine.",
-  "What have you been thinking about in the shower lately?",
-  "What's one idea you keep coming back to?",
-  "Start with a word. What does it make you think of next?",
-  "What would you work on today if nothing else was due?",
-  "What's taking up the most room in your head right now?",
-  "What problem are you really trying to solve here?",
-  "What's one thing you keep putting off, and why?",
-  "What's the part of this you don't understand yet?",
-  "If this were already solved, what would be different?",
-  "What's the question behind the question?",
-  "Where does this usually get stuck?",
-  "What would make this ten times easier?",
-  "What are you assuming that might not be true?",
-  "What's the simplest version of this that could work?",
-  "What keeps going wrong, and what does it have in common?",
-  "Can you list ten ideas in two minutes? No judging allowed.",
-  "What's the worst possible idea? Now, what's good about it?",
-  "Write down every option, even the silly ones. Which one surprises you?",
-  "What are three ways to do this that you haven't tried?",
-  "What idea would you be embarrassed to say out loud?",
-  "What if you did the exact opposite?",
-  "What if you had a hundred times the budget? What if you had none?",
-  "What if it had to be done by tomorrow?",
-  "What if it were twice as big? What if it were tiny?",
-  "How would a kid solve this?",
-  "How would someone from a totally different field approach this?",
-  "What would you do if you knew it couldn't fail?",
-  "What if you removed the most important part?",
-  "What would this look like if it were fun?",
-  "What if it had to work without any screens?",
-  "What would your favorite brand do with this idea?",
-  "Who is this really for? Picture one person.",
-  "What does that person need that nobody is giving them?",
-  "Who would hate this idea, and what would they say?",
-  "What would a friend tell you to do here?",
-  "Who has already solved something like this?",
-  "What would surprise the people who know you best?",
-  "Pick two unrelated things you saw today. How could they connect?",
-  "What does this remind you of?",
-  "What would happen if you combined your two favorite ideas?",
-  "What's a pattern you've noticed lately that nobody talks about?",
-  "What did you learn recently that could apply here?",
-  "What would you cut if you could only keep one thing?",
-  "What's the one next step you could take in five minutes?",
-  "What's essential, and what's just nice to have?",
-  "What could you stop doing to make room for this?",
-  "If you had to explain it in one sentence, what would you say?",
-  "What would make this good enough to share?",
-  "Can you draw the problem instead of writing it?",
-  "Sketch how the pieces connect. Where are the gaps?",
-  "Draw a quick map: where you are, and where you want to be.",
-  "Doodle the first thing that comes to mind. What does it say?",
-  "Draw it as a picture a stranger could understand.",
-  "Why does this matter to you?",
-  "Why now? What changed?",
-  "What happens if you do nothing at all?",
-  "What would you regret not trying?",
-  "What would this look like a year from now?",
-  "What's the story you'd want to tell about this later?",
-  "If this took off, what would the first headline say?",
-  "What would version two look like?",
-  "What are you curious about this week?",
-  "What's something you wish existed?",
-  "What small annoyance could become a big idea?",
-  "What question would you love someone to ask you?",
-  "What's a skill you'd love to use more?",
-  "What's an idea you dropped too soon?",
-  "What would you make if no one ever saw it?",
-  "What's the most interesting thing you could try this week?",
-  "Say it badly first. You can fix it later.",
-  "Talk it through like you're explaining it to a friend. What do you say first?",
-  "What's the rough, unpolished version of your idea?",
-  "What words keep coming up when you think about this?",
-  "What's missing from the picture?",
-  "Where's the energy in this idea? Follow it.",
-];
 // Deal prompts from a shuffled deck so none repeats until you've seen them all, and the
 // first card of a new deck is never the one you just saw.
 let promptDeck = [];
@@ -453,14 +373,25 @@ function applySpeed() {
   env.setFadeSeconds(fadeSeconds);
   btnSpeed.querySelector('.label').textContent = z.label;
   speedRange.value = String(secondsToSlider(fadeSeconds));
-  if (modeOf(envDef) === 'become') {
-    // On Become scenes the same slider sets how long a pause it takes before the drawing changes.
+  const clock = modeInfo(modeOf(envDef));
+  if (clock.pause) {
+    // On Become and Echo scenes the same slider sets how long a pause it takes before the
+    // drawing changes (or plays back).
     const pause = Math.round(env.pauseSeconds * 10) / 10;
-    speedTitle.textContent = 'Pause before it changes';
-    speedRange.setAttribute('aria-label', 'Pause before it changes');
-    btnSpeed.setAttribute('aria-label', `Pause before it changes: about ${pause} seconds`);
+    speedTitle.textContent = clock.pause;
+    speedRange.setAttribute('aria-label', clock.pause);
+    btnSpeed.setAttribute('aria-label', `${clock.pause}: about ${pause} seconds`);
     speedRange.setAttribute('aria-valuetext', `about ${pause} seconds`);
     speedValue.textContent = `${pause}s`;
+    return;
+  }
+  if (clock.speed) {
+    // Stir scenes: the slider sets how fast the surface swirls the drawing away.
+    speedTitle.textContent = clock.speed;
+    speedRange.setAttribute('aria-label', clock.speed);
+    btnSpeed.setAttribute('aria-label', `${clock.speed}: ${z.label}, gone in about ${fadeSeconds} seconds`);
+    speedRange.setAttribute('aria-valuetext', `${z.label}, about ${fadeSeconds} seconds`);
+    speedValue.textContent = `${z.label} · ${fadeSeconds}s`;
     return;
   }
   speedTitle.textContent = 'Fade speed';
@@ -669,7 +600,7 @@ function setHeld(on, announce) {
   env.setPaused(held);
   btnHold.setAttribute('aria-pressed', String(held));
   btnHold.querySelector('.label').textContent = held ? 'Holding' : 'Hold';
-  if (announce) showToast(held ? 'Holding this thought' : modeOf(envDef) === 'become' ? 'Letting it change again' : 'Letting it fade again');
+  if (announce) showToast(held ? 'Holding this thought' : modeInfo(modeOf(envDef)).resume || 'Letting it fade again');
   wake();
 }
 btnHold.addEventListener('click', () => setHeld(!held, true));
@@ -696,7 +627,7 @@ btnClear.addEventListener('click', () => {
 
 // ------------------------------------------------------------------ undo
 // Release scenes keep the drawing until you let it go, so the last stroke or typed block can
-// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo (Become scenes do, until the drawing changes)
+// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo (Become and Echo scenes do, until the drawing changes; Grow scenes do too)
 // (their marks are already on the way out). Letting the drawing go forgets the history.
 const TAP_SPREAD = 250, TAP_TIME = 400, TAP_SLOP = 12;
 let tap = null; // a gesture that might turn out to be a two-finger tap
@@ -1020,9 +951,10 @@ function useEnvironment(def, { announce = false, auto = true } = {}) {
   sceneMode.textContent = MODES[mode].label;
   sceneName.textContent = def.name;
   btnScene.setAttribute('aria-label', `Scene: ${def.name}, ${MODES[mode].label}. Choose a scene.`);
-  // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
-  btnSpeed.hidden = btnHold.hidden = mode === 'release';
-  if (mode === 'release') closeSpeed();
+  // Surfaces with no clock (Release, Reveal, Grow) have nothing for fade speed and Hold to do.
+  const timeless = MODES[mode].clock === false;
+  btnSpeed.hidden = btnHold.hidden = timeless;
+  if (timeless) closeSpeed();
   btnUndo.hidden = !undoable();
   syncUndo();
   applyInk();
@@ -1057,10 +989,16 @@ async function switchTo(scene) {
 // One obvious place to pick a scene: a chip in the top corner opens a menu of every
 // surface, grouped by tier (Free, then Plus) and then by family, each with a small live
 // preview of how it looks.
+// clock: false = nothing runs on its own, so the shell hides fade speed and Hold. pause/speed:
+// what the speed slider is called there. resume: the toast when Hold is let go.
 const MODES = {
   fade: { label: 'Fade', hint: 'Disappears on its own' },
-  release: { label: 'Release', hint: 'Stays until you let it go' },
-  become: { label: 'Become', hint: 'Turns into something, then drifts off' },
+  release: { label: 'Release', hint: 'Stays until you let it go', clock: false },
+  become: { label: 'Become', hint: 'Turns into something, then drifts off', pause: 'Pause before it changes', resume: 'Letting it change again' },
+  reveal: { label: 'Reveal', hint: 'Scratch or wipe to uncover something', clock: false },
+  grow: { label: 'Grow', hint: 'Stays, and builds up between visits', clock: false },
+  stir: { label: 'Stir', hint: 'Swirls together, then mixes away', speed: 'Swirl speed', resume: 'Letting it swirl again' },
+  echo: { label: 'Echo', hint: 'Plays back stroke by stroke, then fades', pause: 'Pause before it plays back', resume: 'Letting it play back again' },
 };
 
 const TIERS = [
@@ -1135,6 +1073,7 @@ function renderThumb(def) {
   c.width = c.height = THUMB;
   try {
     const e = def.create();
+    e.setDemo?.(true); // a scene that saves what you draw (Grow) must not save the preview
     e.setFadeSeconds(600);
     e.resize({ width: THUMB, height: THUMB, dpr: 1 });
     // Release scenes only take ink on their sheet; fade scenes take it anywhere.

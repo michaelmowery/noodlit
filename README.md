@@ -10,7 +10,7 @@ releases are planned.
 
 ## What's in the app
 
-### Three modes, 35 scenes
+### Seven modes, 39 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
 - **Fade** scenes disappear on their own at the pace you pick (13): Shower door, Waves, Snow,
@@ -22,6 +22,16 @@ Every scene is defined by how strokes look, how they decay, and how they clear.
   Zen garden.
 - **Become** scenes turn the drawing into something when you pause, and then it leaves (4):
   Fireflies, Bloom, Constellation, Thaw.
+
+Four newer modes have one sample scene each so far:
+
+- **Reveal**: scratch or wipe to uncover something. Scratch card hides a prompt under foil.
+- **Grow**: the drawing stays and builds up between visits (saved on the device). Moss wall grows
+  moss where you draw; moss from an earlier visit has come into flower. Scrape clean starts over.
+- **Stir**: the surface swirls the drawing together until it mixes away. Latte art winds your
+  lines of milk into spirals; the Latte pick brush drags the milk instead of pouring it.
+- **Echo**: pause, and the drawing plays back stroke by stroke, once more faintly, then fades.
+  Canyon echo.
 
 The scene chip at the top right opens **Choose a scene**, with live previews grouped by mode.
 Within each mode the free scenes come first, then scenes marked **Plus**, each alphabetized.
@@ -38,9 +48,9 @@ every scene is free and nothing is locked.
 - **Typing**: the keyboard button (or just start typing on a hardware keyboard) writes on the
   surface in a hand-drawn style. Tap to place your words, or drag to move them.
 - **Prompts**: the lightbulb pops a suggestion bubble above the toolbar.
-- **Pause** (Become scenes): the same slider sets how long a pause it takes before the drawing
+- **Pause** (Become and Echo scenes): the same slider sets how long a pause it takes before the drawing
   changes (about 1.5 to 12 seconds). Hold stops the clock, and the tray button changes it now.
-- **Undo** (Release scenes, and Become scenes until the drawing changes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
+- **Undo** (Release and Grow scenes, and Become and Echo scenes until the drawing changes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
   stroke or typed block.
 - **Sound**: soft generated ambience and effects for each scene, with an on/off toggle.
 
@@ -90,6 +100,8 @@ new files need no listing anywhere.
   into particles, typing, undo)
 - `www/src/lib/brushes.js`, `undo.js`, `sound.js`, `util.js`: brushes, Release undo, generated
   sound, helpers
+- `www/src/lib/prompts.js`, `textdots.js`: the lightbulb prompts (also printed on the Scratch
+  card), and typed text as points for scenes made of particles
 - `www/src/demo.js`: Show me and Show me everything
 - `www/src/about.js`, `prefs.js`, `welcome.js`, `update.js`: About, Preferences, the early
   preview note, and update checks
@@ -99,7 +111,8 @@ new files need no listing anywhere.
 ## Adding a scene
 1. Create `www/src/environments/<name>.js` exporting `{ id, name, blurb, clearLabel, create }`
    (see the contract at the top of `environments/index.js`). Set `fades: false` for a Release
-   scene, or `mode: 'become'` for a Become scene.
+   scene, or `mode: 'become'` for a Become scene. The catalogue line's mode can also be `reveal`,
+   `grow`, `stir` or `echo`; `MODES` in `main.js` says how the toolbar treats each.
 2. Build on `lib/fade.js`, `lib/release.js` or `lib/become.js` where you can; their header comments say what a
    scene supplies.
 3. Add one line for it to the `environments` catalogue in `environments/index.js` (id, name,

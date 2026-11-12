@@ -42,12 +42,18 @@
 //   instance.setInk?(color)                   // optional (with palette): colour for new strokes/words
 //   instance.radiusFor(info, speed)           // stroke radius; the shell wraps it with the chosen brush
 //                                             //   (lib/brushes.js) and sets instance.brushType
+//   instance.setDemo?(bool)                   // optional: Show me (or a menu preview) is using the
+//                                             //   surface. A scene that saves what you draw sets
+//                                             //   your work aside and saves nothing until it ends
 //   instance.dispose?()
 //
-// Environments come in three families: Fade surfaces decay on their own; Release surfaces
+// Environments come in families: Fade surfaces decay on their own; Release surfaces
 // (fades: false) keep the drawing until you let it go; Become surfaces (mode: 'become') turn
-// the drawing into something that leaves. The scene menu (top right) lists every family,
-// sorted by environmentsFor() below.
+// the drawing into something that leaves. Four more have one sample scene each so far:
+// Reveal (scratch or wipe to uncover something), Grow (the drawing stays and builds up between
+// visits, saved on the device), Stir (the surface swirls the drawing together) and Echo (the
+// drawing plays back stroke by stroke, then fades). The scene menu (top right) lists every
+// family, sorted by environmentsFor() below; main.js (MODES) says how the shell treats each.
 //
 // Scenes load on demand. The list below is the catalogue: what the menu and Preferences need
 // to name a scene (id, name, family, blurb) and how to fetch its code. Only the scene you open
@@ -96,6 +102,14 @@ export const environments = [
   scene('constellation', 'Constellation', 'become', 'Pause, and your lines snap into stars', () => import('./constellation.js').then((m) => m.constellation)),
   scene('bloom', 'Bloom', 'become', 'Pause, and your stems sprout leaves and flowers', () => import('./bloom.js').then((m) => m.bloom)),
   scene('thaw', 'Thaw', 'become', 'Pause, and your frost lines melt and run', () => import('./thaw.js').then((m) => m.thaw)),
+  // Reveal
+  scene('scratch-card', 'Scratch card', 'reveal', 'Scratch off the foil to find a prompt', () => import('./scratch-card.js').then((m) => m.scratchCard)),
+  // Grow
+  scene('moss-wall', 'Moss wall', 'grow', 'Moss grows where you draw, and stays for next time', () => import('./moss-wall.js').then((m) => m.mossWall)),
+  // Stir
+  scene('latte', 'Latte art', 'stir', 'Pour milk lines; the cup swirls them away', () => import('./latte.js').then((m) => m.latte)),
+  // Echo
+  scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),
 ];
 
 // Noodlit Plus: the free scenes, by id. Every other scene (including new ones) is Plus and

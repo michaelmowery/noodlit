@@ -9,6 +9,7 @@
 //   flow    0..1: how much a quick stroke thins it out (a soft brush or a quill)
 //   soft    optional edge softness for map-based Fade scenes (low = feathered, high = crisp)
 //   shape   'round' or 'flat' (set by the shell from the Tip picker, not in the lists below)
+//   drag    lays nothing down; it pulls what's already there around (Stir scenes)
 //   dry     breaks the stroke into bristle streaks (a dry brush, the side of a chalk stick);
 //           scenes that draw ink onto a layer honour it (Release sheets, chalk)
 //
@@ -62,6 +63,14 @@ export const BRUSHES = {
   constellation: [B('Hairline', 0.55, { steady: 1 }), B('Silver line', 1), B('Bright line', 2.4)],
   bloom: [B('Tendril', 0.5, { steady: 0.8 }), B('Stem', 1), B('Thick vine', 2.6)],
   thaw: [B('Ice needle', 0.5, { steady: 0.8 }), B('Frost line', 1), B('Thick frost', 3)],
+  // Reveal
+  'scratch-card': [B('Fingernail', 0.4, { steady: 0.8 }), B('Coin', 1), B('Thumb', 2.4)],
+  // Grow
+  'moss-wall': [B('Tendril', 0.5, { steady: 0.8 }), B('Moss', 1), B('Thick moss', 2.4)],
+  // Stir (drag: a pick that pulls the milk around without pouring any)
+  latte: [B('Fine pour', 0.5, { steady: 0.8 }), B('Milk pour', 1, { flow: 0.3 }), B('Latte pick', 1.3, { steady: 1, drag: true }), B('Big pour', 2.6)],
+  // Echo
+  canyon: [B('Whisper', 0.5, { steady: 0.8 }), B('Call', 1), B('Shout', 2.6)],
 };
 
 // Smallest to largest, however a list above happens to be written.
