@@ -819,6 +819,13 @@ const CUES = {
   }, 1.2),
 
   // Ink in water: fresh water poured in, swirling.
+  // A toilet flush: the handle's clunk, a rush of water that swells and drains, a last gurgle.
+  flush: cue((s) => {
+    s.tone({ f: 190, f2: 110, peak: 0.07, attack: 0.003, dur: 0.09 });
+    s.burst({ kind: 'pink', type: 'lowpass', f: 700, f2: 2600, q: 0.6, peak: 0.16, attack: 0.25, dur: 1.0, at: 0.05 });
+    s.burst({ kind: 'pink', type: 'lowpass', f: 2400, f2: 350, q: 0.6, peak: 0.13, attack: 0.2, dur: 1.5, at: 0.85 });
+    for (let i = 0; i < 6; i++) s.tone({ f: 260 + Math.random() * 160, f2: 120, peak: 0.03, attack: 0.01, dur: 0.12, at: 1.7 + i * 0.09 + Math.random() * 0.05 });
+  }, 0.8),
   pour: cue((s) => {
     s.burst({ kind: 'pink', f: 1100, f2: 600, q: 0.8, peak: 0.12, attack: 0.15, dur: 1.5 });
     for (let i = 0; i < 8; i++) s.tone({ f: 500 + Math.random() * 600, f2: 900 + Math.random() * 500, peak: 0.02, attack: 0.01, dur: 0.1, at: 0.1 + Math.random() * 1.1 });
@@ -886,7 +893,7 @@ SCENES['scratch-art'] = SCENES['scratch-card'];
 SCENES['bubble-wrap'] = { ...SCENES.breath }; // the pops are the sound; the finger itself is soft
 SCENES['misty-window'] = SCENES.breath; // rain on the glass, a quiet room
 SCENES.rinse = SCENES.ink;
-SCENES.whirlpool = SCENES.waves;
+SCENES.flush = SCENES.ink;
 SCENES.kaleidoscope = SCENES.starfield;
 SCENES.neon = SCENES.light;           // a city at night, far away
 SCENES.skywriting = SCENES.kite;      // open air

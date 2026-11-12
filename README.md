@@ -31,7 +31,8 @@ Three newer modes have a free scene each and a few Plus ones:
   bubble, down to a prompt on the parcel underneath.
 - **Stir**: the surface swirls the drawing together until it mixes away. Latte art (free) winds
   your lines of milk into spirals; Rinse water mingles paint in a rinse jar; Kaleidoscope
-  mirrors your lines six ways as they turn; Whirlpool draws them down into its eye. One brush in each drags instead of drawing.
+  mirrors your lines six ways as they turn; Flush is a toilet bowl that
+  swirls them down and away (tap its handle). One brush in each drags instead of drawing.
 - **Echo**: pause, and the drawing plays back stroke by stroke, then fades. Canyon echo (free)
   repeats it once more faintly; Neon sign lights the drawing up in place; Skywriting has a plane
   write it across the sky.

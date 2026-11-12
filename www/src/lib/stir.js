@@ -15,10 +15,10 @@
 //   body       opacity of the line itself
 //   spread     how much a line widens as it mixes in
 //   mirror     n > 0: a kaleidoscope with n mirrored wedges
-//   sink       > 0: lines are also drawn in towards the middle as they wind (a whirlpool)
+//   sink       > 0: lines are also drawn in towards the middle as they wind (down a drain)
 //   cue        sound for the whirl
 // and optionally onExpire(line) when a line has mixed in, drawUnder(ctx) between the base and
-// the lines (CSS px), and whirled() when the tray button's whirl ends.
+// the lines and drawOver(ctx) on top of them (CSS px), and whirled() when the tray button's whirl ends.
 
 import { smoothstep, makeCanvas, layoutFor, drawText, draftMethods, HAND } from './util.js';
 import { textDots } from './textdots.js';
@@ -235,6 +235,7 @@ export class StirScene {
     } else this.drawLines(ctx);
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = 1;
+    this.drawOver?.(ctx);
     for (const d of this.held || []) this.drawBlock(ctx, d);
     if (this.draft) this.drawBlock(ctx, this.draft);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
