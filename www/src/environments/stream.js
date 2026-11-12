@@ -11,6 +11,7 @@
 
 import { clamp, easeInOut, smoothstep, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
+import { inkSegment } from '../lib/release.js';
 
 // Inks that read on driftwood: charcoal first (the default), then chalk and a few earthy colours.
 const PALETTE = [
@@ -136,10 +137,12 @@ class Stream {
       }
       const lx = x - b.x, ly = y - b.y;
       if (lx >= 0 && ly >= 0 && lx <= this.rect.w && ly <= this.rect.h) {
-        const r = this.radiusFor(info);
-        this.strokes.set(id, { x: lx, y: ly, r });
-        const g = b.inkCtx;
-        g.beginPath(); g.arc(lx, ly, r, 0, Math.PI * 2); g.fill();
+        const r = this.radiusFor(info, 0);
+        this.strokes.set(id, { x: lx, y: ly, r, t: info.time });
+        if (!this.brushType?.dry) {
+          const g = b.inkCtx;
+          g.beginPath(); g.arc(lx, ly, r, 0, Math.PI * 2); g.fill();
+        }
         b.inked = true; b.dirty = true;
         return;
       }
@@ -162,12 +165,12 @@ class Stream {
     const s = this.strokes.get(id);
     if (!s || !this.board) return;
     const lx = x - this.board.x, ly = y - this.board.y;
-    if (Math.hypot(lx - s.x, ly - s.y) < 0.75) return;
-    const r = s.r + (this.radiusFor(info) - s.r) * 0.25;
-    const g = this.board.inkCtx;
-    g.lineWidth = s.r + r;
-    g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(lx, ly); g.stroke();
-    Object.assign(s, { x: lx, y: ly, r });
+    const d = Math.hypot(lx - s.x, ly - s.y);
+    if (d < 0.75) return;
+    const speed = (d / Math.max(4, info.time - s.t)) * 1000;
+    const r = s.r + (this.radiusFor(info, speed) - s.r) * 0.25;
+    inkSegment(this.board.inkCtx, s, s.x, s.y, s.r, lx, ly, r, this.brushType);
+    Object.assign(s, { x: lx, y: ly, r, t: info.time });
     this.board.dirty = true;
   }
 
@@ -184,7 +187,7 @@ class Stream {
     this.strokes.delete(id);
   }
 
-  radiusFor(info) {
+  radiusFor(info, speed = 0) {
     return info.pointerType === 'pen' ? 1.4 + 2 * (info.pressure || 0.5)
          : info.pointerType === 'mouse' ? 2.6 : 3.2;
   }

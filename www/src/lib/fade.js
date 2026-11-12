@@ -21,6 +21,7 @@
 //   onStrokeMove(s, x, y, d) / onStrokeStart(s) / onStrokeEnd(s)
 //   setup()                          after every resize
 
+import { dryStroke } from './brushes.js';
 import { clamp, smoothstep, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from './util.js';
 
 export class MapFade {
@@ -111,6 +112,7 @@ export class MapFade {
     const r = this.radiusFor(info, 0);
     const s = { x, y, r, t: info.time, dist: 0 };
     this.strokes.set(id, s);
+    this.cur = s;
     this.mark(x, y, r, x, y, r);
     this.onStrokeStart?.(s);
   }
@@ -122,6 +124,7 @@ export class MapFade {
     if (d < 0.75) return;
     const speed = (d / Math.max(4, info.time - s.t)) * 1000;
     const r = s.r + (this.radiusFor(info, speed) - s.r) * 0.25;
+    this.cur = s;
     this.mark(s.x, s.y, s.r, x, y, r);
     s.dist += d;
     this.onStrokeMove?.(s, x, y, d);
@@ -136,7 +139,12 @@ export class MapFade {
 
   mark(x0, y0, r0, x1, y1, r1) {
     this.raise(x0, y0, r0, x1, y1, r1, 1 + this.hold);
-    if (this.paint) this.paintSeg(this.paintCtx, x0, y0, r0, x1, y1, r1);
+    if (!this.paint) return;
+    if (this.brushType?.dry && this.cur) {
+      if (x0 === x1 && y0 === y1) return; // a dry brush has no round dab to start with
+      this.paintCtx.strokeStyle = this.ink;
+      dryStroke(this.paintCtx, this.cur, x0, y0, r0, x1, y1, r1);
+    } else this.paintSeg(this.paintCtx, x0, y0, r0, x1, y1, r1);
   }
 
   paintSeg(g, x0, y0, r0, x1, y1, r1) {
@@ -147,7 +155,8 @@ export class MapFade {
 
   // Raise a capsule from (x0,y0,r0) to (x1,y1,r1) in the map to at least `peak`.
   raise(x0, y0, r0, x1, y1, r1, peak) {
-    const { cell, mw, mh, map, soft } = this;
+    const { cell, mw, mh, map } = this;
+    const soft = this.brushType?.soft ?? this.soft;
     const inv = 1 / cell, rmax = Math.max(r0, r1);
     const minX = Math.max(0, Math.floor((Math.min(x0, x1) - rmax) * inv));
     const maxX = Math.min(mw - 1, Math.ceil((Math.max(x0, x1) + rmax) * inv));

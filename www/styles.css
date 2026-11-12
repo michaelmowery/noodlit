@@ -371,8 +371,8 @@ html, body {
 #speed-range:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px rgba(255, 217, 168, 0.6); }
 #speed-range:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px rgba(255, 217, 168, 0.6); }
 #btn-speed[aria-expanded="true"] { background: rgba(255, 255, 255, 0.12); }
-/* Ink picker for Release scenes: same glass card, a row of round swatches. */
-.ink-pop { width: auto; min-width: 240px; padding-bottom: 14px; }
+/* Brush and ink panel: same glass card, a row of brushes, then (with a palette) round swatches. */
+.ink-pop { width: min(340px, calc(100vw - 32px)); padding-bottom: 14px; }
 .ink-swatches { display: flex; gap: 6px; margin-top: 10px; justify-content: center; }
 .ink-swatch {
   appearance: none;
@@ -400,13 +400,45 @@ html, body {
   box-shadow: 0 0 0 2px rgba(22, 30, 37, 0.9), 0 0 0 4px var(--accent);
 }
 .ink-swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
-.ink-dot {
-  width: 20px;
-  height: 20px;
+/* Brush button: a squiggle as thick as the brush draws, with an ink dot on scenes with inks. */
+#btn-ink { position: relative; }
+#btn-ink[aria-expanded="true"] { background: rgba(255, 255, 255, 0.12); }
+.brush-glyph path { stroke-width: var(--brush-w, 2.2); }
+#btn-ink.dry .brush-glyph path { stroke-dasharray: 3 1.6 6 2; }
+#btn-ink.has-ink::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: var(--ink-color, #2a2320);
-  box-shadow: 0 0 0 2px rgba(238, 243, 246, 0.85);
+  background: var(--ink-color);
+  box-shadow: 0 0 0 1.5px rgba(238, 243, 246, 0.9);
 }
+.brush-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 8px 0 4px; }
+.brush-option {
+  appearance: none;
+  min-height: 64px;
+  padding: 6px 4px 7px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.brush-option svg { width: 40px; height: 30px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.brush-option[aria-checked="true"] { background: rgba(255, 217, 168, 0.14); border-color: var(--accent); color: #fff; }
+.brush-option:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ink-head { margin-top: 10px; }
 @media (max-width: 360px) {
   .ink-swatches { gap: 2px; }
 }

@@ -3,6 +3,7 @@
 
 import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 import { sfx } from './lib/sound.js';
+import { brushesFor, brushRadius } from './lib/brushes.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -85,6 +86,9 @@ const btnInk = document.getElementById('btn-ink');
 const inkPop = document.getElementById('ink-pop');
 const inkSwatches = document.getElementById('ink-swatches');
 const inkValue = document.getElementById('ink-value');
+const inkSection = document.getElementById('ink-section');
+const brushOptions = document.getElementById('brush-options');
+const brushValue = document.getElementById('brush-value');
 
 let envDef, env;
 let fadeSeconds = loadFadeSeconds();
@@ -220,27 +224,84 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !speedPop.hidden) { e.preventDefault(); closeSpeed(); btnSpeed.focus({ preventScroll: true }); }
 }, true);
 
-// ------------------------------------------------------------------ ink
-// Release scenes offer a few inks that suit their material (charcoal and chalk on driftwood,
-// bottled inks on parchment, brush colours on a lantern). The choice is remembered per scene
-// and applies to new strokes and typed words; what's already drawn keeps its colour.
+// ------------------------------------------------------------------ brush and ink
+// One button opens a small panel: a few brushes that suit the surface (a fingertip, a
+// fingernail or the side of your hand on fogged glass; a quill or a broad nib on parchment),
+// and on scenes with a palette, inks that suit the material. Both are remembered per scene
+// and apply to new strokes; what's already drawn keeps its look.
 function inkFor(def) {
   const pal = def.palette;
   if (!pal?.length) return null;
   const saved = store.get('ink.' + def.id, null);
   return pal.find((p) => p.color === saved) || pal[0];
 }
+function brushFor(def) {
+  const list = brushesFor(def);
+  if (!list?.length) return null;
+  const saved = store.get('brush.' + def.id, null);
+  return list.find((b) => b.name === saved) || list[0];
+}
+
+// Every scene answers radiusFor(info, speed); route it through the chosen brush.
+function fitBrush(e) {
+  if (!e.radiusFor || e.radiusFor.brushed) return;
+  const base = e.radiusFor.bind(e);
+  e.radiusFor = (info, speed = 0) => brushRadius(base, info, speed, e.brushType);
+  e.radiusFor.brushed = true;
+}
+
+// A little squiggle drawn the way the brush draws: thickness from its size, broken for dry.
+const SQUIGGLE = 'M5 26c5-2 7-12 12-12s4 8 9 8 6-12 9-16';
+function brushIcon(b) {
+  const w = Math.max(1.4, Math.min(9, 3.4 * b.size));
+  let marks = `<path d="${SQUIGGLE}" stroke="currentColor" stroke-width="${w}"/>`;
+  if (b.dry) {
+    // Bristle streaks with gaps, like the stroke it leaves.
+    const dashes = ['7 3 12 4', '12 5 4 3', '4 3 9 2', '9 4 6 5'];
+    marks = dashes.map((d, i) => `<path d="${SQUIGGLE}" transform="translate(${(i - 1.5) * 1.6} ${(i - 1.5) * 2.2})" stroke="currentColor" stroke-width="1.7" stroke-dasharray="${d}"/>`).join('');
+  }
+  return `<svg viewBox="0 0 40 32" aria-hidden="true">${marks}</svg>`;
+}
 
 function applyInk() {
   const pal = envDef.palette;
-  btnInk.hidden = !pal?.length || !env.setInk;
+  const brushes = brushesFor(envDef);
+  const hasInk = !!pal?.length && !!env.setInk;
+  btnInk.hidden = !hasInk && !brushes?.length;
   if (btnInk.hidden) { closeInk(); return; }
-  const cur = inkFor(envDef);
-  env.setInk(cur.color);
-  btnInk.style.setProperty('--ink-color', cur.color);
-  btnInk.setAttribute('aria-label', `Ink colour: ${cur.name}`);
-  inkValue.textContent = cur.name;
+  const cur = hasInk ? inkFor(envDef) : null;
+  if (cur) env.setInk(cur.color);
+  const brush = brushFor(envDef);
+  env.brushType = brush;
+  fitBrush(env);
+  btnInk.style.setProperty('--ink-color', cur ? cur.color : 'transparent');
+  btnInk.classList.toggle('has-ink', !!cur);
+  btnInk.style.setProperty('--brush-w', String(Math.max(1.6, Math.min(4.2, 2.2 * (brush?.size || 1)))));
+  btnInk.classList.toggle('dry', !!brush?.dry);
+  btnInk.setAttribute('aria-label', [brush && `Brush: ${brush.name}`, cur && `ink: ${cur.name}`].filter(Boolean).join(', '));
+
+  brushValue.textContent = brush ? brush.name : '';
+  brushOptions.textContent = '';
+  for (const b of brushes || []) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'brush-option';
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-checked', String(b === brush));
+    btn.innerHTML = `${brushIcon(b)}<span>${b.name}</span>`;
+    btn.addEventListener('click', () => {
+      store.set('brush.' + envDef.id, b.name);
+      applyInk();
+      sfx.unlock();
+      if (!hasInk) setTimeout(closeInk, 160);
+    });
+    brushOptions.append(btn);
+  }
+
+  inkSection.hidden = !hasInk;
   inkSwatches.textContent = '';
+  if (!hasInk) return;
+  inkValue.textContent = cur.name;
   for (const p of pal) {
     const b = document.createElement('button');
     b.type = 'button';
@@ -266,7 +327,7 @@ function openInk() {
   closeSpeed();
   inkPop.hidden = false;
   btnInk.setAttribute('aria-expanded', 'true');
-  (inkSwatches.querySelector('[aria-checked="true"]') || inkSwatches.firstChild)?.focus({ preventScroll: true });
+  (brushOptions.querySelector('[aria-checked="true"]') || inkSwatches.querySelector('[aria-checked="true"]'))?.focus({ preventScroll: true });
 }
 function closeInk() {
   if (inkPop.hidden) return;

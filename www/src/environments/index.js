@@ -38,6 +38,8 @@
 //                                             //   comes from draftMethods in lib/util.js; an env
 //                                             //   supplies stampText() and calls applyDrafts().
 //   instance.setInk?(color)                   // optional (with palette): colour for new strokes/words
+//   instance.radiusFor(info, speed)           // stroke radius; the shell wraps it with the chosen brush
+//                                             //   (lib/brushes.js) and sets instance.brushType
 //   instance.dispose?()
 //
 // Environments come in two families, picked with the Fade / Release toggle: Fade surfaces
