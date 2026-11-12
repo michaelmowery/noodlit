@@ -127,22 +127,23 @@ export const environments = [
 // scene, move its id between these two lists (or out of both, for Plus). Nothing is locked yet:
 // every scene stays free while Noodlit is in preview.
 export const FREE_SCENES = new Set([
-  'shower-door', 'waves', 'snow', // Fade
-  'stream', 'bottle', 'mailbox', 'whiteboard', // Release
-  'fireflies', // Become
-  'scratch-card', // Reveal
-  'latte', // Stir
-  'canyon', // Echo
+  'shower-door', 'waves', 'snow', 'chalk', // Fade
+  'stream', 'bottle', 'mailbox', 'whiteboard', 'paper-boat', 'balloon', // Release
+  'fireflies', 'bloom', // Become
+  'scratch-card', 'invisible-ink', // Reveal
+  'latte', 'rinse', // Stir
+  'canyon', 'pond', // Echo
 ]);
-// A first pass at Premium (a possible tier above Plus): the showpiece scenes with the most
-// going on, about one in four of the rest, so every family keeps some Plus scenes too.
+// Premium (a possible tier above Plus): the showpiece scenes with the most going on. The three
+// tabs are kept about even, with every mode in each. If Premium isn't wanted, empty this list
+// and its scenes go back to Plus (a tier with no scenes gets no tab).
 export const PREMIUM_SCENES = new Set([
-  'starfield', 'sparkler', 'light', // Fade
-  'lantern-flock', 'rocket', 'campfire', 'burning-page', // Release
+  'starfield', 'sparkler', 'light', 'ink', // Fade
+  'lantern-flock', 'rocket', 'campfire', 'burning-page', 'rice-paper', 'dandelion', // Release
   'constellation', // Become
-  'bubble-wrap', // Reveal
-  'kaleidoscope', // Stir
-  'skywriting', // Echo
+  'bubble-wrap', 'misty-window', 'beach-dig', // Reveal
+  'kaleidoscope', 'galaxy', // Stir
+  'skywriting', 'neon', // Echo
 ]);
 // In menu order. The label names the tab; the hint sits under the tabs.
 export const TIERS = [
