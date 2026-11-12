@@ -13,6 +13,7 @@ export const DEFAULTS = {
   brush: 'last',        // 'last' (remembered per scene) or 'fine' | 'regular' | 'bold'
   prompts: true,        // show the lightbulb prompt button in the tray
   updateNote: true,     // show the early preview note again after each new version
+  analytics: true,      // send anonymous usage counts (analytics.js); never drawings or words
 };
 export const SPEED_PRESETS = { drift: 45, flow: 20, rush: 8 };
 
@@ -57,6 +58,7 @@ function sync() {
   form.elements.sound.checked = readSound();
   form.elements.prompts.checked = !!values.prompts;
   form.elements.updateNote.checked = !!values.updateNote;
+  form.elements.analytics.checked = !!values.analytics;
   form.elements.startScene.value = values.startScene;
   if (form.elements.startScene.value !== values.startScene) form.elements.startScene.value = 'last';
   form.elements.speed.value = values.speed;
