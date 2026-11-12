@@ -1,7 +1,7 @@
 // Neon sign: an Echo environment.
 //   Look:  a brick wall at night. Your finger bends glass tubing: dim, unlit lines.
-//   Echo:  pause, and the sign comes on tube by tube in the order you bent it (typed words
-//          light a letter at a time). It glows for a moment, buzzes and flickers, and goes dark.
+//   Echo:  pause, and the sign switches on: the drawing stays exactly where it is and lights
+//          up (nothing is redrawn). It stutters on, glows, buzzes and flickers, and goes dark.
 
 import { mulberry32 } from '../lib/util.js';
 import { EchoScene } from '../lib/echo.js';
@@ -21,7 +21,7 @@ export const neon = {
   id: 'neon',
   name: 'Neon sign',
   mode: 'echo',
-  blurb: 'Pause, and your lines light up tube by tube',
+  blurb: 'Pause, and your drawing lights up in neon',
   surface: 'Brick wall at night to bend neon tubes on',
   clearLabel: 'Switch on',
   clearIcon: 'M13 3L6 13.5h5l-1 7.5 7-10.5h-5z',
@@ -31,7 +31,7 @@ export const neon = {
 
 class Neon extends EchoScene {
   constructor() {
-    super({ ink: PALETTE[0].color, brush: 3.4, seed: 67, sparks: false, passes: [{ hold: 1.7, fade: 0.3 }] });
+    super({ ink: PALETTE[0].color, brush: 3.4, seed: 67, sparks: false, instant: true, quiet: 0.1, passes: [{ hold: 2.7, fade: 0.3 }] });
   }
 
   paintBase() { return paintWall(this.W, this.H, this.dpr); }
@@ -60,13 +60,19 @@ class Neon extends EchoScene {
     if (this.playing) { g.shadowColor = g.fillStyle; g.shadowBlur = 14; } else g.globalAlpha = 0.34;
   }
 
-  // On for a second, then a failing tube's stutter before it goes dark.
+  // It stutters on, burns steadily, then a failing tube's stutter before it goes dark.
   look(p, age) {
-    if (this.calm || age < 0.95) return null;
+    if (this.calm) return null;
+    if (age < 0.45) return { alpha: Math.sin(age * 83) + Math.sin(age * 47) > -0.1 ? 0.35 + age * 1.4 : 0.08 };
+    if (age < 1.95) return null;
     return { alpha: Math.sin(age * 61) + Math.sin(age * 37) > 0.2 ? 1 : 0.18 };
   }
 
-  onStroke() { sfx.cue('twinkle'); }
+  become() {
+    const had = this.hasInk();
+    super.become();
+    if (had) sfx.cue('twinkle');
+  }
 }
 
 // Dark brickwork under a little spill of street light.

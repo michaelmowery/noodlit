@@ -13,6 +13,7 @@
 //            playback speed, opacity, size (about `vanish`), seconds it stays whole, seconds to fade
 //   quiet    seconds of hush before the first pass (the old ink fades over it)
 //   sparks   false for no sparks off the point of light
+//   instant  true to bring the whole drawing back at once, in place, instead of stroke by stroke
 // and optionally:
 //   look(p, age) -> { alpha?, dx?, dy? }   a pass's flicker or drift, `age` seconds after it ended
 //   drawHead(ctx, h)                       the point of light itself (h: x, y, r, ink, a, ang)
@@ -26,7 +27,7 @@ import { BecomeScene } from './become.js';
 const MAX_PLAYBACK = 4.5;   // seconds: a long drawing plays back faster to fit
 
 // When each stroke and typed block plays, in the order they were made.
-function timeline(script) {
+function timeline(script, instant = false) {
   const items = [];
   let t = 0;
   for (const s of script) {
@@ -44,6 +45,10 @@ function timeline(script) {
       t += dur + 0.1;
     }
   }
+  if (instant) {
+    for (const it of items) { it.t0 = 0; it.dur = 0.001; }
+    return { items, total: 0.001 };
+  }
   const k = t > MAX_PLAYBACK ? MAX_PLAYBACK / t : 1;
   for (const it of items) { it.t0 *= k; it.dur *= k; }
   return { items, total: t * k };
@@ -55,6 +60,7 @@ export class EchoScene extends BecomeScene {
     this.quiet = o.quiet ?? 0.45;
     this.passes = o.passes || [{ gap: 0, rate: 1, alpha: 1, scale: 1, hold: 0.3, fade: 1.6 }];
     this.sparkly = o.sparks !== false;
+    this.instant = !!o.instant;
     this.vanish = o.vanish || [0.5, 0.3]; // where a shrunken pass shrinks towards (fractions of W, H)
     this.script = [];   // strokes and typed blocks in the order they were made
     this.replays = [];
@@ -85,7 +91,7 @@ export class EchoScene extends BecomeScene {
   }
 
   // The demo waits this long after the last mark for the canyon to fall quiet again.
-  becomeTime() { return this.pauseSeconds + (this.script.length ? this.schedule(timeline(this.script).total).end : 3); }
+  becomeTime() { return this.pauseSeconds + (this.script.length ? this.schedule(timeline(this.script, this.instant).total).end : 3); }
   // The demo also waits on this before writing on the cleared surface.
   get clearing() { return this.replays.length > 0; }
 
@@ -109,7 +115,7 @@ export class EchoScene extends BecomeScene {
     if (!this.hasInk()) return;
     this.strokes.clear();
     this.undoReset();
-    const { items, total } = timeline(this.script);
+    const { items, total } = timeline(this.script, this.instant);
     const sched = this.schedule(total);
     this.replays.push({
       items, t: 0, end: sched.end,
