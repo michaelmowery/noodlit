@@ -32,7 +32,7 @@ Three newer modes have three scenes each, one of them free:
   your lines of milk into spirals; Rinse water mingles paint in a rinse jar; Kaleidoscope
   mirrors your lines six ways as they turn. One brush in each drags instead of drawing.
 - **Echo**: pause, and the drawing plays back stroke by stroke, then fades. Canyon echo (free)
-  repeats it once more faintly; Neon sign lights it up tube by tube; Skywriting has a plane
+  repeats it once more faintly; Neon sign lights the drawing up in place; Skywriting has a plane
   write it across the sky.
 
 The scene chip at the top right opens **Choose a scene**, with live previews grouped by mode.

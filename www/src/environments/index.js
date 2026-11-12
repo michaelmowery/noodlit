@@ -108,7 +108,7 @@ export const environments = [
   scene('kaleidoscope', 'Kaleidoscope', 'stir', 'Your lines mirror, turn and melt together', () => import('./kaleidoscope.js').then((m) => m.kaleidoscope)),
   // Echo
   scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),
-  scene('neon', 'Neon sign', 'echo', 'Pause, and your lines light up tube by tube', () => import('./neon.js').then((m) => m.neon)),
+  scene('neon', 'Neon sign', 'echo', 'Pause, and your drawing lights up in neon', () => import('./neon.js').then((m) => m.neon)),
   scene('skywriting', 'Skywriting', 'echo', 'Pause, and a plane writes it across the sky', () => import('./skywriting.js').then((m) => m.skywriting)),
 ];
 

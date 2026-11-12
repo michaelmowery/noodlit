@@ -240,6 +240,12 @@ const demo = createDemo({
     saveBrush(envDef.id, list.reduce((a, b) => (b.size < a.size ? b : a)).name);
     applyInk();
   },
+  wideBrush() {
+    const list = brushesFor(envDef);
+    if (!list?.length) return;
+    saveBrush(envDef.id, list.reduce((a, b) => (b.size > a.size ? b : a)).name);
+    applyInk();
+  },
   speed: () => !btnSpeed.hidden && {
     button: btnSpeed, pop: speedPop, open: openSpeed, close: closeSpeed,
     set(v) { speedRange.value = String(v); speedRange.dispatchEvent(new Event('input')); },
