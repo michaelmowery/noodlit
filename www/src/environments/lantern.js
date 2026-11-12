@@ -34,7 +34,7 @@ export const lantern = {
   create: () => new Lantern(),
 };
 
-class Lantern extends ReleaseScene {
+export class Lantern extends ReleaseScene {
   constructor() {
     super(52);
     this.ink = PALETTE[0].color;

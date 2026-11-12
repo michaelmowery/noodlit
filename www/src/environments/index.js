@@ -53,8 +53,33 @@ import { stream } from './stream.js';
 import { lantern } from './lantern.js';
 import { bottle } from './bottle.js';
 import { mailbox } from './mailbox.js';
+import { frost } from './frost.js';
+import { mirror } from './mirror.js';
+import { chalk } from './chalk.js';
+import { stone } from './stone.js';
+import { zen } from './zen.js';
+import { etch } from './etch.js';
+import { light } from './light.js';
+import { burning } from './burning.js';
+import { dandelion } from './dandelion.js';
+import { shredder } from './shredder.js';
+import { kite } from './kite.js';
+import { lanternFlock } from './lantern-flock.js';
+import { ricePaper } from './rice-paper.js';
+import { rocket } from './rocket.js';
+import { paperBoat } from './paper-boat.js';
+import { leaf } from './leaf.js';
+import { balloon } from './balloon.js';
+import { paperAirplane } from './paper-airplane.js';
+import { campfire } from './campfire.js';
 
-export const environments = [showerDoor, waves, snow, whiteboard, windshield, stream, bottle, lantern, mailbox];
+export const environments = [
+  // Fade
+  showerDoor, waves, snow, whiteboard, windshield, frost, mirror, chalk, stone, zen, etch, light,
+  // Release
+  stream, bottle, lantern, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, rocket,
+  paperBoat, leaf, balloon, paperAirplane, campfire,
+];
 
 export const modeOf = (env) => (env.fades === false ? 'release' : 'fade');
 
