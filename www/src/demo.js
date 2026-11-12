@@ -1,7 +1,8 @@
-// "Show me": a short, hands-off demo of the current scene. A ghost fingertip draws the Noodlit
-// logo through the same stroke calls a real finger uses and types "Noodlit" underneath, so it
-// works on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the
-// sheet off. "Show me everything" (from About, and on the very first visit) is the longer tour: it
+// "Show me": a short, hands-off demo of the current scene that acts out the tagline. A ghost
+// fingertip draws the Noodlit logo through the same stroke calls a real finger uses and types
+// "Get it out." then "Let go." underneath, so it works on every scene. Then the scene does its
+// thing (Fade scenes fade, Release scenes send the sheet off, Become scenes change), and
+// "Noodlit." is typed on its own on the cleared surface. "Show me everything" (from About, and on the very first visit) is the longer tour: it
 // picks Shower door from the scene menu for the Fade features (brush and fade trays, prompt, Hold),
 // then Mailbox for the Release ones (Undo, send), then Fireflies for Become (the pause, the lift-off),
 // opens Preferences and points out Show me.
@@ -220,8 +221,33 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  // Draw the logo and type the name under it.
-  async function drawAndType(env, me) {
+  // Type text into the current draft a letter at a time ("\n" starts a new line). base: text
+  // already in the block, so a block can be typed in parts with a pause between.
+  async function typeOut(env, text, opts, me, base = '') {
+    for (let n = 1; n <= text.length; n++) {
+      if (text[n - 1] === ' ' || text[n - 1] === '\n') continue; // the next letter lands with it
+      await sleep(n === 1 ? 250 : 170, me);
+      if (run !== me) return false;
+      env.setDraft(base + text.slice(0, n), opts);
+      me.typing = true;
+      host.wake();
+    }
+    return run === me;
+  }
+
+  // Let the typed block go: it fades, sails off or changes along with the drawing.
+  async function commitTyping(env, me) {
+    await sleep(500, me);
+    if (run !== me) return false;
+    env.commitDraft();
+    me.typing = false;
+    host.wake();
+    return run === me;
+  }
+
+  // Draw the logo, then type under it. The tour types the name; the scene demo types the first
+  // two beats of the tagline ("Get it out. Let go. Noodlit."), the second after a short pause.
+  async function drawAndType(env, me, words = ['Noodlit']) {
     finger.classList.remove('glide');
     const { W, H } = host.size();
     const b = box(env, W, H);
@@ -234,20 +260,43 @@ export function createDemo(host, finger) {
     finger.classList.remove('show', 'glide');
     host.say('…or type it', 2000);
     const at = (b.y + b.s + Math.min(W, H) * 0.09) / H;
-    const word = 'Noodlit';
-    for (let n = 1; n <= word.length; n++) {
-      await sleep(n === 1 ? 250 : 170, me);
-      if (run !== me) return false;
-      env.setDraft(word.slice(0, n), { at });
-      me.typing = true;
-      host.wake();
+    // top: the first line stays put under the logo while later lines hang below it.
+    const opts = words.length > 1 ? { at, top: true } : { at };
+    let typed = '';
+    for (const [k, word] of words.entries()) {
+      if (k) { await sleep(700, me); if (run !== me) return false; }
+      const part = (k ? '\n' : '') + word;
+      if (!(await typeOut(env, part, opts, me, typed))) return false;
+      typed += part;
     }
+    if (!(await commitTyping(env, me))) return false;
     await sleep(500, me);
-    if (run !== me) return false;
-    env.commitDraft();
-    me.typing = false;
-    host.wake();
-    await sleep(500, me);
+    return run === me;
+  }
+
+  // After the scene has taken everything away, wait for a fresh surface (Release scenes send
+  // the sheet off and wash a new one up).
+  async function settle(env, me) {
+    const t0 = performance.now();
+    const busy = () => env.clearing
+      || (env.newSheet && !(env.sheet && (env.sheet.arrive ?? 1) >= 1))
+      || (env.newBoard && !(env.board && (env.board.arrive ?? 1) >= 1));
+    while (busy() && performance.now() - t0 < 4000) {
+      await nextFrame();
+      if (run !== me) return false;
+    }
+    await sleep(250, me);
+    return run === me;
+  }
+
+  // The last beat: the name on its own, big, on the cleared surface. The scene is held while it
+  // lingers; when the demo ends, the user's Hold comes back and it goes the way of the scene.
+  async function signName(env, me) {
+    if (!(await settle(env, me))) return false;
+    env.setPaused(true);
+    if (!(await typeOut(env, 'Noodlit.', { scale: 1.5 }, me))) return false;
+    if (!(await commitTyping(env, me))) return false;
+    await sleep(1800, me);
     return run === me;
   }
 
@@ -314,7 +363,7 @@ export function createDemo(host, finger) {
     }
   }
 
-  // The scene demo: draw, type, let go. It quietly uses a quick fade so nobody waits.
+  // The scene demo: draw, type, let go, sign the name. It quietly uses a quick fade so nobody waits.
   async function playScene(me) {
     const env = host.env();
     await blank(env, me);
@@ -323,9 +372,10 @@ export function createDemo(host, finger) {
     const speed = host.speed(); // false on Release scenes (no fade speed there)
     if (speed) speed.set(DEMO_SPEED);
     host.thinBrush?.(); // the thinnest brush reads best; restore() puts the user's back
-    if (!(await drawAndType(env, me))) return;
+    if (!(await drawAndType(env, me, ['Get it out.', 'Let go.']))) return;
     await letGo(env, me, false);
     if (run !== me) return;
+    if (!(await signName(env, me))) return;
     // Sign-off: the toolbar lights up and points at the rest of the settings.
     host.signoff?.(true);
     host.say('Check out the brushes and other settings in the tray', 3200);
