@@ -324,7 +324,8 @@ export function createDemo(host, finger) {
     await blank(env, me);
     if (run !== me) return;
     env.setPaused(true); // hold the fade until the drawing and the word are both done
-    host.speed()?.set(DEMO_SPEED);
+    const speed = host.speed(); // false on Release scenes (no fade speed there)
+    if (speed) speed.set(DEMO_SPEED);
     if (!(await drawAndType(env, me))) return;
     await letGo(env, me, false);
   }
@@ -378,7 +379,7 @@ export function createDemo(host, finger) {
     if (run) return;
     run = { timers: [], down: false, snap: host.snapshot(), kind };
     host.onChange(true);
-    play(kind).catch(() => stop());
+    play(kind).catch((err) => { console.error("demo failed", err?.stack || err); stop(); });
   }
 
   // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
