@@ -70,6 +70,7 @@ const speedRange = document.getElementById('speed-range');
 const speedValue = document.getElementById('speed-value');
 const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
+const btnUndo = document.getElementById('btn-undo');
 const btnScene = document.getElementById('btn-scene');
 const sceneMode = document.getElementById('scene-mode');
 const sceneName = document.getElementById('scene-name');
@@ -121,6 +122,7 @@ function frame(t) {
   last = t;
   const active = env.update(dt);
   env.render(ctx);
+  syncUndo();
   if (active || pointers.size) requestAnimationFrame(frame);
   else running = false;
 }
@@ -156,6 +158,12 @@ canvas.addEventListener('pointerdown', (e) => {
   sfx.unlock();
   if (typing) { typingPointerDown(e); return; }
   canvas.setPointerCapture?.(e.pointerId);
+  if (!pointers.size) tap = { t: e.timeStamp, count: 0, moved: false, late: false, pushes: env.undoCount?.() ?? 0, at: new Map() };
+  if (tap) {
+    tap.count++;
+    tap.at.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (e.timeStamp - tap.t > TAP_SPREAD) tap.late = true;
+  }
   pointers.add(e.pointerId);
   lastPos.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp });
   closeSpeed();
@@ -167,6 +175,8 @@ canvas.addEventListener('pointerdown', (e) => {
 canvas.addEventListener('pointermove', (e) => {
   if (placing?.id === e.pointerId) { typingPointerMove(e); return; }
   if (!pointers.has(e.pointerId)) return;
+  const at = tap?.at.get(e.pointerId);
+  if (at && Math.hypot(e.clientX - at.x, e.clientY - at.y) > TAP_SLOP) tap.moved = true;
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
   for (const ce of events.length ? events : [e]) env.strokeMove(e.pointerId, ce.clientX, ce.clientY, { ...info(ce), angle: heading(e.pointerId, ce) });
   const lp = lastPos.get(e.pointerId);
@@ -187,6 +197,11 @@ const end = (e) => {
   if (!pointers.size) sfx.strokeEnd();
   env.strokeEnd(e.pointerId);
   if (!pointers.size) ui.classList.remove('drawing');
+  if (!pointers.size && tap) {
+    const g = tap;
+    tap = null;
+    if (g.count === 2 && !g.moved && !g.late && e.timeStamp - g.t < TAP_TIME) twoFingerUndo(g);
+  }
   wake();
 };
 canvas.addEventListener('pointerup', end);
@@ -241,6 +256,7 @@ const demo = createDemo({
   onPeek: (on) => ui.classList.toggle('demo-peek', on),
   onChange(on) {
     ui.classList.toggle('demoing', on);
+    syncUndo();
     btnDemo.setAttribute('aria-pressed', String(on));
     btnDemo.querySelector('.label').textContent = on ? 'Stop' : 'Show me';
     btnDemo.setAttribute('aria-label', on ? 'Stop the demo' : 'Show me how this scene works');
@@ -480,6 +496,48 @@ btnClear.addEventListener('click', () => {
   wake();
 });
 
+// ------------------------------------------------------------------ undo
+// Release scenes keep the drawing until you let it go, so the last stroke or typed block can
+// be taken back: the undo button, a two-finger tap, or Ctrl/Cmd+Z. Fade scenes have no undo
+// (their marks are already on the way out). Letting the drawing go forgets the history.
+const TAP_SPREAD = 250, TAP_TIME = 400, TAP_SLOP = 12;
+let tap = null; // a gesture that might turn out to be a two-finger tap
+
+function undoable() { return modeOf(envDef) === 'release' && typeof env.undo === 'function'; }
+
+function syncUndo() {
+  const can = undoable() && !typing && !demo.running && !!env.canUndo();
+  if (btnUndo.disabled !== !can) btnUndo.disabled = !can;
+}
+
+function undo() {
+  if (!undoable() || typing || demo.running || !env.undo()) return false;
+  sfx.cue('undo');
+  wake();
+  syncUndo();
+  return true;
+}
+
+// The two fingers left a dot each on the way down: take those back first, then the real step.
+function twoFingerUndo(g) {
+  if (!undoable() || typing || demo.running) return;
+  let extra = (env.undoCount?.() ?? 0) - g.pushes;
+  while (extra-- > 0 && env.undo()) { /* drop the tap's own dots */ }
+  if (!undo()) wake();
+}
+
+btnUndo.addEventListener('click', () => {
+  closeSpeed();
+  closeInk();
+  undo();
+});
+document.addEventListener('keydown', (e) => {
+  if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z') return;
+  if (typing || e.target.closest?.('textarea, input') || !undoable()) return;
+  e.preventDefault();
+  undo();
+});
+
 // The lightbulb floats a prompt in a speech bubble above the surface. It isn't part of the
 // drawing, so it never fades, washes away or gets released. Tap the bubble to pop it;
 // tap the lightbulb again for a different prompt.
@@ -677,7 +735,8 @@ window.visualViewport?.addEventListener('resize', syncKeyboard);
 window.visualViewport?.addEventListener('scroll', syncKeyboard);
 
 btnType.addEventListener('click', () => startTyping());
-input.addEventListener('input', updateDraft);
+// (The browser's own Ctrl+Z can still edit the hidden box after Done: ignore that.)
+input.addEventListener('input', () => { if (typing) updateDraft(); });
 compose.addEventListener('submit', (e) => { e.preventDefault(); finishTyping(); });
 input.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); finishTyping(); }
@@ -710,6 +769,8 @@ function useEnvironment(def, { announce = false } = {}) {
   // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
   btnSpeed.hidden = btnHold.hidden = mode === 'release';
   if (mode === 'release') closeSpeed();
+  btnUndo.hidden = !undoable();
+  syncUndo();
   applyInk();
   store.set('env', def.id);
   sfx.setScene(def.id);
