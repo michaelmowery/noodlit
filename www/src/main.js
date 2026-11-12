@@ -346,7 +346,8 @@ for (const type of ['pointerdown', 'keydown']) {
   }, true);
 }
 
-// The first time someone opens a scene, Show me runs on its own once (remembered per scene).
+// The first time someone opens Noodlit, the tour runs on its own once, and then auto demos switch
+// off. With the Preferences switch back on, each scene demos itself the first time it opens.
 // It waits for the welcome note to be dismissed and gives the scene a beat to appear first.
 const welcomeNote = document.getElementById('welcome');
 // The very first visit (the welcome note hasn't been dismissed yet) gets the full tour instead.
@@ -368,6 +369,9 @@ function scheduleAutoDemo(def) {
     store.set('demoSeen.' + envDef.id, true);
     if (firstVisit && !toured) { toured = true; track('showme-everything/first-visit', 'Show me everything (first visit)'); demo.start('tour'); }
     else { track('showme-auto/' + envDef.id, `Show me (first open): ${envDef.name}`); demo.start(); }
+    // One auto demo is enough: after the first, demos only play when asked for. This happens
+    // once per device; if the user turns "Play demos automatically" back on, it stays on.
+    if (!store.get('autoDemoSettled', false)) { store.set('autoDemoSettled', true); prefs.set('autoDemo', false); }
   };
   autoDemo.timer = setTimeout(fire, 900);
 }
