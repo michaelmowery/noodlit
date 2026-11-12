@@ -1,6 +1,8 @@
 // About panel: the wordmark in the top-left corner opens it. Self-contained so the
 // shell (main.js) doesn't need to know about it.
 
+import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from './update.js';
+
 // Bump with each release (keep in step with VERSION in sw.js).
 export const APP_VERSION = '0.27';
 
@@ -12,10 +14,44 @@ document.getElementById('about-year').textContent = String(Math.max(2026, new Da
 
 let lastFocus = null;
 
+// Check for updates: asks the service worker for a newer version, installs it, reloads.
+const updBtn = document.getElementById('about-update-btn');
+const updStatus = document.getElementById('about-update-status');
+let checking = false;
+
+function setUpdateUi(label, status, busy = false) {
+  updBtn.textContent = label;
+  updBtn.classList.toggle('busy', busy);
+  updBtn.setAttribute('aria-busy', String(busy));
+  updStatus.textContent = status;
+}
+
+function resetUpdateUi() {
+  if (checking) return;
+  if (updateReady()) setUpdateUi('Refresh to update', 'A new version is ready.');
+  else setUpdateUi('Check for updates', '');
+}
+
+updBtn.addEventListener('click', async () => {
+  if (checking) return;
+  if (updateReady()) { setUpdateUi('Updating…', '', true); reloadToUpdate(); return; }
+  if (!updatesSupported) { setUpdateUi('Check for updates', `You're on version ${APP_VERSION}. Updates arrive when you reload.`); return; }
+  checking = true;
+  setUpdateUi('Checking…', '', true);
+  // Keep the spinner up a moment even on a fast network, so the check feels real.
+  const [result] = await Promise.all([checkForUpdates(), new Promise((r) => setTimeout(r, 700))]);
+  checking = false;
+  if (result === 'ready') { setUpdateUi('Updating…', 'Found a new version. Reloading…', true); setTimeout(reloadToUpdate, 500); }
+  else if (result === 'current') setUpdateUi('Check for updates', `You're up to date (${APP_VERSION}).`);
+  else if (result === 'offline') setUpdateUi('Try again', "Couldn't reach noodlit.app. Are you offline?");
+  else setUpdateUi('Check for updates', `You're on version ${APP_VERSION}. Updates arrive when you reload.`);
+});
+
 function open() {
   // Don't stack over the scene menu or an open type box.
   if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open')) return;
   lastFocus = document.activeElement;
+  resetUpdateUi();
   panel.hidden = false;
   btn.setAttribute('aria-expanded', 'true');
   ui.classList.add('about-open');

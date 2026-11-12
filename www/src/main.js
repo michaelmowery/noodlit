@@ -766,6 +766,4 @@ env.intro?.(pickPrompt(INTROS));
 notePrompt(undefined);
 wake();
 
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('sw.js').catch(() => { /* preview hosts may block this */ });
-}
+// Service worker registration and update checks live in update.js.
