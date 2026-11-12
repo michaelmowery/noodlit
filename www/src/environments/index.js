@@ -122,7 +122,7 @@ export const environments = [
   scene('seismograph', 'Seismograph', 'echo', 'Pause, and a recording pen traces it onto the chart', () => import('./seismograph.js').then((m) => m.seismograph)),
 ];
 
-// Tiers: which scenes are Free, Plus or Premium, by id. The scene menu has a tab for each.
+// Tiers: which scenes are Free, Plus or Premium, by id. Each scene menu tile shows its tier.
 // Free and Premium are listed; everything else, including any new scene, is Plus. To move a
 // scene, move its id between these two lists (or out of both, for Plus). Nothing is locked yet:
 // every scene stays free while Noodlit is in preview.
@@ -135,8 +135,8 @@ export const FREE_SCENES = new Set([
   'canyon', 'pond', // Echo
 ]);
 // Premium (a possible tier above Plus): the showpiece scenes with the most going on. The three
-// tabs are kept about even, with every mode in each. If Premium isn't wanted, empty this list
-// and its scenes go back to Plus (a tier with no scenes gets no tab).
+// tiers are kept about even, with every mode in each. If Premium isn't wanted, empty this list
+// and its scenes go back to Plus.
 export const PREMIUM_SCENES = new Set([
   'starfield', 'sparkler', 'light', 'ink', // Fade
   'lantern-flock', 'rocket', 'campfire', 'burning-page', 'rice-paper', 'dandelion', // Release
@@ -145,7 +145,12 @@ export const PREMIUM_SCENES = new Set([
   'kaleidoscope', 'galaxy', // Stir
   'skywriting', 'neon', // Echo
 ]);
-// In menu order. The label names the tab; the hint sits under the tabs.
+// Featured: shown first in the scene menu, in both views, in this order. For now, the scenes the
+// "Show me everything" tour visits (one per mode); later this can follow what people pick most.
+export const FEATURED_SCENES = ['shower-door', 'mailbox', 'fireflies', 'scratch-card', 'latte', 'canyon'];
+export const featured = () => FEATURED_SCENES.map((id) => environments.find((e) => e.id === id)).filter(Boolean);
+
+// The label is what each tile's tag says.
 export const TIERS = [
   { id: 'free', label: 'Free', hint: 'Always included' },
   { id: 'plus', label: 'Plus', hint: 'Free during the preview' },
@@ -157,8 +162,8 @@ export const isPlus = (env) => tierOf(env) !== 'free';
 
 export const modeOf = (env) => env.mode || (env.fades === false ? 'release' : 'fade');
 
-// Scene menu: a tab per tier (Free, Plus, Premium), grouped by family inside each, each
-// alphabetized by name, so a new scene lands in the right place on its own. (The default scene is still
+// Scene menu (Groups view): a section per family, alphabetized by name, so a new scene lands
+// in the right place on its own. (The default scene is still
 // environments[0], Shower door, whatever the menu order.)
 const byName = (a, b) => a.name.localeCompare(b.name);
 export function environmentsFor(mode, { tier } = {}) {

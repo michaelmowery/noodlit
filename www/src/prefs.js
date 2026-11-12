@@ -14,7 +14,7 @@ export const DEFAULTS = {
   prompts: true,        // show the lightbulb prompt button in the tray
   updateNote: true,     // show the early preview note again after each new version
   analytics: true,      // send anonymous usage counts (analytics.js); never drawings or words
-  sceneView: 'list',    // scene menu: 'list' (every scene, A to Z) or 'grouped' (Free / Plus / Premium tabs)
+  sceneView: 'list',    // scene menu: 'list' (every scene, A to Z) or 'grouped' (by type: Fade, Release, …)
 };
 export const SPEED_PRESETS = { drift: 45, flow: 20, rush: 8 };
 
