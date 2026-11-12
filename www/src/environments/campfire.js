@@ -2,7 +2,7 @@
 //   Look:  pencil on a torn scrap of brown paper, held up over a little campfire in a
 //          storybook forest at night.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle down into the fire (or tap "Into the fire"). The scrap drops in,
+//   Clear: tap "Into the fire". The scrap drops in,
 //          curls, and burns away from the bottom up with a glowing edge; the fire flares and
 //          throws up sparks, and a fresh scrap is found.
 
@@ -29,7 +29,7 @@ export const campfire = {
   blurb: 'Toss it into the fire',
   clearLabel: 'Into the fire',
   clearIcon: 'M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-1.6.8-2.6 1.6-3.4.2 1.4.9 2.2 1.9 2.4C11 8.5 11 5.5 12 3zM5 20l14-3M5 17l14 3',
-  surface: 'Scrap of paper over a campfire. Drag the handle down into the fire to let it go.',
+  surface: 'Scrap of paper over a campfire. Tap Into the fire to let it go.',
   fades: false,
   palette: PALETTE,
   create: () => new Campfire(),
@@ -39,7 +39,6 @@ class Campfire extends ReleaseScene {
   constructor() {
     super(41);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'bottom';
     this.arriveFrom = { x: 0, y: -50 };
     this.washUpAt = 3.2;
     this.grain = 0.9;

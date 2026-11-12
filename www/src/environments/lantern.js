@@ -2,7 +2,7 @@
 // listed in the scene menu on its own; Lantern festival inherits its paper, inks and launch.
 //   Look:  ink on the warm paper of a sky lantern, on a quiet lakeshore at night.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up (or tap "Light it"). The lantern lights from inside, glows,
+//   Clear: tap "Light it". The lantern lights from inside, glows,
 //          and rises into the night, swaying and shrinking until it's one more far-off
 //          light among the others. A new lantern is unfolded.
 
@@ -29,7 +29,7 @@ export const lantern = {
   blurb: 'Light it and let it rise',
   clearLabel: 'Light it',
   clearIcon: 'M8 4h8l1.5 12h-11L8 4zM9.5 16l.5 3h4l.5-3M12 19v2',
-  surface: 'A paper sky lantern to draw on. Drag the handle up to light it and let it rise.',
+  surface: 'A paper sky lantern to draw on. Tap Light it to light it and let it rise.',
   fades: false,
   palette: PALETTE,
   create: () => new Lantern(),
@@ -39,7 +39,6 @@ export class Lantern extends ReleaseScene {
   constructor() {
     super(52);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 60 };
     this.washUpAt = 2;
     this.washUp = 1;

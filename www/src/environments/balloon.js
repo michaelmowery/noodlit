@@ -1,7 +1,7 @@
 // Balloon: a Release environment.
 //   Look:  marker on a big pastel balloon, tied to a fence post on a sunny hill.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up (or tap "Let go"). The string comes untied and the balloon
+//   Clear: tap "Let go". The string comes untied and the balloon
 //          floats up, swaying and getting smaller, until it slips past the clouds. A new
 //          balloon is tied on.
 
@@ -28,7 +28,7 @@ export const balloon = {
   blurb: 'Untie it and watch it float away',
   clearLabel: 'Let go',
   clearIcon: 'M12 3a6 6 0 0 0-6 6c0 3.6 3 6.5 6 7 3-.5 6-3.4 6-7a6 6 0 0 0-6-6zM12 16l-1 2h2l-1-2M12 18c-1 1.5 1 2 0 3.5',
-  surface: 'A balloon to draw on, tied to a fence post. Drag the handle up to let it go.',
+  surface: 'A balloon to draw on, tied to a fence post. Tap Let go to untie it and let it float away.',
   fades: false,
   palette: PALETTE,
   create: () => new Balloon(),
@@ -38,7 +38,6 @@ class Balloon extends ReleaseScene {
   constructor() {
     super(88);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 80 };
     this.washUpAt = 1.6;
     this.washUp = 0.9;

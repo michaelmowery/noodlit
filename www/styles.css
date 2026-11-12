@@ -540,28 +540,28 @@ html, body {
 /* While typing the keyboard covers the bottom, so hints show up top instead. */
 #ui.typing #toast { bottom: auto; top: calc(env(safe-area-inset-top) + 18px); }
 
-/* Five or six buttons on a phone: tighten up so the bar never runs off the edges. Hold shows its
+/* Six or seven buttons on a phone: tighten up so the bar never runs off the edges. Hold shows its
    state by colour, so its label is the first to go; the clear label goes next. */
-@media (max-width: 440px) {
+@media (max-width: 560px) {
   #btn-hold .label { display: none; }
   #btn-hold { padding: 0 10px; }
   .toolbar { gap: 2px; padding: 4px; }
   .toolbar button { gap: 6px; padding: 0 12px 0 10px; }
   .toolbar button.icon-only { padding: 0 10px; }
 }
-@media (max-width: 400px) {
+@media (max-width: 470px) {
   .toolbar { gap: 0; }
 }
-@media (max-width: 380px) {
+@media (max-width: 430px) {
   #btn-hold { padding: 0 9px; }
   .toolbar button { gap: 5px; padding: 0 9px 0 8px; font-size: 14px; }
   .toolbar button.icon-only { padding: 0 9px; }
 }
-@media (max-width: 360px) {
+@media (max-width: 400px) {
   #btn-clear .label { display: none; }
   #btn-clear { padding: 0 9px; }
 }
-@media (max-width: 345px) {
+@media (max-width: 360px) {
   #btn-clear, #btn-hold { padding: 0 6px; }
   .toolbar { padding: 3px; gap: 0; }
   .toolbar button { gap: 4px; padding: 0 7px 0 6px; font-size: 13px; }

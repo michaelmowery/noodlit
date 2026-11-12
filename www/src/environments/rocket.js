@@ -2,7 +2,7 @@
 //   Look:  marker on the side of a little storybook rocket standing on its launch pad at
 //          dusk, with a gantry tower beside it.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up (or tap "Launch"). The engine lights, smoke billows across the
+//   Clear: tap "Launch". The engine lights, smoke billows across the
 //          pad, and the rocket lifts off, slowly at first, then streaks up out of sight.
 //          The next rocket rolls out onto the pad.
 
@@ -27,7 +27,7 @@ export const rocket = {
   blurb: 'Blast it off into space',
   clearLabel: 'Launch',
   clearIcon: 'M12 2c3 2 4.5 6 4.5 10L15 17H9l-1.5-5C7.5 8 9 4 12 2zM9 17l-2.5 3M15 17l2.5 3M12 9.5v.01',
-  surface: 'A rocket on a launch pad to draw on. Drag the handle up to launch it.',
+  surface: 'A rocket on a launch pad to draw on. Tap Launch to launch it.',
   fades: false,
   palette: PALETTE,
   create: () => new Rocket(),
@@ -37,7 +37,6 @@ class Rocket extends ReleaseScene {
   constructor() {
     super(81);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 40 };
     this.washUpAt = 2.6;
     this.washUp = 1;

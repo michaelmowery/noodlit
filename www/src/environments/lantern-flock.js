@@ -1,7 +1,7 @@
 // Lantern festival: a Release environment built on the paper lantern.
 //   Look:  the same warm paper lantern on the lakeshore at night.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up (or tap "Light it"). Your lantern lights and rises, and as it
+//   Clear: tap "Light it". Your lantern lights and rises, and as it
 //          goes, lanterns all along the far shore light and rise with it, a whole festival
 //          of lights drifting up into the night. A few stay in the sky each time.
 
@@ -12,7 +12,7 @@ export const lanternFlock = {
   id: 'lantern-flock',
   name: 'Lantern festival',
   blurb: 'Yours rises with hundreds of others',
-  surface: 'A paper sky lantern to draw on. Drag the handle up to light it and release it with the festival.',
+  surface: 'A paper sky lantern to draw on. Tap Light it to light it and release it with the festival.',
   create: () => new LanternFlock(),
 };
 

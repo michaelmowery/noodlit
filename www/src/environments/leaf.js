@@ -1,7 +1,7 @@
 // Autumn leaf: a Release environment.
 //   Look:  brown ink on a big golden leaf, in a storybook park in autumn.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle to the right (or tap "Catch the wind"). A gust sweeps through,
+//   Clear: tap "Catch the wind". A gust sweeps through,
 //          the leaf shrinks to leaf size, tumbles and flutters up and away off the right
 //          edge with a few other leaves, and the next one drifts down from the tree.
 
@@ -29,7 +29,7 @@ export const leaf = {
   blurb: 'Let the autumn wind take it',
   clearLabel: 'Catch the wind',
   clearIcon: 'M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7',
-  surface: 'A big autumn leaf to draw on. Drag the handle to the right to let the wind take it.',
+  surface: 'A big autumn leaf to draw on. Tap Catch the wind to let the wind take it.',
   fades: false,
   palette: PALETTE,
   create: () => new Leaf(),
@@ -39,7 +39,6 @@ class Leaf extends ReleaseScene {
   constructor() {
     super(63);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'right';
     this.arriveFrom = { x: 30, y: -120 };
     this.washUpAt = 1.8;
     this.washUp = 1.1;
@@ -56,7 +55,6 @@ class Leaf extends ReleaseScene {
     return fitRect(24, top, W - 72, bottom - top, 0.72);
   }
 
-  handleAnchor() { const r = this.rect; return { x: r.x + r.w * 0.97, y: r.y + r.h * 0.44 }; }
 
   textArea() {
     const { w, h } = this.rect;

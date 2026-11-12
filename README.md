@@ -31,5 +31,5 @@ the surface, and its clear animation (see the header comment in fade.js).
 ## Release scenes
 Release surfaces (`fades: false`) don't decay; you let the drawing go. Stream is self-contained;
 Message in a bottle and Paper lantern build on `www/src/lib/release.js`, which handles the sheet,
-ink, typing, the drag handle and the hand-off. A new scene supplies its layout, background,
+ink, typing and the hand-off (released with the clear button). A new scene supplies its layout, background,
 sheet texture and how it carries the sheet away (see the header comment in release.js).

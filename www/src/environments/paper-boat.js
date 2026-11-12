@@ -1,7 +1,7 @@
 // Paper boat: a Release environment.
 //   Look:  pencil on a sheet of paper resting on a little wooden dock at the edge of a lake.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up toward the water (or tap "Sail away"). The sheet folds into a
+//   Clear: tap "Sail away". The sheet folds into a
 //          paper boat with your drawing on its side, settles on the lake and sails off toward
 //          the far shore, getting smaller until it's gone. A new sheet is set on the dock.
 
@@ -28,7 +28,7 @@ export const paperBoat = {
   blurb: 'Fold a boat and sail it away',
   clearLabel: 'Sail away',
   clearIcon: 'M3 15h18l-3 4H6l-3-4zM12 4v11M12 4l6 9h-6',
-  surface: 'A sheet of paper on a dock by a lake. Drag the handle up to fold it into a boat and sail it away.',
+  surface: 'A sheet of paper on a dock by a lake. Tap Sail away to fold it into a boat and sail it away.',
   fades: false,
   palette: PALETTE,
   create: () => new PaperBoat(),
@@ -38,7 +38,6 @@ class PaperBoat extends ReleaseScene {
   constructor() {
     super(19);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 70 };
     this.washUpAt = 1.8;
     this.grain = 0.8;

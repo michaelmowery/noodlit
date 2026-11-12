@@ -1,4 +1,4 @@
-// About panel: the wordmark in the top-left corner opens it. Self-contained so the
+// About panel: the ⓘ button in the toolbar tray opens it (the wordmark does too). Self-contained so the
 // shell (main.js) doesn't need to know about it.
 
 import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from './update.js';
@@ -7,7 +7,7 @@ import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from '
 export const APP_VERSION = '0.28';
 
 const ui = document.getElementById('ui');
-const btn = document.getElementById('btn-about');
+const btns = [document.getElementById('btn-info'), document.getElementById('btn-about')];
 const panel = document.getElementById('about');
 document.getElementById('about-version').textContent = `Version ${APP_VERSION}`;
 document.getElementById('about-year').textContent = String(Math.max(2026, new Date().getFullYear()));
@@ -53,7 +53,7 @@ function open() {
   lastFocus = document.activeElement;
   resetUpdateUi();
   panel.hidden = false;
-  btn.setAttribute('aria-expanded', 'true');
+  btns.forEach((b) => b.setAttribute('aria-expanded', 'true'));
   ui.classList.add('about-open');
   panel.querySelector('.about-close').focus({ preventScroll: true });
 }
@@ -61,12 +61,12 @@ function open() {
 function close() {
   if (panel.hidden) return;
   panel.hidden = true;
-  btn.setAttribute('aria-expanded', 'false');
+  btns.forEach((b) => b.setAttribute('aria-expanded', 'false'));
   ui.classList.remove('about-open');
   if (lastFocus && lastFocus !== document.body) lastFocus.focus?.({ preventScroll: true });
 }
 
-btn.addEventListener('click', open);
+btns.forEach((b) => b.addEventListener('click', open));
 panel.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
 
 // While open, keys belong to the panel: Escape closes, Tab stays inside, and nothing

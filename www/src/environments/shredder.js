@@ -1,7 +1,7 @@
 // Shredder: a Release environment.
 //   Look:  pen on a sheet of printer paper, sitting in the slot of an office shredder.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle down (or tap "Shred"). The motor whirs, the page feeds down into
+//   Clear: tap "Shred". The motor whirs, the page feeds down into
 //          the slot and comes out the bottom as wiggly strips that drop into the bin. The
 //          bin fills up over a few pages, then empties itself. A new sheet is fed in.
 
@@ -27,7 +27,7 @@ export const shredder = {
   blurb: 'Feed it through and hear it go',
   clearLabel: 'Shred',
   clearIcon: 'M5 4h14v8H5zM3 12h18v3H3zM7 15v6M10 15v5M14 15v6M17 15v5',
-  surface: 'A sheet of paper in an office shredder. Drag the handle down to shred it.',
+  surface: 'A sheet of paper in an office shredder. Tap Shred to shred it.',
   fades: false,
   palette: PALETTE,
   create: () => new Shredder(),
@@ -37,7 +37,6 @@ class Shredder extends ReleaseScene {
   constructor() {
     super(46);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'bottom';
     this.arriveFrom = { x: 0, y: -40 };
     this.washUpAt = 1.2;
     this.washUp = 0.8;
@@ -63,11 +62,6 @@ class Shredder extends ReleaseScene {
     return { x: (W - w) / 2, y: this.slot - h, w, h };
   }
 
-  // The handle sits just above the slot so it never hides behind the shredder head.
-  handleAnchor() {
-    const r = this.rect;
-    return { x: r.x + r.w / 2, y: r.y + r.h - 40 };
-  }
 
   textArea() {
     const { w, h } = this.rect;

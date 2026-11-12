@@ -1,9 +1,9 @@
 // Shared machinery for Release surfaces (everything except Stream, which came first).
 //
 // A Release surface is a storybook scene plus one "sheet" you draw on: a piece of paper,
-// a lantern panel, a leaf, a balloon. Nothing fades. When you let it go (drag the orange
-// handle, or tap the clear button) the scene carries the sheet off in its own way, and a
-// fresh sheet arrives a moment later.
+// a lantern panel, a leaf, a balloon. Nothing fades. When you let it go (tap the clear
+// button at the bottom) the scene carries the sheet off in its own way, and a fresh sheet
+// arrives a moment later. The whole sheet is for drawing; there is no drag handle.
 //
 // A scene subclass provides:
 //   layout()                     -> { x, y, w, h }  where the sheet sits (CSS px)
@@ -18,18 +18,11 @@
 //   tapScene(x, y)               a tap that missed the sheet
 //   textArea()                   -> { x, y, w, h } in sheet coordinates, where words fit
 // Config fields (set in the subclass constructor): ink (the default colour; the shell can
-// change it with setInk from the scene's palette), handleSide ('right'|'top'|'bottom'),
-// arriveFrom { x, y } (offset the new sheet slides in from), washUpAt, washUp, grain (0..1).
+// change it with setInk from the scene's palette), arriveFrom { x, y } (offset the new sheet slides in from), washUpAt, washUp, grain (0..1).
 
 import { clamp, easeInOut, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from './util.js';
 import { sfx } from './sound.js';
 import { dryStroke } from './brushes.js';
-
-const SIDES = {
-  right: { dx: 1, dy: 0, angle: 0 },
-  top: { dx: 0, dy: -1, angle: -Math.PI / 2 },
-  bottom: { dx: 0, dy: 1, angle: Math.PI / 2 },
-};
 
 export class ReleaseScene {
   constructor(seed = 1) {
@@ -37,11 +30,9 @@ export class ReleaseScene {
     this.time = 0;
     this.carried = [];
     this.sheet = null;
-    this.drag = null;
     this.drafts = { base: null, held: [], cur: null };
     this.rand = mulberry32(seed);
     this.ink = '#2a2320';
-    this.handleSide = 'right';
     this.arriveFrom = { x: -60, y: 0 };
     this.washUpAt = 1.4;
     this.washUp = 0.8;
@@ -92,25 +83,9 @@ export class ReleaseScene {
   }
 
   // ---------------------------------------------------------------- input
-  handleRect() {
-    const s = this.sheet, r = this.rect;
-    const thick = 30, long = Math.min(96, (this.handleSide === 'right' ? r.h : r.w) * 0.3);
-    const a = this.handleAnchor?.() || null;
-    let cx, cy, w, h;
-    if (this.handleSide === 'right') { cx = a ? a.x : r.x + r.w - thick * 0.05; cy = a ? a.y : r.y + r.h / 2; w = thick; h = long; }
-    else if (this.handleSide === 'top') { cx = a ? a.x : r.x + r.w / 2; cy = a ? a.y : r.y + thick * 0.05; w = long; h = thick; }
-    else { cx = a ? a.x : r.x + r.w / 2; cy = a ? a.y : r.y + r.h - thick * 0.05; w = long; h = thick; }
-    return { x: cx - w / 2 + s.offX, y: cy - h / 2 + s.offY, w, h, cx: cx + s.offX, cy: cy + s.offY, long, thick };
-  }
-
   strokeStart(id, x, y, info) {
     const s = this.sheet;
-    if (s && s.arrive >= 1 && !this.drag) {
-      const hr = this.handleRect();
-      if (x > hr.x - 14 && x < hr.x + hr.w + 14 && y > hr.y - 14 && y < hr.y + hr.h + 14) {
-        this.drag = { id, sx: x, sy: y };
-        return;
-      }
+    if (s && s.arrive >= 1) {
       const lx = x - this.rect.x, ly = y - this.rect.y;
       if (lx >= 0 && ly >= 0 && lx <= this.rect.w && ly <= this.rect.h) {
         const r = this.radiusFor(info, 0);
@@ -127,16 +102,6 @@ export class ReleaseScene {
   }
 
   strokeMove(id, x, y, info) {
-    if (this.drag && this.drag.id === id) {
-      const s = this.sheet, d = SIDES[this.handleSide];
-      const mx = x - this.drag.sx, my = y - this.drag.sy;
-      const along = Math.max(0, mx * d.dx + my * d.dy);
-      const across = clamp((mx * -d.dy + my * d.dx) * 0.35, -30, 30);
-      s.offX = d.dx * along - d.dy * across;
-      s.offY = d.dy * along + d.dx * across;
-      s.dirty = true;
-      return;
-    }
     const st = this.strokes.get(id);
     if (!st || !this.sheet) return;
     const lx = x - this.rect.x, ly = y - this.rect.y;
@@ -150,15 +115,6 @@ export class ReleaseScene {
   }
 
   strokeEnd(id) {
-    if (this.drag && this.drag.id === id) {
-      const s = this.sheet, d = SIDES[this.handleSide];
-      const along = s.offX * d.dx + s.offY * d.dy;
-      const span = this.handleSide === 'right' ? this.rect.w : this.rect.h;
-      this.drag = null;
-      if (along > Math.min(120, span * 0.28)) this.release();
-      else s.spring = true;
-      return;
-    }
     this.strokes.delete(id);
   }
 
@@ -174,7 +130,6 @@ export class ReleaseScene {
     const s = this.sheet;
     if (!s || s.arrive < 1) return;
     this.strokes.clear();
-    this.drag = null;
     this.drafts = { base: null, held: [], cur: null };
     this.compose(s);
     const { x, y, w, h } = this.rect;
@@ -197,13 +152,6 @@ export class ReleaseScene {
     const s = this.sheet;
     if (s) {
       if (s.arrive < 1) { s.arrive = Math.min(1, s.arrive + dt / this.washUp); active = true; }
-      if (s.spring) {
-        const k = Math.min(1, dt * 12);
-        s.offX += (0 - s.offX) * k; s.offY += (0 - s.offY) * k;
-        if (Math.abs(s.offX) < 0.5 && Math.abs(s.offY) < 0.5) { s.offX = s.offY = 0; s.spring = false; }
-        active = true;
-      }
-      if (this.drag) active = true;
     } else if (this.time >= this.washAt) {
       this.sheet = this.newSheet();
       this.sheet.arrive = 0;
@@ -269,18 +217,16 @@ export class ReleaseScene {
     const s = this.sheet;
     if (s) {
       const p = easeInOut(s.arrive);
-      const lifted = this.drag || Math.hypot(s.offX, s.offY) > 1 ? 1 : 0;
       ctx.save();
       ctx.globalAlpha = Math.min(1, 0.15 + p);
       ctx.translate(rect.x + rect.w / 2 + s.offX + (1 - p) * this.arriveFrom.x, rect.y + rect.h / 2 + s.offY + (1 - p) * this.arriveFrom.y);
       ctx.rotate((1 - p) * -0.05);
       this.compose(s);
       ctx.shadowColor = 'rgba(15,20,30,0.32)';
-      ctx.shadowBlur = 16 + lifted * 14;
-      ctx.shadowOffsetY = 6 + lifted * 8;
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 6;
       ctx.drawImage(s.comp, -rect.w / 2, -rect.h / 2, rect.w, rect.h);
       ctx.restore();
-      if (p >= 1) drawHandle(ctx, this.handleRect(), SIDES[this.handleSide].angle, !!this.drag);
     }
     // Whatever was let go travels over the fresh sheet as it arrives.
     for (const f of this.carried) this.drawCarried(ctx, f);
@@ -361,28 +307,6 @@ export class ReleaseScene {
 }
 
 // ------------------------------------------------------------------ helpers
-// The orange "let it go" handle; chevrons point the way to drag.
-export function drawHandle(ctx, r, angle, active) {
-  ctx.save();
-  ctx.translate(r.cx, r.cy);
-  ctx.rotate(angle);
-  const w = r.thick, h = r.long;
-  ctx.shadowColor = 'rgba(60,30,0,0.35)';
-  ctx.shadowBlur = active ? 14 : 8;
-  ctx.shadowOffsetY = 3;
-  ctx.fillStyle = active ? '#ff9a3d' : '#f58a2e';
-  roundRect(ctx, -w / 2, -h / 2, w, h, w / 2);
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#fff6ea';
-  ctx.lineWidth = 2.2;
-  ctx.lineCap = ctx.lineJoin = 'round';
-  for (const dy of [-8, 8]) {
-    ctx.beginPath(); ctx.moveTo(-4, dy - 5); ctx.lineTo(3, dy); ctx.lineTo(-4, dy + 5); ctx.stroke();
-  }
-  ctx.restore();
-}
-
 export function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
