@@ -281,6 +281,8 @@ const demo = createDemo({
     applyInk();
   },
   onPeek: (on) => ui.classList.toggle('demo-peek', on),
+  // End of the scene demo: the toolbar brightens, and the caption stays just above it.
+  signoff: (on) => ui.classList.toggle('demo-signoff', on),
   onChange(on) {
     ui.classList.toggle('demoing', on);
     syncUndo();
