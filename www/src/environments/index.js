@@ -44,7 +44,7 @@
 //
 // Environments come in two families, picked with the Fade / Release toggle: Fade surfaces
 // decay on their own; Release surfaces (fades: false) keep the drawing until you let it go.
-// The scene menu (top right) lists both families, in the order below.
+// The scene menu (top right) lists both families, sorted by environmentsFor() below.
 
 import { showerDoor } from './shower-door.js';
 import { waves } from './waves.js';
@@ -93,8 +93,16 @@ export const isPlus = (env) => !FREE_SCENES.has(env.id);
 
 export const modeOf = (env) => (env.fades === false ? 'release' : 'fade');
 
+// Menu order within a family: free scenes first, then Plus, each alphabetized by name, so a
+// new scene lands in the right place on its own. (The default scene is still environments[0],
+// Shower door, whatever the menu order.)
+const byName = (a, b) => a.name.localeCompare(b.name);
 export function environmentsFor(mode) {
-  return environments.filter((e) => modeOf(e) === mode);
+  const group = environments.filter((e) => modeOf(e) === mode);
+  return [
+    ...group.filter((e) => !isPlus(e)).sort(byName),
+    ...group.filter(isPlus).sort(byName),
+  ];
 }
 
 export function getEnvironment(id) {
