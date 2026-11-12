@@ -1,4 +1,5 @@
-// Paper lantern: a Release environment.
+// Paper lantern: the base scene for Lantern festival (lantern-flock.js). It is no longer
+// listed in the scene menu on its own; Lantern festival inherits its paper, inks and launch.
 //   Look:  ink on the warm paper of a sky lantern, on a quiet lakeshore at night.
 //   Decay: none. Nothing fades while you draw.
 //   Clear: drag the handle up (or tap "Light it"). The lantern lights from inside, glows,
