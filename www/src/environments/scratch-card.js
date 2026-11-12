@@ -283,6 +283,9 @@ class ScratchCard {
     return gone / (n * n);
   }
 
+  // Where Show me rubs: the foil.
+  revealArea() { return this.panel; }
+
   // The rest of the foil lets go and the prompt is out in the open.
   revealAll() {
     if (this.revealed || this.deal) return;

@@ -130,7 +130,7 @@ export function createDemo(host, finger) {
   function openPanel(p, me) { p.open(); me.panel = p; host.onPeek(true); }
   function closePanel(p, me) { p.close(); me.panel = null; host.onPeek(me.kind === 'tour'); }
 
-  async function draw(env, strokes, me) {
+  async function draw(env, strokes, me, pace = PX_PER_SEC) {
     for (const pts of strokes) {
       if (run !== me) return;
       const [x0, y0] = pts[0];
@@ -146,7 +146,7 @@ export function createDemo(host, finger) {
       while (i < pts.length) {
         await nextFrame();
         if (run !== me) return;
-        const due = Math.min(pts.length - 1, Math.floor(((performance.now() - t0) / 1000) * PX_PER_SEC / 4));
+        const due = Math.min(pts.length - 1, Math.floor(((performance.now() - t0) / 1000) * pace / 4));
         for (; i <= due; i++) {
           const [x, y] = pts[i];
           env.strokeMove(ID, x, y, { ...info(), angle: Math.atan2(y - last[1], x - last[0]) });
@@ -316,6 +316,25 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
+  // Reveal scenes: rub a zigzag over the scene's cover (env.revealArea(), else the middle of
+  // the screen), rows about a brush apart so most of it comes off.
+  async function scrub(env, me) {
+    const { W, H } = host.size();
+    const a = env.revealArea?.() || { x: W * 0.08, y: H * 0.17, w: W * 0.84, h: H * 0.58 };
+    const r = env.radiusFor?.({ pointerType: 'touch', pressure: 0.5, width: 0 }, 0) || 12;
+    const m = Math.min(r, a.w * 0.12);
+    const rows = Math.max(3, Math.min(11, Math.round((a.h - m * 2) / (r * 1.5)) + 1));
+    const pts = [];
+    for (let k = 0; k < rows; k++) {
+      const y = a.y + m + ((a.h - m * 2) * k) / (rows - 1);
+      const l = [a.x + m, y], rt = [a.x + a.w - m, y];
+      pts.push(...(k % 2 ? [rt, l] : [l, rt]));
+    }
+    finger.classList.remove('glide');
+    await draw(env, [resample(pts, 4)], me, 1500);
+    finger.classList.remove('show');
+  }
+
   // Let the scene take it: Fade scenes fade, Release scenes let it go.
   async function letGo(env, me, viaButton) {
     if (host.mode() === 'release') {
@@ -330,17 +349,17 @@ export function createDemo(host, finger) {
       host.wake();
       await sleep((env.becomeTime?.() ?? 10) * 1000, me);
     } else if (host.mode() === 'reveal') {
-      // A scene with something hidden shows it first (the Scratch card's prompt); then a fresh start.
-      if (env.revealAll) {
-        host.say(env.revealCaption || '…and see what was underneath', 3000);
-        env.revealAll();
-        host.wake();
-        await sleep(3200, me);
-        if (run !== me) return;
-      } else {
-        await sleep(1400, me); // a look at what the lines uncovered
-        if (run !== me) return;
-      }
+      // The finger rubs back and forth with the widest brush, so what is underneath really
+      // shows (thin lines alone uncover next to nothing). A scene whose cover lets go by
+      // itself (the Scratch card's foil) does so once enough is off.
+      host.say(env.revealCaption || '…rub it away to see what is underneath', 4200);
+      host.wideBrush?.();
+      await scrub(env, me);
+      if (run !== me) return;
+      if (env.revealAll && !env.revealed) env.revealAll();
+      host.wake();
+      await sleep(3000, me); // a look at what was uncovered
+      if (run !== me) return;
       host.say(env.freshCaption || '…then start a fresh one', 2400);
       env.clear();
       host.wake();
