@@ -6,6 +6,7 @@
 //          that settle away like the ghosting on a real, well-used board.
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from '../lib/util.js';
+import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.3;          // extra life above 1.0 = a short "fresh ink" hold before it starts to lift
 const GHOST = 0.13;        // opacity of the trace a stroke leaves behind
@@ -161,6 +162,7 @@ class Whiteboard {
       pass: 0.3, turn: 0.04,
       x: -ew, y: band / 2, prevX: -ew, prevY: band / 2, tilt: 0,
     };
+    sfx.cue('erase', this.clearing);
     this.strokes.clear();
   }
 

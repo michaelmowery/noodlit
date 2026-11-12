@@ -7,6 +7,7 @@
 //   Clear: a short squall blows through and lays a fresh blanket from the top down.
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;        // extra depth above 1.0 = a short "freshly pressed" hold before filling starts
 const RIM = 0.22;         // height of the ridge of displaced snow beside a groove (as a fraction of depth)
@@ -187,6 +188,7 @@ class Snow {
   clear() {
     this.clearing = { t: 0, dur: 1.6 };
     this.strokes.clear();
+    sfx.cue('squall');
     // Kick off the squall with a screenful of flakes already in the air.
     for (let n = 0; n < 120; n++) this.spawnFlake(false, true);
   }

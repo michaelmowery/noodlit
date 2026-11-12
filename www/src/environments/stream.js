@@ -10,6 +10,7 @@
 // rotate and shrink as one object.
 
 import { clamp, easeInOut, smoothstep, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from '../lib/util.js';
+import { sfx } from '../lib/sound.js';
 
 const INK = '#2a2320';
 const FLOAT_SECONDS = 8.5;  // the trip from the drop point to off-screen
@@ -134,7 +135,10 @@ class Stream {
       }
     }
     // A tap on the water just makes a ripple.
-    if (Math.abs(x - this.cx(y)) < this.sw / 2) this.splashes.push({ x, y, t: 0, size: 0.5 });
+    if (Math.abs(x - this.cx(y)) < this.sw / 2) {
+      this.splashes.push({ x, y, t: 0, size: 0.5 });
+      sfx.cue('splash', { size: 0.5 });
+    }
   }
 
   strokeMove(id, x, y, info) {
@@ -184,6 +188,7 @@ class Stream {
     this.strokes.clear();
     this.drag = null;
     this.drafts = { base: null, held: [], cur: null };
+    sfx.cue('release');
     this.compose(b);
     const { w, h } = this.rect;
     const scale = (this.sw * 0.78) / w;
@@ -219,6 +224,7 @@ class Stream {
     } else if (this.time >= this.washAt) {
       this.board = this.newBoard();
       this.board.arrive = 0;
+      sfx.cue('arrive');
       active = true;
     } else active = true;
 
@@ -229,6 +235,7 @@ class Stream {
       if (!f.splashed && f.t >= LIFT) {
         f.splashed = true;
         this.splashes.push({ x: f.drop.x, y: f.drop.y, t: 0, size: 1.4 });
+        sfx.cue('splash', { size: 1.4 });
       }
       this.critterReact(f);
     }

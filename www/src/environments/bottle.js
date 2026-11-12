@@ -7,6 +7,7 @@
 
 import { clamp, easeInOut, mulberry32, makeCanvas } from '../lib/util.js';
 import { ReleaseScene, fitRect, paintPaper, tornOutline, paperFibres, cloud } from '../lib/release.js';
+import { sfx } from '../lib/sound.js';
 
 const ROLL = 0.8;     // note rolls into the bottle
 const TOSS = 1.0;     // bottle arcs out to sea
@@ -94,7 +95,7 @@ class Bottle extends ReleaseScene {
       f.phase = 'toss';
       return true;
     }
-    if (!f.splashed) { f.splashed = true; this.splashes.push({ x: f.sea.x, y: f.sea.y, t: 0, k: 0.65 }); }
+    if (!f.splashed) { f.splashed = true; this.splashes.push({ x: f.sea.x, y: f.sea.y, t: 0, k: 0.65 }); sfx.cue('splash', { size: 1.1 }); }
     const t = f.t - ROLL - TOSS, q = Math.min(1, t / DRIFT);
     const e = 1 - Math.pow(1 - q, 1.5);
     f.phase = 'drift';
