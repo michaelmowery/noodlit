@@ -214,11 +214,30 @@ const demo = createDemo({
   held: () => held,
   say: showToast,
   sfx,
-  // Settings the demo opens for a moment, in order (only those this scene shows).
-  peeks: () => [
-    !btnInk.hidden && { el: btnInk, pop: inkPop, open: openInk, close: closeInk, say: 'Pick a brush that suits the surface' },
-    !btnSpeed.hidden && { el: btnSpeed, pop: speedPop, open: openSpeed, close: closeSpeed, say: 'Choose how fast it fades' },
-  ].filter(Boolean),
+  // The settings the demo shows off, only where this scene has them. It really picks a brush
+  // and a fade speed, so the drawing matches; restore() puts the user's own choices back.
+  brush: () => !btnInk.hidden && brushesFor(envDef)?.length && {
+    button: btnInk, pop: inkPop, open: openInk, close: closeInk,
+    option: () => {
+      const list = brushesFor(envDef), want = defaultBrush(list);
+      return brushOptions.children[list.indexOf(want)] || brushOptions.firstElementChild;
+    },
+  },
+  speed: () => !btnSpeed.hidden && {
+    button: btnSpeed, pop: speedPop, open: openSpeed, close: closeSpeed,
+    set(v) { speedRange.value = String(v); speedRange.dispatchEvent(new Event('input')); },
+    get: () => Number(speedRange.value),
+  },
+  typeButton: btnType,
+  snapshot: () => ({ id: envDef.id, brush: store.get('brush.' + envDef.id, null), fade: fadeSeconds }),
+  restore(snap) {
+    if (snap.id !== envDef.id) return;
+    store.set('brush.' + snap.id, snap.brush);
+    fadeSeconds = snap.fade;
+    store.set('fadeSeconds', fadeSeconds);
+    applySpeed();
+    applyInk();
+  },
   onPeek: (on) => ui.classList.toggle('demo-peek', on),
   onChange(on) {
     ui.classList.toggle('demoing', on);
