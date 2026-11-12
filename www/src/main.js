@@ -4,11 +4,24 @@
 import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 
-const SPEEDS = [
-  { id: 'drift', label: 'Drift', seconds: 45, hint: 'Slow fade · about 45 seconds' },
-  { id: 'flow', label: 'Flow', seconds: 20, hint: 'Steady fade · about 20 seconds' },
-  { id: 'rush', label: 'Rush', seconds: 8, hint: 'Quick fade · about 8 seconds' },
-];
+// Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
+// log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
+// Slider left = slow (Drift), right = fast (Rush). The old three presets survive as zone names.
+const FADE_MIN = 5, FADE_MAX = 60, FADE_DEFAULT = 20;
+const LEGACY_SPEEDS = { drift: 45, flow: 20, rush: 8 };
+const clampFade = (s) => Math.min(FADE_MAX, Math.max(FADE_MIN, Math.round(s)));
+const sliderToSeconds = (v) => clampFade(FADE_MAX * Math.pow(FADE_MIN / FADE_MAX, v / 100));
+const secondsToSlider = (s) => Math.round((100 * Math.log(s / FADE_MAX)) / Math.log(FADE_MIN / FADE_MAX));
+function speedZone(s) {
+  if (s <= 12) return { label: 'Rush', word: 'Quick fade' };
+  if (s < 32) return { label: 'Flow', word: 'Steady fade' };
+  return { label: 'Drift', word: 'Slow fade' };
+}
+function loadFadeSeconds() {
+  const saved = store.get('fadeSeconds', null);
+  if (typeof saved === 'number' && isFinite(saved)) return clampFade(saved);
+  return LEGACY_SPEEDS[store.get('speed', 'flow')] ?? FADE_DEFAULT; // carry over the old preset
+}
 // Short prompts written onto the surface: on launch, on surface change, and from the
 // prompt button. Keep them brainstorm-flavoured and at most two short lines ("\n").
 const INTROS = ['let it flow', 'think out loud', 'just start', 'empty your head'];
@@ -49,6 +62,9 @@ const canvas = document.getElementById('stage');
 const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
 const ui = document.getElementById('ui');
 const btnSpeed = document.getElementById('btn-speed');
+const speedPop = document.getElementById('speed-pop');
+const speedRange = document.getElementById('speed-range');
+const speedValue = document.getElementById('speed-value');
 const btnHold = document.getElementById('btn-hold');
 const btnClear = document.getElementById('btn-clear');
 const btnScene = document.getElementById('btn-scene');
@@ -67,7 +83,7 @@ const toast = document.getElementById('toast');
 const btnSound = document.getElementById('btn-sound');
 
 let envDef, env;
-let speedIndex = Math.max(0, SPEEDS.findIndex((s) => s.id === store.get('speed', 'flow')));
+let fadeSeconds = loadFadeSeconds();
 let held = false;
 
 // ------------------------------------------------------------------ sizing
@@ -119,6 +135,7 @@ canvas.addEventListener('pointerdown', (e) => {
   canvas.setPointerCapture?.(e.pointerId);
   pointers.add(e.pointerId);
   lastPos.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp });
+  closeSpeed();
   env.strokeStart(e.pointerId, e.clientX, e.clientY, info(e));
   ui.classList.add('drawing');
   wake();
@@ -159,19 +176,43 @@ function showToast(text) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
 }
 
-function applySpeed(announce) {
-  const s = SPEEDS[speedIndex];
-  env.setFadeSeconds(s.seconds);
-  btnSpeed.querySelector('.label').textContent = s.label;
-  btnSpeed.setAttribute('aria-label', `Fade speed: ${s.hint}`);
-  store.set('speed', s.id);
-  if (announce) showToast(s.hint);
+function applySpeed() {
+  const z = speedZone(fadeSeconds);
+  env.setFadeSeconds(fadeSeconds);
+  btnSpeed.querySelector('.label').textContent = z.label;
+  btnSpeed.setAttribute('aria-label', `Fade speed: ${z.word}, about ${fadeSeconds} seconds`);
+  speedRange.value = String(secondsToSlider(fadeSeconds));
+  speedRange.setAttribute('aria-valuetext', `${z.label}, about ${fadeSeconds} seconds`);
+  speedValue.textContent = `${z.label} · ${fadeSeconds}s`;
 }
 
-btnSpeed.addEventListener('click', () => {
-  speedIndex = (speedIndex + 1) % SPEEDS.length;
-  applySpeed(true);
+// Tap the speed button for a small slider just above the toolbar. Changes apply live,
+// so you can watch the surface speed up or slow down while you drag.
+function openSpeed() {
+  if (typing) finishTyping();
+  speedPop.hidden = false;
+  btnSpeed.setAttribute('aria-expanded', 'true');
+  speedRange.focus({ preventScroll: true });
+}
+function closeSpeed() {
+  if (speedPop.hidden) return;
+  speedPop.hidden = true;
+  btnSpeed.setAttribute('aria-expanded', 'false');
+  store.set('fadeSeconds', fadeSeconds);
+}
+btnSpeed.addEventListener('click', () => (speedPop.hidden ? openSpeed() : closeSpeed()));
+speedRange.addEventListener('input', () => {
+  fadeSeconds = sliderToSeconds(Number(speedRange.value));
+  applySpeed();
+  store.set('fadeSeconds', fadeSeconds);
+  wake();
 });
+document.addEventListener('pointerdown', (e) => {
+  if (!speedPop.hidden && !speedPop.contains(e.target) && !btnSpeed.contains(e.target)) closeSpeed();
+}, true);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !speedPop.hidden) { e.preventDefault(); closeSpeed(); btnSpeed.focus({ preventScroll: true }); }
+}, true);
 
 btnHold.addEventListener('click', () => {
   held = !held;
@@ -212,7 +253,7 @@ function notePrompt(slot) {
 }
 btnPrompt.addEventListener('click', () => {
   const now = performance.now();
-  const visibleFor = SPEEDS[speedIndex].seconds * 1000;
+  const visibleFor = fadeSeconds * 1000;
   if (!held) recentPrompts = recentPrompts.filter((r) => now - r.time < visibleFor);
   const busy = new Set(recentPrompts.slice(-2).map((r) => r.slot));
   const slot = PROMPT_SLOTS.find((s) => !busy.has(s));
@@ -308,7 +349,7 @@ input.addEventListener('keydown', (e) => {
 });
 // With a hardware keyboard, just start typing.
 document.addEventListener('keydown', (e) => {
-  if (typing || !scenes.hidden || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  if (typing || !scenes.hidden || !speedPop.hidden || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
   if (e.key.length !== 1 || e.key === ' ' || e.target.closest?.('textarea, input')) return;
   e.preventDefault();
   startTyping(e.key);
@@ -320,7 +361,7 @@ function useEnvironment(def, { announce = false } = {}) {
   env?.dispose?.();
   envDef = def;
   env = def.create();
-  env.setFadeSeconds(SPEEDS[speedIndex].seconds);
+  env.setFadeSeconds(fadeSeconds);
   env.setPaused(held);
   if (W) env.resize({ width: W, height: H, dpr });
   btnClear.querySelector('.label').textContent = def.clearLabel;
@@ -333,6 +374,7 @@ function useEnvironment(def, { announce = false } = {}) {
   btnScene.setAttribute('aria-label', `Scene: ${def.name}, ${MODES[mode].label}. Choose a scene.`);
   // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
   btnSpeed.hidden = btnHold.hidden = mode === 'release';
+  if (mode === 'release') closeSpeed();
   store.set('env', def.id);
   sfx.setScene(def.id);
   if (announce) showToast(def.name);
@@ -434,6 +476,7 @@ function syncScenes() {
 
 function openScenes() {
   if (typing) finishTyping();
+  closeSpeed();
   if (!scenesBody.childElementCount) buildScenes();
   syncScenes();
   scenes.hidden = false;
@@ -475,7 +518,7 @@ document.addEventListener('visibilitychange', () => {
 sfx.enabled = store.get('sound', true) !== false;
 applySound(false);
 useEnvironment(getEnvironment(store.get('env', 'shower-door')));
-applySpeed(false);
+applySpeed();
 resize();
 env.intro?.(pickPrompt(INTROS));
 notePrompt(undefined);
