@@ -1,0 +1,118 @@
+/* About: the wordmark doubles as its button, so it stays out of the way. */
+.wordmark {
+  appearance: none;
+  border: 0;
+  padding: 6px 10px 6px 6px;
+  margin: -6px 0 0 -6px;
+  border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.wordmark:active { background: rgba(255, 255, 255, 0.14); }
+.wordmark:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.wordmark-info {
+  width: 15px;
+  height: 15px;
+  margin-left: -3px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+#ui.drawing .wordmark, #ui.typing .wordmark, #ui.choosing .wordmark { pointer-events: none; }
+#ui.choosing .wordmark { opacity: 0; }
+#ui.about-open .toolbar, #ui.about-open .scene-chip, #ui.about-open .sound-btn, #ui.about-open .wordmark { opacity: 0; pointer-events: none; }
+
+.about { position: absolute; inset: 0; pointer-events: auto; z-index: 6; }
+.about[hidden] { display: none; }
+.about-backdrop { position: absolute; inset: 0; background: rgba(8, 12, 16, 0.42); animation: about-fade 0.2s ease; }
+.about-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(88vh, 720px);
+  max-height: min(88dvh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px calc(env(safe-area-inset-right) + 22px) calc(env(safe-area-inset-bottom) + 20px) calc(env(safe-area-inset-left) + 22px);
+  border-radius: 22px 22px 0 0;
+  background: rgba(22, 30, 37, 0.92);
+  border: 1px solid var(--glass-edge);
+  border-bottom: 0;
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(1.2);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35);
+  animation: about-up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.about-panel p { margin: 0 0 12px; opacity: 0.88; }
+.about-close {
+  appearance: none;
+  position: absolute;
+  top: 10px;
+  right: calc(env(safe-area-inset-right) + 10px);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.about-close:active { background: rgba(255, 255, 255, 0.12); }
+.about-close:focus-visible { outline: 2px solid var(--accent); }
+.about-close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+
+.about-hero { text-align: center; margin: 4px 0 18px; }
+.about-hero img { display: block; margin: 0 auto 10px; width: 72px; height: 72px; border-radius: 17px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35); }
+.about-hero h2 { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.04em; }
+.about-panel .about-tag { margin: 4px 0 0; font-size: 14px; opacity: 0.7; }
+
+.about-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0 18px; }
+@media (max-width: 360px) { .about-modes { grid-template-columns: 1fr; } }
+.about-modes section { padding: 12px 13px 4px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); }
+.about-modes h3 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.about-modes p { font-size: 13.5px; line-height: 1.4; opacity: 0.8; }
+
+.about-foot { padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); text-align: center; }
+.about-foot p { margin: 0 0 3px; font-size: 12.5px; opacity: 0.6; }
+.about-foot a { color: var(--accent); text-decoration: none; }
+
+@media (min-width: 700px) {
+  .about-backdrop { background: rgba(8, 12, 16, 0.3); }
+  .about-panel {
+    left: 50%;
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    width: min(460px, calc(100vw - 32px));
+    max-height: calc(100dvh - 80px);
+    transform: translate(-50%, -50%);
+    border-radius: 22px;
+    border-bottom: 1px solid var(--glass-edge);
+    padding: 24px 26px 18px;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4);
+    animation: about-pop 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .about-close { right: 10px; }
+}
+@keyframes about-fade { from { opacity: 0; } }
+@keyframes about-up { from { transform: translateY(40px); opacity: 0; } }
+@keyframes about-pop { from { transform: translate(-50%, -48%); opacity: 0; } }
