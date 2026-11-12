@@ -450,6 +450,51 @@ const SCENES = {
     },
     texture: { noise: 'grit', f: 5200, q: 1.2, gain: 0.16, jitter: 0.7 },
   },
+  breath: {
+    ambient(s, amb) {
+      // Rain against the window and a quiet room.
+      s.bed(amb, 'pink', [s.filter('highpass', 1200), s.filter('lowpass', 6000)], 0.025);
+      s.bed(amb, 'brown', [s.filter('lowpass', 220)], 0.03);
+      s.every(amb, 0.15, 0.9, () => s.burst({ f: 2500 + Math.random() * 2500, q: 2, peak: 0.008 + Math.random() * 0.012, dur: 0.03, dest: amb.bus }));
+    },
+    texture: { noise: 'white', f: 2000, q: 1.2, gain: 0.1, jitter: 0.25 },
+  },
+  tidepool: {
+    ambient(s, amb) {
+      // Gentle lapping close by, surf far off, and a gull now and then.
+      surf(s, amb, 0.05);
+      s.every(amb, 1.2, 3.5, () => s.burst({ kind: 'pink', f: 900 + Math.random() * 500, q: 1.2, peak: 0.025, attack: 0.08, dur: 0.35, dest: amb.bus }));
+      s.every(amb, 7, 16, () => {
+        for (let k = 0; k < 3; k++) s.tone({ type: 'triangle', f: 1300, f2: 900, peak: 0.008, attack: 0.03, dur: 0.28, at: k * 0.34, dest: amb.bus });
+      });
+    },
+    texture: { noise: 'grit', f: 2000, q: 0.7, gain: 0.24, jitter: 0.3 },
+  },
+  ink: {
+    ambient(s, amb) {
+      // A still room; the odd soft plink of water.
+      s.bed(amb, 'brown', [s.filter('lowpass', 180)], 0.02);
+      s.every(amb, 4, 9, () => s.tone({ f: 900 + Math.random() * 400, f2: 1500, peak: 0.012, attack: 0.004, dur: 0.12, dest: amb.bus }));
+    },
+    texture: { noise: 'pink', f: 700, q: 0.8, gain: 0.08, jitter: 0.2 },
+  },
+  sparkler: {
+    ambient(s, amb) {
+      // A summer night: crickets and a far-off breeze.
+      s.bed(amb, 'pink', [s.filter('bandpass', 500, 0.7)], 0.02);
+      s.every(amb, 0.7, 1.8, () => { for (let k = 0; k < 3; k++) s.tone({ f: 4400, peak: 0.007, attack: 0.004, dur: 0.03, at: k * 0.05, dest: amb.bus }); });
+    },
+    // The fizz of the sparkler itself: bright, crackly and uneven.
+    texture: { noise: 'white', f: 5600, q: 0.9, gain: 0.2, jitter: 0.9 },
+  },
+  starfield: {
+    ambient(s, amb) {
+      // Night stillness with a faint airy shimmer.
+      s.bed(amb, 'pink', [s.filter('bandpass', 2400, 3)], 0.006);
+      s.bed(amb, 'brown', [s.filter('lowpass', 150)], 0.02);
+    },
+    texture: { noise: 'white', f: 7000, q: 2, gain: 0.04, jitter: 0.2 },
+  },
   'burning-page': {
     ambient(s, amb) {
       // A fire crackling in the hearth.
@@ -748,6 +793,36 @@ const CUES = {
   // Autumn leaf: a gust of wind.
   gust: cue((s) => {
     s.burst({ kind: 'pink', f: 350, f2: 1200, q: 1, peak: 0.25, attack: 0.5, dur: 2 });
+  }, 0.5),
+
+  // Breath on glass: an exhale (a long one for the big clearing breath).
+  breath: cue((s, { big = false }) => {
+    s.burst({ kind: 'pink', f: 700, f2: big ? 1100 : 900, q: 0.6, peak: big ? 0.14 : 0.06, attack: big ? 0.35 : 0.15, dur: big ? 1.6 : 0.7 });
+  }, 1.2),
+
+  // Ink in water: fresh water poured in, swirling.
+  pour: cue((s) => {
+    s.burst({ kind: 'pink', f: 1100, f2: 600, q: 0.8, peak: 0.12, attack: 0.15, dur: 1.5 });
+    for (let i = 0; i < 8; i++) s.tone({ f: 500 + Math.random() * 600, f2: 900 + Math.random() * 500, peak: 0.02, attack: 0.01, dur: 0.1, at: 0.1 + Math.random() * 1.1 });
+  }, 0.5),
+
+  // Sparkler: dunked in the water bucket.
+  hiss: cue((s) => {
+    s.burst({ kind: 'white', f: 5000, f2: 2500, q: 0.7, peak: 0.12, attack: 0.02, dur: 1.1 });
+    s.tone({ f: 220, f2: 110, peak: 0.03, dur: 0.2 });
+  }, 0.4),
+
+  // Starfield: a tiny glint as a star lights up.
+  twinkle: cue((s) => {
+    const notes = [1568, 1760, 2093, 2349, 2637];
+    s.tone({ f: notes[Math.floor(Math.random() * notes.length)], peak: 0.012, attack: 0.004, dur: 0.5 });
+  }, 0.09),
+
+  // Starfield: sunrise, a warm swell and a few early birds.
+  dawn: cue((s) => {
+    s.tone({ type: 'triangle', f: 262, peak: 0.03, attack: 0.8, dur: 2.6 });
+    s.tone({ type: 'triangle', f: 392, peak: 0.02, attack: 1, dur: 2.4 });
+    for (let k = 0; k < 4; k++) s.tone({ f: 3000 + k * 200, f2: 4000, peak: 0.015, attack: 0.008, dur: 0.07, at: 1 + k * 0.13 });
   }, 0.5),
 
   // A fresh sheet or board arrives.
