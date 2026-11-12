@@ -11,6 +11,7 @@ const SHELL = [
   './src/about.js',
   './src/update.js',
   './src/welcome.js',
+  './src/demo.js',
   './src/lib/util.js',
   './src/lib/release.js',
   './src/lib/sound.js',
