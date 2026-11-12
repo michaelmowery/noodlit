@@ -9,6 +9,16 @@ import { clamp, easeInOut, mulberry32, makeCanvas } from '../lib/util.js';
 import { ReleaseScene, fitRect, paintPaper, tornOutline, paperFibres, cloud } from '../lib/release.js';
 import { sfx } from '../lib/sound.js';
 
+// Pen inks for old parchment: sepia first (the default), then classic bottled inks.
+const PALETTE = [
+  { name: 'Sepia', color: '#3a2618' },
+  { name: 'Iron black', color: '#1c1a1b' },
+  { name: 'Navy', color: '#22406e' },
+  { name: 'Oxblood', color: '#7d2226' },
+  { name: 'Sea green', color: '#24685a' },
+  { name: 'Violet', color: '#573c80' },
+];
+
 const ROLL = 0.8;     // note rolls into the bottle
 const TOSS = 1.0;     // bottle arcs out to sea
 const DRIFT = 8;
@@ -21,13 +31,14 @@ export const bottle = {
   clearIcon: 'M10 3h4v3l1.5 2.5V20a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8.5L10 6V3zM8.5 12h7',
   surface: 'A parchment note on a beach. Drag the handle up to put it in a bottle and cast it out to sea.',
   fades: false,
+  palette: PALETTE,
   create: () => new Bottle(),
 };
 
 class Bottle extends ReleaseScene {
   constructor() {
     super(71);
-    this.ink = '#3a2618';
+    this.ink = PALETTE[0].color;
     this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 40 };
     this.washUpAt = 2.4;

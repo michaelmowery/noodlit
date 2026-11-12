@@ -16,6 +16,8 @@
 //     surface: 'Wet sand …',       // optional: aria-label for the canvas
 //     fades: false,                // optional: a Release surface (nothing decays; clear() is the
 //                                  //   release), so the shell hides fade speed and Hold
+//     palette: [{ name, color }],  // optional: inks that suit the material, default first. The
+//                                  //   shell shows an ink picker and calls instance.setInk(color)
 //     create: () => instance,      // returns an object with the methods below
 //   };
 //
@@ -35,6 +37,7 @@
 //   instance.commitDraft?()                   //   commitDraft lets them all fade. Most of this
 //                                             //   comes from draftMethods in lib/util.js; an env
 //                                             //   supplies stampText() and calls applyDrafts().
+//   instance.setInk?(color)                   // optional (with palette): colour for new strokes/words
 //   instance.dispose?()
 //
 // Environments come in two families, picked with the Fade / Release toggle: Fade surfaces

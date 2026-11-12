@@ -9,6 +9,16 @@ import { clamp, easeInOut, mulberry32, makeCanvas } from '../lib/util.js';
 import { ReleaseScene, fitRect, paintPaper } from '../lib/release.js';
 import { sfx } from '../lib/sound.js';
 
+// Brush inks for warm rice paper: sumi brown first (the default), then classic lantern colours.
+const PALETTE = [
+  { name: 'Sumi', color: '#3b1d10' },
+  { name: 'Vermilion', color: '#c4321c' },
+  { name: 'Indigo', color: '#2b367a' },
+  { name: 'Plum', color: '#6e2457' },
+  { name: 'Pine', color: '#2c5a37' },
+  { name: 'Teal', color: '#1d6670' },
+];
+
 const LIGHT = 1.1;    // flame catches and the paper warms up
 const RISE = 9;
 
@@ -20,13 +30,14 @@ export const lantern = {
   clearIcon: 'M8 4h8l1.5 12h-11L8 4zM9.5 16l.5 3h4l.5-3M12 19v2',
   surface: 'A paper sky lantern to draw on. Drag the handle up to light it and let it rise.',
   fades: false,
+  palette: PALETTE,
   create: () => new Lantern(),
 };
 
 class Lantern extends ReleaseScene {
   constructor() {
     super(52);
-    this.ink = '#3b1d10';
+    this.ink = PALETTE[0].color;
     this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 60 };
     this.washUpAt = 2;

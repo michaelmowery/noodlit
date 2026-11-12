@@ -17,7 +17,8 @@
 //   updateFx(dt) -> boolean      advance scenery; true while it still needs frames
 //   tapScene(x, y)               a tap that missed the sheet
 //   textArea()                   -> { x, y, w, h } in sheet coordinates, where words fit
-// Config fields (set in the subclass constructor): ink, handleSide ('right'|'top'|'bottom'),
+// Config fields (set in the subclass constructor): ink (the default colour; the shell can
+// change it with setInk from the scene's palette), handleSide ('right'|'top'|'bottom'),
 // arriveFrom { x, y } (offset the new sheet slides in from), washUpAt, washUp, grain (0..1).
 
 import { clamp, easeInOut, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from './util.js';
@@ -81,6 +82,13 @@ export class ReleaseScene {
 
   setFadeSeconds() {}
   setPaused() {}
+
+  // New strokes and typed words use this colour; what's already on the sheet keeps its own.
+  setInk(color) {
+    this.ink = color;
+    const g = this.sheet?.inkCtx;
+    if (g) g.strokeStyle = g.fillStyle = color;
+  }
 
   // ---------------------------------------------------------------- input
   handleRect() {
@@ -289,6 +297,7 @@ export class ReleaseScene {
     const lay = typed
       ? layoutText(g, text, { size: Math.min(a.w * 0.13, 46), minSize: Math.min(20, a.w * 0.08), maxWidth: a.w, weight: 400, wrap: true, maxLines: 6, pad: 0 })
       : layoutText(g, text, { size: Math.min(a.w * 0.15, 54), maxWidth: a.w, weight: 400, pad: 0 });
+    const ink = this.ink;
     const block = (lay.lines.length - 1) * lay.lh;
     const top = a.y + lay.size * 0.5, bottom = Math.max(top, a.y + a.h - lay.size * 0.5 - block);
     let place;
@@ -302,14 +311,14 @@ export class ReleaseScene {
       const cy = opts.at != null ? this.H * opts.at - this.rect.y : a.y + a.h * 0.4;
       place = { align: 'center', x: a.x + a.w / 2, y0: clamp(cy - block / 2, top, bottom) };
     }
-    return { lay, place };
+    return { lay, place, ink };
   }
 
-  writeOnSheet({ lay, place }, alpha) {
+  writeOnSheet({ lay, place, ink }, alpha) {
     const g = this.sheet.inkCtx;
     g.save();
     g.globalAlpha = alpha;
-    g.fillStyle = g.strokeStyle = this.ink;
+    g.fillStyle = g.strokeStyle = ink || this.ink;
     g.font = `400 ${lay.size}px ${HAND}`;
     drawText(g, lay, place, Math.max(1.4, lay.size * 0.04));
     g.restore();
