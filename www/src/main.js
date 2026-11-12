@@ -294,10 +294,10 @@ const demo = createDemo({
       }
     },
   },
-  // The tour visits Shower door, Mailbox and Fireflies too, so their brushes are kept as well.
+  // The tour visits a scene from each family too, so their brushes are kept as well.
   snapshot: () => ({
     id: envDef.id, fade: fadeSeconds, held,
-    brushes: Object.fromEntries([envDef.id, 'shower-door', 'mailbox', 'fireflies'].map((id) => [id, savedBrush(id)])),
+    brushes: Object.fromEntries([envDef.id, 'shower-door', 'mailbox', 'fireflies', 'scratch-card', 'latte', 'canyon'].map((id) => [id, savedBrush(id)])),
   }),
   restore(snap) {
     for (const [id, b] of Object.entries(snap.brushes)) saveBrush(id, b);
