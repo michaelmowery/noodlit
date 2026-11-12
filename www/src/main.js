@@ -3,7 +3,7 @@
 
 import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
 import { sfx } from './lib/sound.js';
-import { brushesFor, brushRadius } from './lib/brushes.js';
+import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -90,6 +90,8 @@ const inkValue = document.getElementById('ink-value');
 const inkSection = document.getElementById('ink-section');
 const brushOptions = document.getElementById('brush-options');
 const brushValue = document.getElementById('brush-value');
+const tipOptions = document.getElementById('tip-options');
+const tipValue = document.getElementById('tip-value');
 
 let envDef, env;
 let fadeSeconds = loadFadeSeconds();
@@ -128,7 +130,16 @@ function wake() {
 
 // ------------------------------------------------------------------ input
 const pointers = new Set();
-const lastPos = new Map(); // pointerId -> { x, y, t }, for how fast the finger moves (drawing sound)
+const lastPos = new Map();
+// Which way each finger is travelling, for flat brush tips (thick one way, thin the other).
+const tipPos = new Map();
+function heading(id, e) {
+  const t = tipPos.get(id);
+  if (!t) { tipPos.set(id, { x: e.clientX, y: e.clientY, angle: null }); return null; }
+  const dx = e.clientX - t.x, dy = e.clientY - t.y;
+  if (dx * dx + dy * dy > 6) Object.assign(t, { x: e.clientX, y: e.clientY, angle: Math.atan2(dy, dx) });
+  return t.angle;
+} // pointerId -> { x, y, t }, for how fast the finger moves (drawing sound)
 const info = (e) => ({
   pointerType: e.pointerType,
   pressure: e.pressure || 0.5,
@@ -154,7 +165,7 @@ canvas.addEventListener('pointermove', (e) => {
   if (placing?.id === e.pointerId) { typingPointerMove(e); return; }
   if (!pointers.has(e.pointerId)) return;
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
-  for (const ce of events.length ? events : [e]) env.strokeMove(e.pointerId, ce.clientX, ce.clientY, info(ce));
+  for (const ce of events.length ? events : [e]) env.strokeMove(e.pointerId, ce.clientX, ce.clientY, { ...info(ce), angle: heading(e.pointerId, ce) });
   const lp = lastPos.get(e.pointerId);
   const dt = (e.timeStamp - lp.t) / 1000;
   if (dt > 0.008) {
@@ -169,6 +180,7 @@ const end = (e) => {
   if (placing?.id === e.pointerId) { typingPointerUp(e); return; }
   if (!pointers.delete(e.pointerId)) return;
   lastPos.delete(e.pointerId);
+  tipPos.delete(e.pointerId);
   if (!pointers.size) sfx.strokeEnd();
   env.strokeEnd(e.pointerId);
   if (!pointers.size) ui.classList.remove('drawing');
@@ -238,11 +250,18 @@ function inkFor(def) {
   const saved = store.get('ink.' + def.id, null);
   return pal.find((p) => p.color === saved) || pal[0];
 }
+// Tip shape works with any brush: round (the usual), or flat like a chisel marker or a
+// calligraphy nib held at 45°, so the line swells and thins as it changes direction.
+const TIPS = [{ id: 'round', name: 'Round' }, { id: 'flat', name: 'Flat' }];
+function tipFor(def) {
+  const saved = store.get('tip.' + def.id, 'round');
+  return TIPS.find((t) => t.id === saved) || TIPS[0];
+}
 function brushFor(def) {
   const list = brushesFor(def);
   if (!list?.length) return null;
   const saved = store.get('brush.' + def.id, null);
-  return list.find((b) => b.name === saved) || list[0];
+  return list.find((b) => b.name === saved) || defaultBrush(list);
 }
 
 // Every scene answers radiusFor(info, speed); route it through the chosen brush.
@@ -266,6 +285,13 @@ function brushIcon(b) {
   return `<svg viewBox="0 0 40 32" aria-hidden="true">${marks}</svg>`;
 }
 
+function tipIcon(id) {
+  const mark = id === 'flat'
+    ? '<rect x="9" y="12.5" width="22" height="7" rx="1.5" transform="rotate(-45 20 16)" fill="currentColor"/>'
+    : '<circle cx="20" cy="16" r="7" fill="currentColor"/>';
+  return `<svg viewBox="0 0 40 32" aria-hidden="true">${mark}</svg>`;
+}
+
 function applyInk() {
   const pal = envDef.palette;
   const brushes = brushesFor(envDef);
@@ -275,7 +301,8 @@ function applyInk() {
   const cur = hasInk ? inkFor(envDef) : null;
   if (cur) env.setInk(cur.color);
   const brush = brushFor(envDef);
-  env.brushType = brush;
+  const tip = tipFor(envDef);
+  env.brushType = brush && { ...brush, shape: tip.id };
   fitBrush(env);
   btnInk.style.setProperty('--ink-color', cur ? cur.color : 'transparent');
   btnInk.classList.toggle('has-ink', !!cur);
@@ -296,9 +323,25 @@ function applyInk() {
       store.set('brush.' + envDef.id, b.name);
       applyInk();
       sfx.unlock();
-      if (!hasInk) setTimeout(closeInk, 160);
     });
     brushOptions.append(btn);
+  }
+
+  tipOptions.textContent = '';
+  tipValue.textContent = tip.name;
+  for (const t of TIPS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tip-option';
+    btn.setAttribute('role', 'radio');
+    btn.setAttribute('aria-checked', String(t === tip));
+    btn.innerHTML = `${tipIcon(t.id)}<span>${t.name}</span>`;
+    btn.addEventListener('click', () => {
+      store.set('tip.' + envDef.id, t.id);
+      applyInk();
+      sfx.unlock();
+    });
+    tipOptions.append(btn);
   }
 
   inkSection.hidden = !hasInk;
