@@ -214,6 +214,12 @@ const demo = createDemo({
   held: () => held,
   say: showToast,
   sfx,
+  // Settings the demo opens for a moment, in order (only those this scene shows).
+  peeks: () => [
+    !btnInk.hidden && { el: btnInk, pop: inkPop, open: openInk, close: closeInk, say: 'Pick a brush that suits the surface' },
+    !btnSpeed.hidden && { el: btnSpeed, pop: speedPop, open: openSpeed, close: closeSpeed, say: 'Choose how fast it fades' },
+  ].filter(Boolean),
+  onPeek: (on) => ui.classList.toggle('demo-peek', on),
   onChange(on) {
     ui.classList.toggle('demoing', on);
     btnDemo.setAttribute('aria-pressed', String(on));
@@ -231,7 +237,7 @@ btnDemo.addEventListener('click', () => {
 // Any touch, click or key takes the surface back (the Stop button handles itself).
 for (const type of ['pointerdown', 'keydown']) {
   document.addEventListener(type, (e) => {
-    if (demo.running && !btnDemo.contains(e.target)) demo.stop();
+    if (demo.running && !btnDemo.contains(e.target)) demo.stop(e);
   }, true);
 }
 
@@ -659,9 +665,7 @@ function switchTo(def) {
   demo.stop();
   if (typing) finishTyping();
   useEnvironment(def, { announce: true });
-  recentPrompts = [];
-  env.intro?.(pickPrompt(INTROS));
-  notePrompt(undefined);
+  recentPrompts = []; // scenes open blank; the lightbulb button writes a prompt on request
   wake();
 }
 
@@ -798,8 +802,6 @@ applySound(false);
 useEnvironment(getEnvironment(store.get('env', 'shower-door')));
 applySpeed();
 resize();
-env.intro?.(pickPrompt(INTROS));
-notePrompt(undefined);
 wake();
 
 // Service worker registration and update checks live in update.js.

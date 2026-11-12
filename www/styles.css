@@ -172,6 +172,9 @@ html, body {
 .demo-btn[aria-pressed="true"] .demo-stop { display: inline; }
 #ui.drawing .demo-btn, #ui.typing .demo-btn, #ui.choosing .demo-btn { opacity: 0; pointer-events: none; }
 #ui.demoing .toolbar { opacity: 0.35; }
+#ui.demoing.demo-peek .toolbar { opacity: 1; }
+/* The settings panel covers the usual toast spot, so its caption shows higher up. */
+#ui.demo-peek #toast { bottom: auto; top: calc(env(safe-area-inset-top) + 168px); }
 
 /* The ghost fingertip that draws during the demo. */
 .demo-finger {
@@ -188,9 +191,11 @@ html, body {
   transition: opacity 0.25s ease, scale 0.18s ease;
   pointer-events: none;
   will-change: transform;
+  z-index: 10;
 }
 .demo-finger.show { opacity: 0.85; }
 .demo-finger.down { scale: 0.85; }
+.demo-finger.glide { transition: opacity 0.25s ease, scale 0.18s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
 
 /* Scene menu: a bottom sheet on phones, a panel under the chip on wider screens. */
 .scenes { position: absolute; inset: 0; pointer-events: auto; z-index: 5; }
