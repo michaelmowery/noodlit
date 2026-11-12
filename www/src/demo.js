@@ -1,7 +1,8 @@
-// "Show me": a short, hands-off demo of the current scene. The surface is wiped, then a ghost
-// fingertip draws the Noodlit logo through the same stroke calls a real finger uses, so it works
-// on every scene. Then the scene does its thing: Fade scenes fade (sped up so you don't wait
-// 20 s), Release scenes send the sheet off. Any touch, tap or key stops it.
+// "Show me": a short, hands-off demo of the current scene. A ghost fingertip picks a brush,
+// sets the fade speed (Fade scenes), draws the Noodlit logo through the same stroke calls a real
+// finger uses, and types "Noodlit" underneath, so it works on every scene. Then the scene does
+// its thing: Fade scenes fade, Release scenes send the sheet off. Any touch, tap or key stops it,
+// and the user's own brush and fade speed come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
 // rings. Coordinates come from icons/icon.svg (a 512 box); each entry is one stroke.
@@ -59,17 +60,18 @@ export function createDemo(host, finger) {
   let run = null;
   const ID = 'demo';
   const PX_PER_SEC = 520; // ghost finger speed, a relaxed doodling pace
-  const DEMO_FADE = 4;    // seconds: how fast a Fade scene clears while showing off
+  const DEMO_SPEED = 90;  // fade slider position the demo picks (about 6 s, so nobody waits)
 
+  // Where the logo goes, with room for the word underneath it.
   function box(env, W, H) {
     if (host.mode() === 'release' && env.rect) {
       const r = env.rect;
       const a = env.textArea?.() || { x: r.w * 0.15, y: r.h * 0.15, w: r.w * 0.7, h: r.h * 0.7 };
-      const s = Math.min(a.w, a.h) * 0.95;
-      return { x: r.x + a.x + (a.w - s) / 2, y: r.y + a.y + (a.h - s) / 2, s };
+      const s = Math.min(a.w, a.h * 0.62) * 0.92;
+      return { x: r.x + a.x + (a.w - s) / 2, y: r.y + a.y + a.h * 0.04, s };
     }
-    const s = Math.min(W * 0.62, H * 0.42, 340);
-    return { x: (W - s) / 2, y: H * 0.42 - s / 2, s };
+    const s = Math.min(W * 0.56, H * 0.36, 320);
+    return { x: (W - s) / 2, y: H * 0.36 - s / 2, s };
   }
 
   function showFinger(x, y, down) {
@@ -97,20 +99,25 @@ export function createDemo(host, finger) {
     await sleep(150, me);
   }
 
-  async function play() {
-    const me = run;
-    const env = host.env();
-    await blank(env, me);
-    if (run !== me) return;
-    const { W, H } = host.size();
-    const b = box(env, W, H);
-    const strokes = logo().map((s) => resample(s.map(([u, v]) => [b.x + u * b.s, b.y + v * b.s]), 4));
+  // The finger glides to an on-screen control and taps it.
+  async function tap(el, me) {
+    const r = el.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    finger.classList.add('glide');
+    showFinger(x, y, false);
+    await sleep(560, me);
+    if (run !== me) return false;
+    showFinger(x, y, true);
+    await sleep(150, me);
+    showFinger(x, y, false);
+    return run === me;
+  }
 
-    host.say(host.mode() === 'release' ? "Write what's on your mind…" : 'Draw whatever comes to mind…', 2600);
-    const [sx, sy] = strokes[0][0];
-    showFinger(sx, sy - 40, false);
-    await sleep(500, me);
+  // Open a settings panel for the demo; stop() closes it if interrupted.
+  function openPanel(p, me) { p.open(); me.panel = p; host.onPeek(true); }
+  function closePanel(p, me) { p.close(); me.panel = null; host.onPeek(false); }
 
+  async function draw(env, strokes, me) {
     for (const pts of strokes) {
       if (run !== me) return;
       const [x0, y0] = pts[0];
@@ -143,78 +150,132 @@ export function createDemo(host, finger) {
       host.wake();
       await sleep(120, me);
     }
-    if (run !== me) return;
+  }
 
-    // Lift away, then let the scene take it.
-    const [lx, ly] = strokes[strokes.length - 1].at(-1);
-    showFinger(lx + 30, ly - 50, false);
-    await sleep(500, me);
-    finger.classList.remove('show');
+  async function play() {
+    const me = run;
+    const env = host.env();
+    await blank(env, me);
     if (run !== me) return;
+    env.setPaused(true); // hold the fade until the drawing and the word are both done
 
-    // A quick look at the settings: the finger taps each button, its panel opens with a caption,
-    // then closes again. Nothing is changed.
-    for (const pk of host.peeks()) {
-      const r = pk.el.getBoundingClientRect();
-      finger.classList.add('glide');
-      showFinger(r.left + r.width / 2, r.top + r.height / 2, false);
-      await sleep(520, me);
+    // 1. Pick a brush.
+    const brush = host.brush();
+    if (brush) {
+      if (!(await tap(brush.button, me))) return;
+      openPanel(brush, me);
+      host.say('Pick a brush', 1800);
+      await sleep(650, me);
       if (run !== me) return;
-      showFinger(r.left + r.width / 2, r.top + r.height / 2, true);
-      await sleep(160, me);
+      const opt = brush.option();
+      if (opt && !(await tap(opt, me))) return;
+      opt?.click();
+      await sleep(700, me);
       if (run !== me) return;
-      pk.open();
-      me.peek = pk;
-      host.onPeek(true);
-      showFinger(r.left + r.width / 2, r.top + r.height / 2, false);
-      host.say(pk.say, 2200);
-      await sleep(2300, me);
-      if (run !== me) return;
-      pk.close();
-      me.peek = null;
-      host.onPeek(false);
-      await sleep(250, me);
-      if (run !== me) return;
+      closePanel(brush, me);
+      await sleep(200, me);
     }
-    finger.classList.remove('show', 'glide');
 
+    // 2. Set how fast it fades (Fade scenes only).
+    const speed = host.speed();
+    if (speed) {
+      if (!(await tap(speed.button, me))) return;
+      openPanel(speed, me);
+      host.say('Set how fast it fades', 2000);
+      await sleep(400, me);
+      if (run !== me) return;
+      // Slide the knob: the finger rides along it.
+      const r = speed.pop.querySelector('input').getBoundingClientRect();
+      const knobX = (v) => r.left + 12 + (r.width - 24) * (v / 100);
+      const from = speed.get(), cy = r.top + r.height / 2;
+      finger.classList.remove('glide');
+      showFinger(knobX(from), cy, true);
+      const t0 = performance.now();
+      for (let t = 0; t < 1;) {
+        await nextFrame();
+        if (run !== me) return;
+        t = Math.min(1, (performance.now() - t0) / 800);
+        const v = Math.round(from + (DEMO_SPEED - from) * (1 - (1 - t) ** 2));
+        speed.set(v);
+        showFinger(knobX(v), cy, true);
+      }
+      showFinger(knobX(DEMO_SPEED), cy, false);
+      await sleep(700, me);
+      if (run !== me) return;
+      closePanel(speed, me);
+      await sleep(200, me);
+    }
+    finger.classList.remove('glide');
+
+    // 3. Draw the logo.
+    const { W, H } = host.size();
+    const b = box(env, W, H);
+    const strokes = logo().map((s) => resample(s.map(([u, v]) => [b.x + u * b.s, b.y + v * b.s]), 4));
+    host.say('Draw anything…', 2600);
+    await draw(env, strokes, me);
+    if (run !== me) return;
+
+    // 4. Type the name underneath.
+    if (!(await tap(host.typeButton, me))) return;
+    finger.classList.remove('show', 'glide');
+    host.say('…or type it', 2000);
+    const at = (b.y + b.s + Math.min(W, H) * 0.09) / H;
+    const word = 'Noodlit';
+    for (let n = 1; n <= word.length; n++) {
+      await sleep(n === 1 ? 250 : 170, me);
+      if (run !== me) return;
+      env.setDraft(word.slice(0, n), { at });
+      me.typing = true;
+      host.wake();
+    }
+    await sleep(500, me);
+    if (run !== me) return;
+    env.commitDraft();
+    me.typing = false;
+    host.wake();
+    await sleep(500, me);
+    if (run !== me) return;
+
+    // 5. Let the scene take it.
     if (host.mode() === 'release') {
       host.say('…then let it go', 3000);
       env.clear(); // the same as tapping the release button
       host.wake();
       await sleep(4200, me);
     } else {
-      host.say('…and watch it fade away', 3200);
+      host.say('…and watch it fade', 3000);
       env.setPaused(false);
-      env.setFadeSeconds(DEMO_FADE);
       host.wake();
-      await sleep(DEMO_FADE * 1000 + 1200, me);
+      await sleep(host.fadeSeconds() * 1000 + 1500, me);
     }
     if (run === me) stop();
   }
 
   function start() {
     if (run) return;
-    run = { timers: [], down: false };
+    run = { timers: [], down: false, snap: host.snapshot() };
     host.onChange(true);
     play().catch(() => stop());
   }
 
   // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
   // open so the user can carry on from there.
+  // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
+  // open so the user can carry on from there.
   function stop(e) {
     if (!run) return;
     const r = run;
-    if (r.peek) {
-      if (!(e?.target && r.peek.pop.contains(e.target))) r.peek.close();
-      host.onPeek(false);
-    }
     run = null;
     r.timers.forEach(clearTimeout);
     const env = host.env();
+    if (r.panel) {
+      if (!(e?.target && r.panel.pop.contains(e.target))) r.panel.close();
+      host.onPeek(false);
+    }
     if (r.down) { env.strokeEnd(ID); host.sfx.strokeEnd(); }
-    // Put back the user's own fade speed and Hold.
-    env.setFadeSeconds(host.fadeSeconds());
+    if (r.typing) env.commitDraft();
+    // Put back the user's own brush, fade speed and Hold.
+    host.restore(r.snap);
     env.setPaused(host.held());
     finger.classList.remove('show', 'down', 'glide');
     host.onChange(false);
