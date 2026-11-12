@@ -881,6 +881,20 @@ const CUES = {
     for (let k = 0; k < 4; k++) s.tone({ f: 1500 - k * 120, f2: 700, peak: 0.02, attack: 0.004, dur: 0.14, at: 1.8 + k * 0.45 + Math.random() * 0.2 });
   }, 0.5),
 
+  // Music box: one tine of the comb. pitch 0..1 picks a note up a pentatonic scale.
+  musicbox: cue((s, { pitch = 0.5 } = {}) => {
+    const scale = [523, 587, 659, 784, 880, 1047, 1175, 1319, 1568, 1760, 2093];
+    const f = scale[Math.max(0, Math.min(scale.length - 1, Math.round(pitch * (scale.length - 1))))];
+    s.tone({ f, peak: 0.03, attack: 0.002, dur: 0.9 });
+    s.tone({ f: f * 4, peak: 0.006, attack: 0.002, dur: 0.18 });
+  }, 0.08),
+
+  // Seismograph: the pen comes down on the chart and starts to scratch.
+  stylus: cue((s) => {
+    s.tone({ f: 1800, f2: 1200, peak: 0.012, attack: 0.002, dur: 0.04 });
+    s.burst({ kind: 'white', f: 4200, q: 2, peak: 0.02, attack: 0.05, dur: 0.6, at: 0.03 });
+  }, 0.4),
+
   // A fresh sheet or board arrives.
   arrive: cue((s) => s.burst({ kind: 'pink', f: 1800, f2: 900, q: 1, peak: 0.04, attack: 0.08, dur: 0.35 }), 0.5),
 };
@@ -899,5 +913,14 @@ SCENES.neon = SCENES.light;           // a city at night, far away
 SCENES.skywriting = SCENES.kite;      // open air
 SCENES.latte = SCENES.ink;            // liquid in a cup
 SCENES.canyon = SCENES.starfield;     // night stillness
+SCENES['invisible-ink'] = SCENES.breath;   // a quiet room
+SCENES['pencil-rubbing'] = SCENES['scratch-card'];
+SCENES['beach-dig'] = SCENES.waves;
+SCENES.marbling = SCENES.ink;
+SCENES['tea-leaves'] = SCENES.ink;
+SCENES.galaxy = SCENES.starfield;
+SCENES['music-box'] = SCENES.breath;
+SCENES.pond = SCENES.tidepool;
+SCENES.seismograph = SCENES.breath;
 
 export const sfx = new Sound();
