@@ -358,7 +358,7 @@ const SCENES = {
     ambient(s, amb) { surf(s, amb, 0.07); },
     texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
   },
-  lantern: {
+  'lantern-flock': {
     ambient(s, amb) {
       // A still night by the water: a breath of wind and two crickets taking turns.
       s.bed(amb, 'brown', [s.filter('lowpass', 260)], 0.035);
@@ -617,7 +617,7 @@ const CUES = {
     s.tone({ f: 520 - 120 * k, f2: 160, peak: 0.06 * k, dur: 0.12 + 0.05 * k, at: 0.02 });
   }, 0.12),
 
-  // Lantern: the flame catches with a soft whump, then a few crackles.
+  // Lantern festival and campfire: the flame catches with a soft whump, then a few crackles.
   ignite: cue((s) => {
     s.burst({ kind: 'pink', type: 'lowpass', f: 300, f2: 1400, q: 0.7, peak: 0.12, attack: 0.08, dur: 0.9 });
     s.tone({ f: 90, f2: 60, peak: 0.06, attack: 0.05, dur: 0.6 });
