@@ -3,7 +3,8 @@
 // works on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the
 // sheet off. "Show me everything" (from About, and on the very first visit) is the longer tour: it
 // picks Shower door from the scene menu for the Fade features (brush and fade trays, prompt, Hold),
-// then Mailbox for the Release ones (Undo, send), opens Preferences and points out Show me.
+// then Mailbox for the Release ones (Undo, send), then Fireflies for Become (the pause, the lift-off),
+// opens Preferences and points out Show me.
 // Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
@@ -63,6 +64,7 @@ export function createDemo(host, finger) {
   let run = null;
   const ID = 'demo';
   const PX_PER_SEC = 520; // ghost finger speed, a relaxed doodling pace
+  const BECOME_PAUSE = 56; // slider position for about a 3 s pause on Become scenes
   const DEMO_SPEED = 90;  // fade slider position the demo picks (about 6 s, so nobody waits)
 
   // Where the logo goes, with room for the word underneath it.
@@ -186,12 +188,13 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  async function setSpeed(me) {
+  // target: slider position; Become scenes use the same slider for the pause before they change.
+  async function setSpeed(me, target = DEMO_SPEED, caption = 'Set how fast it fades') {
     const speed = host.speed();
     if (!speed) return true;
     if (!(await tap(speed.button, me))) return false;
     openPanel(speed, me);
-    host.say('Set how fast it fades', 2000);
+    host.say(caption, 2000);
     await sleep(400, me);
     if (run !== me) return false;
     // Slide the knob: the finger rides along it.
@@ -205,11 +208,11 @@ export function createDemo(host, finger) {
       await nextFrame();
       if (run !== me) return false;
       t = Math.min(1, (performance.now() - t0) / 800);
-      const v = Math.round(from + (DEMO_SPEED - from) * (1 - (1 - t) ** 2));
+      const v = Math.round(from + (target - from) * (1 - (1 - t) ** 2));
       speed.set(v);
       showFinger(knobX(v), cy, true);
     }
-    showFinger(knobX(DEMO_SPEED), cy, false);
+    showFinger(knobX(target), cy, false);
     await sleep(700, me);
     if (run !== me) return false;
     closePanel(speed, me);
@@ -319,6 +322,7 @@ export function createDemo(host, finger) {
     env.setPaused(true); // hold the fade until the drawing and the word are both done
     const speed = host.speed(); // false on Release scenes (no fade speed there)
     if (speed) speed.set(DEMO_SPEED);
+    host.thinBrush?.(); // the thinnest brush reads best; restore() puts the user's back
     if (!(await drawAndType(env, me))) return;
     await letGo(env, me, false);
     if (run !== me) return;
@@ -403,6 +407,22 @@ export function createDemo(host, finger) {
     host.wake();
     await sleep(4200, me);
     if (run !== me) return;
+
+    // Become: Fireflies. Pause, and the words lift off as fireflies.
+    if (!(await chooseScene('fireflies', 'Become scenes turn what you write into something new', me))) return;
+    env = host.env();
+    await blank(env, me);
+    if (run !== me) return;
+    env.setPaused(true); // the pause clock waits until the drawing and the word are done
+    if (!(await pickBrush(me))) return;
+    if (!(await setSpeed(me, BECOME_PAUSE, 'Set how long it waits'))) return;
+    if (!(await drawAndType(env, me))) return;
+    host.say('Stop for a moment, and it becomes fireflies', 3400);
+    env.setPaused(false);
+    host.wake();
+    await sleep(Math.min(env.becomeTime?.() ?? 6, 9) * 1000, me); // long enough to see them lift off
+    if (run !== me) return;
+    if (!(await point(t.clearButton, 'Or tap Become now any time', 2200, me))) return;
 
     // The rest.
     if (!(await showPrefs(me))) return;
