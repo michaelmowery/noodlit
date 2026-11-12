@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environmentsFor, modeOf, getEnvironment, isPlus } from './environments/index.js';
+import { environmentsFor, modeOf, modes, getEnvironment } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
@@ -976,59 +976,74 @@ function switchTo(def) {
 
 // ------------------------------------------------------------------ scene menu
 // One obvious place to pick a scene: a chip in the top corner opens a menu of every
-// surface, grouped by family, each with a small live preview of how it looks.
+// surface, grouped by tier (Free, then Plus) and then by family, each with a small live
+// preview of how it looks.
 const MODES = {
   fade: { label: 'Fade', hint: 'Disappears on its own' },
   release: { label: 'Release', hint: 'Stays until you let it go' },
   become: { label: 'Become', hint: 'Turns into something, then drifts off' },
 };
 
+const TIERS = [
+  { plus: false, label: 'Free', hint: 'Always included' },
+  { plus: true, label: 'Plus', hint: 'Free during the preview' },
+];
+// A family missing from MODES still shows up, named after its id.
+const modeInfo = (mode) => MODES[mode] || { label: mode[0].toUpperCase() + mode.slice(1), hint: '' };
+
 let lastFocus = null;
 function buildScenes() {
   scenesBody.textContent = '';
-  for (const mode of Object.keys(MODES)) {
-    const group = environmentsFor(mode);
-    if (!group.length) continue;
-    const section = document.createElement('section');
-    section.className = 'scenes-group';
-    const head = document.createElement('div');
-    head.className = 'scenes-group-head';
-    head.innerHTML = `<h3>${MODES[mode].label}</h3><p>${MODES[mode].hint}</p>`;
-    const grid = document.createElement('div');
-    grid.className = 'scenes-grid';
-    for (const def of group) {
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'scene-tile';
-      tile.dataset.id = def.id;
-      const thumb = document.createElement('span');
-      thumb.className = 'scene-thumb';
-      thumb.dataset.id = def.id;
-      const name = document.createElement('span');
-      name.className = 'scene-name';
-      name.textContent = def.name;
-      if (isPlus(def)) {
-        const badge = document.createElement('span');
-        badge.className = 'scene-plus';
-        badge.textContent = 'Plus';
-        name.append(' ', badge);
-      }
-      tile.append(thumb, name);
-      if (def.blurb) {
-        const blurb = document.createElement('span');
-        blurb.className = 'scene-blurb';
-        blurb.textContent = def.blurb;
-        tile.append(blurb);
-      }
-      tile.addEventListener('click', () => {
-        closeScenes();
-        if (def !== envDef) switchTo(def);
-      });
-      grid.append(tile);
+  for (const tier of TIERS) {
+    const tierEl = document.createElement('section');
+    tierEl.className = 'scenes-tier';
+    const tierHead = document.createElement('div');
+    tierHead.className = 'scenes-tier-head';
+    tierHead.innerHTML = `<h3>${tier.label}</h3><p>${tier.hint}</p>`;
+    tierEl.append(tierHead);
+    for (const mode of modes()) {
+      const group = environmentsFor(mode, { plus: tier.plus });
+      if (group.length) tierEl.append(buildGroup(mode, group));
     }
-    section.append(head, grid);
-    scenesBody.append(section);
+    if (tierEl.childElementCount > 1) scenesBody.append(tierEl);
   }
+}
+
+function buildGroup(mode, group) {
+  const section = document.createElement('section');
+  section.className = 'scenes-group';
+  const head = document.createElement('div');
+  head.className = 'scenes-group-head';
+  const info = modeInfo(mode);
+  head.innerHTML = `<h4>${info.label}</h4>${info.hint ? `<p>${info.hint}</p>` : ''}`;
+  const grid = document.createElement('div');
+  grid.className = 'scenes-grid';
+  for (const def of group) {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'scene-tile';
+    tile.dataset.id = def.id;
+    const thumb = document.createElement('span');
+    thumb.className = 'scene-thumb';
+    thumb.dataset.id = def.id;
+    const name = document.createElement('span');
+    name.className = 'scene-name';
+    name.textContent = def.name;
+    tile.append(thumb, name);
+    if (def.blurb) {
+      const blurb = document.createElement('span');
+      blurb.className = 'scene-blurb';
+      blurb.textContent = def.blurb;
+      tile.append(blurb);
+    }
+    tile.addEventListener('click', () => {
+      closeScenes();
+      if (def !== envDef) switchTo(def);
+    });
+    grid.append(tile);
+  }
+  section.append(head, grid);
+  return section;
 }
 
 // Previews: run each scene off-screen at a small phone-ish size with a scribble on it.
