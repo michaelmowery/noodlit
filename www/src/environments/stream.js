@@ -338,7 +338,7 @@ class Stream {
     const { w, h, x: bx, y: by } = this.rect;
     const g = this.board.inkCtx;
     const lay = typed
-      ? layoutText(g, text, { size: Math.min(w * 0.12, 46), minSize: Math.min(22, w * 0.07), maxWidth: w - 40, weight: 400, wrap: true, maxLines: 6, pad: 0 })
+      ? layoutText(g, text, { size: Math.min(w * 0.12, 46) * (opts.scale || 1), minSize: Math.min(22, w * 0.07) * (opts.scale || 1), maxWidth: w - 40, weight: 400, wrap: true, maxLines: 6, pad: 0 })
       : layoutText(g, text, { size: Math.min(w * 0.14, 54), maxWidth: w - 44, weight: 400, pad: 0 });
     const ink = this.ink;
     const block = (lay.lines.length - 1) * lay.lh;
@@ -351,7 +351,7 @@ class Stream {
       };
     } else {
       const cy = opts.at != null ? this.H * opts.at - by : h * 0.4;
-      place = { align: 'center', x: w / 2, y0: clamp(cy - block / 2, 24 + lay.size * 0.5, h - 24 - block) };
+      place = { align: 'center', x: w / 2, y0: clamp(cy - (opts.top ? 0 : block / 2), 24 + lay.size * 0.5, h - 24 - block) };
     }
     return { lay, place, ink };
   }

@@ -249,7 +249,7 @@ export class ReleaseScene {
     const a = this.textArea();
     const g = this.sheet.inkCtx;
     const lay = typed
-      ? layoutText(g, text, { size: Math.min(a.w * 0.13, 46), minSize: Math.min(20, a.w * 0.08), maxWidth: a.w, weight: 400, wrap: true, maxLines: 6, pad: 0 })
+      ? layoutText(g, text, { size: Math.min(a.w * 0.13, 46) * (opts.scale || 1), minSize: Math.min(20, a.w * 0.08) * (opts.scale || 1), maxWidth: a.w, weight: 400, wrap: true, maxLines: 6, pad: 0 })
       : layoutText(g, text, { size: Math.min(a.w * 0.15, 54), maxWidth: a.w, weight: 400, pad: 0 });
     const ink = this.ink;
     const block = (lay.lines.length - 1) * lay.lh;
@@ -263,7 +263,7 @@ export class ReleaseScene {
       };
     } else {
       const cy = opts.at != null ? this.H * opts.at - this.rect.y : a.y + a.h * 0.4;
-      place = { align: 'center', x: a.x + a.w / 2, y0: clamp(cy - block / 2, top, bottom) };
+      place = { align: 'center', x: a.x + a.w / 2, y0: clamp(cy - (opts.top ? 0 : block / 2), top, bottom) };
     }
     return { lay, place, ink };
   }

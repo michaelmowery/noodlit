@@ -244,6 +244,8 @@ const demo = createDemo({
     get: () => Number(speedRange.value),
   },
   typeButton: btnType,
+  // A random lightbulb prompt, typed in quotes under "Noodlit" (line breaks become spaces).
+  prompt: () => pickPrompt().replace(/\n/g, ' '),
   snapshot: () => ({ id: envDef.id, brush: store.get('brush.' + envDef.id, null), fade: fadeSeconds }),
   restore(snap) {
     if (snap.id !== envDef.id) return;
@@ -268,13 +270,38 @@ btnDemo.addEventListener('click', () => {
   closeSpeed();
   closeInk();
   popBubble({ quiet: true });
+  cancelAutoDemo();
+  store.set('demoSeen.' + envDef.id, true);
   demo.start();
 });
 // Any touch, click or key takes the surface back (the Stop button handles itself).
 for (const type of ['pointerdown', 'keydown']) {
   document.addEventListener(type, (e) => {
     if (demo.running && !btnDemo.contains(e.target)) demo.stop(e);
+    // Touching anything before a first-visit demo starts calls it off (it'll offer again next visit).
+    if (autoDemo.timer && !welcomeNote.contains(e.target)) cancelAutoDemo();
   }, true);
+}
+
+// The first time someone opens a scene, Show me runs on its own once (remembered per scene).
+// It waits for the welcome note to be dismissed and gives the scene a beat to appear first.
+const welcomeNote = document.getElementById('welcome');
+const autoDemo = { timer: 0, id: null };
+function cancelAutoDemo() { clearTimeout(autoDemo.timer); autoDemo.timer = 0; autoDemo.id = null; }
+function scheduleAutoDemo(def) {
+  cancelAutoDemo();
+  if (store.get('demoSeen.' + def.id, false)) return;
+  autoDemo.id = def.id;
+  const fire = () => {
+    autoDemo.timer = 0;
+    if (autoDemo.id !== envDef.id) return;
+    if (!welcomeNote.hidden) { autoDemo.timer = setTimeout(fire, 700); return; } // after the note
+    if (demo.running || typing) return;
+    autoDemo.id = null;
+    store.set('demoSeen.' + envDef.id, true);
+    demo.start();
+  };
+  autoDemo.timer = setTimeout(fire, 900);
 }
 
 function applySpeed() {
@@ -775,6 +802,7 @@ function useEnvironment(def, { announce = false } = {}) {
   store.set('env', def.id);
   sfx.setScene(def.id);
   if (announce) showToast(def.name);
+  scheduleAutoDemo(def);
   wake();
 }
 
