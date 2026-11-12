@@ -12,7 +12,15 @@
 import { clamp, easeInOut, smoothstep, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
 
-const INK = '#2a2320';
+// Inks that read on driftwood: charcoal first (the default), then chalk and a few earthy colours.
+const PALETTE = [
+  { name: 'Charcoal', color: '#2a2320' },
+  { name: 'Chalk', color: '#f4efe4' },
+  { name: 'Moss', color: '#3d6b35' },
+  { name: 'River', color: '#2a5d8f' },
+  { name: 'Rust', color: '#a23b24' },
+  { name: 'Ochre', color: '#c98a1c' },
+];
 const FLOAT_SECONDS = 8.5;  // the trip from the drop point to off-screen
 const LIFT = 0.9;           // board lifts and moves over to the stream
 const WASH_UP_AT = 1.6;     // when the next board starts washing up
@@ -26,6 +34,7 @@ export const stream = {
   clearIcon: 'M5 12h11M12 7l5 5-5 5M20 5v14',
   surface: 'Driftwood drawing surface beside a stream. Drag the handle into the water to let it go.',
   fades: false,            // Release surface: the shell hides fade speed and Hold
+  palette: PALETTE,
   create: () => new Stream(),
 };
 
@@ -39,6 +48,7 @@ class Stream {
     this.drag = null;
     this.drafts = { base: null, held: [], cur: null };
     this.rand = mulberry32(77);
+    this.ink = PALETTE[0].color;
   }
 
   // ---------------------------------------------------------------- setup
@@ -101,7 +111,7 @@ class Stream {
     const inkCtx = ink.getContext('2d');
     inkCtx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     inkCtx.lineCap = inkCtx.lineJoin = 'round';
-    inkCtx.strokeStyle = inkCtx.fillStyle = INK;
+    inkCtx.strokeStyle = inkCtx.fillStyle = this.ink;
     const comp = makeCanvas(w * this.dpr, h * this.dpr);
     return { tex: tex.canvas, shape: tex.shape, ink, inkCtx, comp, inked: false, dirty: true, x: this.rect.x, y: this.rect.y, offX: 0, offY: 0, arrive: 1 };
   }
@@ -360,6 +370,7 @@ class Stream {
     const lay = typed
       ? layoutText(g, text, { size: Math.min(w * 0.12, 46), minSize: Math.min(22, w * 0.07), maxWidth: w - 40, weight: 400, wrap: true, maxLines: 6, pad: 0 })
       : layoutText(g, text, { size: Math.min(w * 0.14, 54), maxWidth: w - 44, weight: 400, pad: 0 });
+    const ink = this.ink;
     const block = (lay.lines.length - 1) * lay.lh;
     let place;
     if (opts.x != null && opts.y != null) {
@@ -372,19 +383,26 @@ class Stream {
       const cy = opts.at != null ? this.H * opts.at - by : h * 0.4;
       place = { align: 'center', x: w / 2, y0: clamp(cy - block / 2, 24 + lay.size * 0.5, h - 24 - block) };
     }
-    return { lay, place };
+    return { lay, place, ink };
   }
 
-  writeOnBoard({ lay, place }, alpha) {
+  writeOnBoard({ lay, place, ink }, alpha) {
     const g = this.board.inkCtx;
     g.save();
     g.globalAlpha = alpha;
-    g.fillStyle = g.strokeStyle = INK;
+    g.fillStyle = g.strokeStyle = ink || this.ink;
     g.font = `400 ${lay.size}px ${HAND}`;
     drawText(g, lay, place, Math.max(1.4, lay.size * 0.04));
     g.restore();
     this.board.inked = true;
     this.board.dirty = true;
+  }
+
+  // New strokes and typed words use this colour; what's already on the wood keeps its own.
+  setInk(color) {
+    this.ink = color;
+    const g = this.board?.inkCtx;
+    if (g) g.strokeStyle = g.fillStyle = color;
   }
 
   intro(text, opts = {}) {

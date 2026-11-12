@@ -81,6 +81,10 @@ const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
 const btnSound = document.getElementById('btn-sound');
+const btnInk = document.getElementById('btn-ink');
+const inkPop = document.getElementById('ink-pop');
+const inkSwatches = document.getElementById('ink-swatches');
+const inkValue = document.getElementById('ink-value');
 
 let envDef, env;
 let fadeSeconds = loadFadeSeconds();
@@ -136,6 +140,7 @@ canvas.addEventListener('pointerdown', (e) => {
   pointers.add(e.pointerId);
   lastPos.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp });
   closeSpeed();
+  closeInk();
   env.strokeStart(e.pointerId, e.clientX, e.clientY, info(e));
   ui.classList.add('drawing');
   wake();
@@ -190,6 +195,7 @@ function applySpeed() {
 // so you can watch the surface speed up or slow down while you drag.
 function openSpeed() {
   if (typing) finishTyping();
+  closeInk();
   speedPop.hidden = false;
   btnSpeed.setAttribute('aria-expanded', 'true');
   speedRange.focus({ preventScroll: true });
@@ -212,6 +218,67 @@ document.addEventListener('pointerdown', (e) => {
 }, true);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !speedPop.hidden) { e.preventDefault(); closeSpeed(); btnSpeed.focus({ preventScroll: true }); }
+}, true);
+
+// ------------------------------------------------------------------ ink
+// Release scenes offer a few inks that suit their material (charcoal and chalk on driftwood,
+// bottled inks on parchment, brush colours on a lantern). The choice is remembered per scene
+// and applies to new strokes and typed words; what's already drawn keeps its colour.
+function inkFor(def) {
+  const pal = def.palette;
+  if (!pal?.length) return null;
+  const saved = store.get('ink.' + def.id, null);
+  return pal.find((p) => p.color === saved) || pal[0];
+}
+
+function applyInk() {
+  const pal = envDef.palette;
+  btnInk.hidden = !pal?.length || !env.setInk;
+  if (btnInk.hidden) { closeInk(); return; }
+  const cur = inkFor(envDef);
+  env.setInk(cur.color);
+  btnInk.style.setProperty('--ink-color', cur.color);
+  btnInk.setAttribute('aria-label', `Ink colour: ${cur.name}`);
+  inkValue.textContent = cur.name;
+  inkSwatches.textContent = '';
+  for (const p of pal) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'ink-swatch';
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(p === cur));
+    b.setAttribute('aria-label', p.name);
+    b.title = p.name;
+    b.style.setProperty('--ink-color', p.color);
+    b.addEventListener('click', () => {
+      store.set('ink.' + envDef.id, p.color);
+      applyInk();
+      sfx.unlock();
+      // Picking a colour usually means "now draw with it", so get out of the way.
+      setTimeout(closeInk, 160);
+    });
+    inkSwatches.append(b);
+  }
+}
+
+function openInk() {
+  if (typing) finishTyping();
+  closeSpeed();
+  inkPop.hidden = false;
+  btnInk.setAttribute('aria-expanded', 'true');
+  (inkSwatches.querySelector('[aria-checked="true"]') || inkSwatches.firstChild)?.focus({ preventScroll: true });
+}
+function closeInk() {
+  if (inkPop.hidden) return;
+  inkPop.hidden = true;
+  btnInk.setAttribute('aria-expanded', 'false');
+}
+btnInk.addEventListener('click', () => (inkPop.hidden ? openInk() : closeInk()));
+document.addEventListener('pointerdown', (e) => {
+  if (!inkPop.hidden && !inkPop.contains(e.target) && !btnInk.contains(e.target)) closeInk();
+}, true);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !inkPop.hidden) { e.preventDefault(); closeInk(); btnInk.focus({ preventScroll: true }); }
 }, true);
 
 btnHold.addEventListener('click', () => {
@@ -349,7 +416,7 @@ input.addEventListener('keydown', (e) => {
 });
 // With a hardware keyboard, just start typing.
 document.addEventListener('keydown', (e) => {
-  if (typing || !scenes.hidden || !speedPop.hidden || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+  if (typing || !scenes.hidden || !speedPop.hidden || !inkPop.hidden || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
   if (e.key.length !== 1 || e.key === ' ' || e.target.closest?.('textarea, input')) return;
   e.preventDefault();
   startTyping(e.key);
@@ -375,6 +442,7 @@ function useEnvironment(def, { announce = false } = {}) {
   // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
   btnSpeed.hidden = btnHold.hidden = mode === 'release';
   if (mode === 'release') closeSpeed();
+  applyInk();
   store.set('env', def.id);
   sfx.setScene(def.id);
   if (announce) showToast(def.name);
@@ -477,6 +545,7 @@ function syncScenes() {
 function openScenes() {
   if (typing) finishTyping();
   closeSpeed();
+  closeInk();
   if (!scenesBody.childElementCount) buildScenes();
   syncScenes();
   scenes.hidden = false;
