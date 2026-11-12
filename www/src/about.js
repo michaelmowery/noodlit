@@ -2,7 +2,7 @@
 // shell (main.js) doesn't need to know about it.
 
 // Bump with each release (keep in step with VERSION in sw.js).
-export const APP_VERSION = '0.25';
+export const APP_VERSION = '0.24';
 
 const ui = document.getElementById('ui');
 const btn = document.getElementById('btn-about');
