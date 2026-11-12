@@ -293,7 +293,12 @@ const demo = createDemo({
     // Preferences: open About from the ⓘ button, then Preferences from inside it.
     infoButton: document.getElementById('btn-info'),
     prefsButton: document.getElementById('about-prefs-btn'),
-    openAbout: () => document.getElementById('btn-info').click(),
+    // From the top, so the Preferences button is on show (About remembers where it was scrolled).
+    openAbout() {
+      document.getElementById('btn-info').click();
+      const panel = document.querySelector('#about .about-panel');
+      if (panel) panel.scrollTop = 0;
+    },
     openPrefs() {
       document.getElementById('about-prefs-btn').click();
       const panel = document.querySelector('#prefs .about-panel');
@@ -353,6 +358,10 @@ window.addEventListener('noodlit:tour', () => {
   closeScenes();
   popBubble({ quiet: true });
   cancelAutoDemo();
+  // Asked for by hand (the welcome note's button, or About): that is the first-visit tour, so
+  // it mustn't start again on its own when the next scene opens.
+  toured = true;
+  settleAutoDemo();
   track('showme-everything', 'Show me everything');
   demo.start('tour');
 });
@@ -373,6 +382,11 @@ const welcomeNote = document.getElementById('welcome');
 const firstVisit = (() => { try { return localStorage.getItem('noodlit.previewWelcomeSeen') !== '1'; } catch { return false; } })();
 let toured = false;
 const autoDemo = { timer: 0, id: null };
+// One auto demo is enough: after the first, demos only play when asked for. This happens
+// once per device; if the user turns "Play demos automatically" back on, it stays on.
+function settleAutoDemo() {
+  if (!store.get('autoDemoSettled', false)) { store.set('autoDemoSettled', true); prefs.set('autoDemo', false); }
+}
 function cancelAutoDemo() { clearTimeout(autoDemo.timer); autoDemo.timer = 0; autoDemo.id = null; }
 function scheduleAutoDemo(def) {
   cancelAutoDemo();
@@ -388,9 +402,7 @@ function scheduleAutoDemo(def) {
     store.set('demoSeen.' + envDef.id, true);
     if (firstVisit && !toured) { toured = true; track('showme-everything/first-visit', 'Show me everything (first visit)'); demo.start('tour'); }
     else { track('showme-auto/' + envDef.id, `Show me (first open): ${envDef.name}`); demo.start(); }
-    // One auto demo is enough: after the first, demos only play when asked for. This happens
-    // once per device; if the user turns "Play demos automatically" back on, it stays on.
-    if (!store.get('autoDemoSettled', false)) { store.set('autoDemoSettled', true); prefs.set('autoDemo', false); }
+    settleAutoDemo();
   };
   autoDemo.timer = setTimeout(fire, 900);
 }

@@ -199,6 +199,9 @@ class Waves {
     this.strokes.clear();
     this.spawnWave(true);
   }
+  // True while the big wave is still on the beach, so Show me waits for it before drawing
+  // (the big wave smooths the sand even on Hold, and would take the first lines with it).
+  get clearing() { return !!this.wave?.big; }
 
   update(dt) {
     this.time += dt;

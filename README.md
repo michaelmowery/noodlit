@@ -10,7 +10,7 @@ releases are planned.
 
 ## What's in the app
 
-### Six modes, 45 scenes
+### Six modes, 54 scenes
 Every scene is defined by how strokes look, how they decay, and how they clear.
 
 - **Fade** scenes disappear on their own at the pace you pick (12): Shower door, Waves, Snow,
@@ -23,24 +23,27 @@ Every scene is defined by how strokes look, how they decay, and how they clear.
 - **Become** scenes turn the drawing into something when you pause, and then it leaves (4):
   Fireflies, Bloom, Constellation, Thaw.
 
-Three newer modes have a free scene each and a few Plus ones:
+Three newer modes:
 
-- **Reveal**: scratch or wipe to uncover something. Scratch card (free) hides a prompt under
-  foil; Scratch art scrapes through black wax to colours below; Misty window wipes mist off a
-  view (the colour picker chooses the colours or the view); Bubble wrap pops, bubble by
-  bubble, down to a prompt on the parcel underneath.
-- **Stir**: the surface swirls the drawing together until it mixes away. Latte art (free) winds
+- **Reveal** (7): scratch or wipe to uncover something. Scratch card hides a prompt under foil;
+  Scratch art scrapes through black wax to colours below; Misty window wipes mist off a view
+  (the colour picker chooses the colours or the view); Bubble wrap pops, bubble by bubble, down
+  to a prompt on the parcel underneath; Invisible ink warms a hidden note out of the page;
+  Pencil rubbing shades up what is carved below; Beach dig brushes sand off a message.
+- **Stir** (7): the surface swirls the drawing together until it mixes away. Latte art winds
   your lines of milk into spirals; Rinse water mingles paint in a rinse jar; Kaleidoscope
-  mirrors your lines six ways as they turn; Flush is a toilet bowl that
-  swirls them down and away (tap its handle). One brush in each drags instead of drawing.
-- **Echo**: pause, and the drawing plays back stroke by stroke, then fades. Canyon echo (free)
+  mirrors your lines six ways as they turn; Flush is a toilet bowl that swirls them down and
+  away (tap its handle); Paper marbling floats inks to comb and print; Tea leaves swirls the
+  cup; Galaxy winds stardust into spiral arms. One brush in each drags instead of drawing.
+- **Echo** (6): pause, and the drawing plays back stroke by stroke, then fades. Canyon echo
   repeats it once more faintly; Neon sign lights the drawing up in place; Skywriting has a plane
-  write it across the sky.
+  write it across the sky; Music box punches and plays it as a tune; Pond ripples plays it back
+  as ripples; Seismograph traces it onto a chart.
 
-The scene chip at the top right opens **Choose a scene**, with live previews grouped by mode.
-Within each mode the free scenes come first, then scenes marked **Plus**, each alphabetized.
-Plus scenes will be part of Noodlit Plus once Noodlit is in the app stores; during the preview
-every scene is free and nothing is locked.
+The scene chip at the top right opens **Choose a scene**, with live previews. Tabs split the
+scenes into **Free**, **Plus** and **Premium**, grouped by mode and alphabetized inside each tab.
+Plus and Premium scenes will be part of Noodlit's paid plans once Noodlit is in the app stores;
+during the preview every scene is free and nothing is locked.
 
 ### Drawing and controls
 - **Brushes**: three per scene (listed small to large) with a Round or Flat tip; some scenes also
