@@ -1,5 +1,5 @@
 // Offline app shell. Bump VERSION whenever any cached file changes.
-const VERSION = 'noodlit-v24';
+const VERSION = 'noodlit-v26';
 const SHELL = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ const SHELL = [
   './manifest.webmanifest',
   './src/main.js',
   './src/about.js',
+  './src/update.js',
   './src/welcome.js',
   './src/lib/util.js',
   './src/lib/release.js',
@@ -50,7 +51,17 @@ const SHELL = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache, so a new version never ships stale files.
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => c.addAll(SHELL.map((url) => new Request(url, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
+  );
+});
+
+// The About panel's "Check for updates" can ask a waiting worker to take over.
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'skip-waiting') self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
