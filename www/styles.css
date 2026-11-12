@@ -365,6 +365,34 @@ html, body {
 .scene-tile:active { background: rgba(255, 255, 255, 0.12); }
 .scene-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .scene-tile[aria-current="true"] { border-color: var(--accent); background: rgba(255, 217, 168, 0.12); }
+/* Mode colours: each tile is tinted by its family (Fade, Release, …), with a matching
+   coloured edge, kicker and section heading, so the type reads at a glance. A family with no
+   colour here keeps the plain tile. */
+[data-mode="fade"] { --mode-rgb: 142, 197, 255; }    /* sky */
+[data-mode="release"] { --mode-rgb: 255, 158, 122; } /* coral */
+[data-mode="become"] { --mode-rgb: 181, 227, 122; }  /* firefly green */
+[data-mode="reveal"] { --mode-rgb: 242, 207, 102; }  /* gold */
+[data-mode="stir"] { --mode-rgb: 198, 164, 255; }    /* lilac */
+[data-mode="echo"] { --mode-rgb: 111, 224, 210; }    /* teal */
+.scene-tile[data-mode] {
+  background: linear-gradient(180deg, rgba(var(--mode-rgb), 0.16), rgba(var(--mode-rgb), 0.05) 60%);
+  border-color: rgba(var(--mode-rgb), 0.3);
+}
+.scene-tile[data-mode]:active { background: rgba(var(--mode-rgb), 0.2); }
+.scene-tile[data-mode][aria-current="true"] {
+  border-color: rgb(var(--mode-rgb));
+  background: linear-gradient(180deg, rgba(var(--mode-rgb), 0.28), rgba(var(--mode-rgb), 0.1) 60%);
+  box-shadow: 0 0 0 1px rgba(var(--mode-rgb), 0.35);
+}
+.scene-mode {
+  padding: 0 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(var(--mode-rgb, 255, 217, 168));
+}
+.scenes-group[data-mode] .scenes-group-head h4 { color: rgb(var(--mode-rgb)); }
 .scene-thumb {
   display: block;
   aspect-ratio: 5 / 4;
