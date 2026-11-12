@@ -7,7 +7,7 @@ import { environmentsFor } from './environments/index.js';
 
 const KEY = 'noodlit.prefs';
 export const DEFAULTS = {
-  autoDemo: true,       // run Show me by itself the first time each scene opens
+  autoDemo: true,       // auto-play a demo when a scene first opens; turns itself off after the first one
   startScene: 'last',   // 'last' (where you left off) or a scene id
   speed: 'last',        // 'last' (whatever you set) or 'drift' | 'flow' | 'rush' at every launch
   brush: 'last',        // 'last' (remembered per scene) or 'fine' | 'regular' | 'bold'
@@ -86,6 +86,8 @@ replay.addEventListener('click', () => {
       if (k && k.startsWith('noodlit.demoSeen.')) localStorage.removeItem(k);
     }
   } catch { /* private mode */ }
+  // Replaying only makes sense with auto demos on.
+  if (!values.autoDemo) { prefs.set('autoDemo', true); form.elements.autoDemo.checked = true; }
   replayStatus.textContent = 'Done. Each scene will show itself again next time you open it.';
 });
 
