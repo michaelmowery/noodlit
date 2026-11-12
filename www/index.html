@@ -77,9 +77,13 @@
       <input id="speed-range" type="range" min="0" max="100" step="1" value="48" aria-label="Fade speed">
       <div class="speed-ends" aria-hidden="true"><span>Drift</span><span>Rush</span></div>
     </div>
-    <div id="ink-pop" class="speed-pop ink-pop" role="dialog" aria-label="Ink colour" hidden>
-      <div class="speed-head"><span>Ink</span><span id="ink-value" class="speed-value">Charcoal</span></div>
-      <div id="ink-swatches" class="ink-swatches" role="radiogroup" aria-label="Ink colour"></div>
+    <div id="ink-pop" class="speed-pop ink-pop" role="dialog" aria-label="Brush and ink" hidden>
+      <div class="speed-head"><span>Brush</span><span id="brush-value" class="speed-value">Fingertip</span></div>
+      <div id="brush-options" class="brush-options" role="radiogroup" aria-label="Brush"></div>
+      <div id="ink-section" hidden>
+        <div class="speed-head ink-head"><span>Ink</span><span id="ink-value" class="speed-value">Charcoal</span></div>
+        <div id="ink-swatches" class="ink-swatches" role="radiogroup" aria-label="Ink colour"></div>
+      </div>
     </div>
     <nav class="toolbar" aria-label="Controls">
       <button id="btn-prompt" class="icon-only" type="button" aria-label="Give me a prompt">
@@ -88,8 +92,8 @@
       <button id="btn-type" class="icon-only" type="button" aria-label="Type: write with the keyboard">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h16a1.5 1.5 0 0 1 1.5 1.5v8a1.5 1.5 0 0 1-1.5 1.5H4A1.5 1.5 0 0 1 2.5 16V8A1.5 1.5 0 0 1 4 6.5zM6 10h.01M9.33 10h.01M12.67 10h.01M16 10h2M6 13.5h.01M8.5 14h7M18 13.5h.01"/></svg>
       </button>
-      <button id="btn-ink" class="icon-only" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="ink-pop" aria-label="Ink colour" hidden>
-        <span class="ink-dot" aria-hidden="true"></span>
+      <button id="btn-ink" class="icon-only" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="ink-pop" aria-label="Brush" hidden>
+        <svg class="brush-glyph" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 17.5c2.5-1 3.5-6 6-6s2 4 4.5 4 3-6 4.5-8"/></svg>
       </button>
       <button id="btn-speed" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="speed-pop">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg>

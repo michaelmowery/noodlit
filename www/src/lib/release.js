@@ -23,6 +23,7 @@
 
 import { clamp, easeInOut, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from './util.js';
 import { sfx } from './sound.js';
+import { dryStroke } from './brushes.js';
 
 const SIDES = {
   right: { dx: 1, dy: 0, angle: 0 },
@@ -112,10 +113,12 @@ export class ReleaseScene {
       }
       const lx = x - this.rect.x, ly = y - this.rect.y;
       if (lx >= 0 && ly >= 0 && lx <= this.rect.w && ly <= this.rect.h) {
-        const r = this.radiusFor(info);
-        this.strokes.set(id, { x: lx, y: ly, r });
-        const g = s.inkCtx;
-        g.beginPath(); g.arc(lx, ly, r, 0, Math.PI * 2); g.fill();
+        const r = this.radiusFor(info, 0);
+        this.strokes.set(id, { x: lx, y: ly, r, t: info.time });
+        if (!this.brushType?.dry) {
+          const g = s.inkCtx;
+          g.beginPath(); g.arc(lx, ly, r, 0, Math.PI * 2); g.fill();
+        }
         s.inked = true; s.dirty = true;
         return;
       }
@@ -137,12 +140,12 @@ export class ReleaseScene {
     const st = this.strokes.get(id);
     if (!st || !this.sheet) return;
     const lx = x - this.rect.x, ly = y - this.rect.y;
-    if (Math.hypot(lx - st.x, ly - st.y) < 0.75) return;
-    const r = st.r + (this.radiusFor(info) - st.r) * 0.25;
-    const g = this.sheet.inkCtx;
-    g.lineWidth = st.r + r;
-    g.beginPath(); g.moveTo(st.x, st.y); g.lineTo(lx, ly); g.stroke();
-    Object.assign(st, { x: lx, y: ly, r });
+    const d = Math.hypot(lx - st.x, ly - st.y);
+    if (d < 0.75) return;
+    const speed = (d / Math.max(4, info.time - st.t)) * 1000;
+    const r = st.r + (this.radiusFor(info, speed) - st.r) * 0.25;
+    inkSegment(this.sheet.inkCtx, st, st.x, st.y, st.r, lx, ly, r, this.brushType);
+    Object.assign(st, { x: lx, y: ly, r, t: info.time });
     this.sheet.dirty = true;
   }
 
@@ -159,7 +162,7 @@ export class ReleaseScene {
     this.strokes.delete(id);
   }
 
-  radiusFor(info) {
+  radiusFor(info, speed = 0) {
     return info.pointerType === 'pen' ? 1.4 + 2 * (info.pressure || 0.5)
          : info.pointerType === 'mouse' ? 2.6 : 3.2;
   }
@@ -470,4 +473,11 @@ export function cloud(g, x, y, r, color = '#ffffff') {
   for (const [dx, dy, k] of [[-1.1, 0.15, 0.6], [-0.45, -0.25, 0.8], [0.35, -0.15, 0.75], [1, 0.15, 0.55], [0, 0.25, 0.7]]) {
     g.beginPath(); g.arc(x + dx * r, y + dy * r, k * r, 0, Math.PI * 2); g.fill();
   }
+}
+
+// One stretch of a stroke on an ink layer, with the current brush (Stream uses this too).
+export function inkSegment(g, st, x0, y0, r0, x1, y1, r1, brush) {
+  if (brush?.dry) { dryStroke(g, st, x0, y0, r0, x1, y1, r1); return; }
+  g.lineWidth = r0 + r1;
+  g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
 }
