@@ -1,26 +1,35 @@
-// Whiteboard: a glossy dry-erase board.
-//   Look:  crisp navy marker lines with a slight dry-ink grain, under the board's sheen.
-//   Decay: ink dries and lifts unevenly, breaking into patches, then leaves a faint
-//          ghost of the line that lingers well after the ink itself is gone.
-//   Clear: a felt eraser sweeps the board in a few quick passes, leaving soft smudges
-//          that settle away like the ghosting on a real, well-used board.
+// Whiteboard: a Release environment, a glossy dry-erase board.
+//   Look:  crisp marker lines (pick the marker colour) with a slight dry-ink grain, under
+//          the board's sheen.
+//   Decay: none. The marker stays until you wipe it.
+//   Clear: tap "Erase it": a felt eraser sweeps the board in a few quick passes, leaving
+//          soft smudges that settle away like the ghosting on a real, well-used board.
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods, HAND } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.3;          // extra life above 1.0 = a short "fresh ink" hold before it starts to lift
 const GHOST = 0.13;        // opacity of the trace a stroke leaves behind
-const GHOST_LIFE = 3;      // a ghost lasts about this many fade periods
+const SMUDGE_LIFE = 3.5;   // seconds an eraser smudge takes to settle away
 const ERASE_GHOST = 0.06;  // smudge an eraser pass leaves where ink was
-const INK = '#1f2d55';
+const PALETTE = [
+  { name: 'Navy', color: '#1f2d55' },
+  { name: 'Black', color: '#22252a' },
+  { name: 'Red', color: '#c0282d' },
+  { name: 'Green', color: '#1f7a3f' },
+  { name: 'Blue', color: '#1f5fc0' },
+  { name: 'Purple', color: '#5b2d8a' },
+];
 
 export const whiteboard = {
   id: 'whiteboard',
   name: 'Whiteboard',
-  blurb: 'Marker that dries and lifts away',
-  clearLabel: 'Erase',
+  blurb: 'Marker stays until you wipe it',
+  clearLabel: 'Erase it',
   clearIcon: 'M4 15l7-7a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L13 18H7zM9 10l5 5M13 18h7',
-  surface: 'Whiteboard drawing surface',
+  surface: 'Whiteboard to draw on in marker. Tap Erase it to wipe it clean.',
+  fades: false,
+  palette: PALETTE,
   create: () => new Whiteboard(),
 };
 
@@ -36,6 +45,12 @@ class Whiteboard {
     this.mw = 0;
     this.mh = 0;
     this.inked = false;
+    this.inkColor = PALETTE[0].color;
+  }
+
+  setInk(color) {
+    this.inkColor = color;
+    if (this.inkCtx) this.inkCtx.strokeStyle = this.inkCtx.fillStyle = color;
   }
 
   // ---------------------------------------------------------------- setup
@@ -78,7 +93,7 @@ class Whiteboard {
     if (oldInk) this.inkCtx.drawImage(oldInk, 0, 0);
     const ig = this.inkCtx;
     ig.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ig.strokeStyle = ig.fillStyle = INK;
+    ig.strokeStyle = ig.fillStyle = this.inkColor;
     ig.lineCap = ig.lineJoin = 'round';
 
     this.board = paintBoard(width, height, dpr);
@@ -168,32 +183,24 @@ class Whiteboard {
 
   update(dt) {
     const { life, ghost, decay } = this;
-    let alive = false;
-    if (!this.paused) {
-      const rate = ((1 + HOLD) / this.fadeSeconds) * dt;
-      const grate = (GHOST / (this.fadeSeconds * GHOST_LIFE)) * dt;
-      for (let i = 0; i < life.length; i++) {
-        const l = life[i], gh = ghost[i];
-        if (l > 0) {
-          const n = l - rate * decay[i];
-          life[i] = n > 0 ? n : 0;
-          alive = true;
-        }
-        if (gh > 0) {
-          // Ghosts only start to settle once the ink above them has gone.
-          if (l <= 0.25) { const n = gh - grate * (0.5 + decay[i] * 0.5); ghost[i] = n > 0 ? n : 0; }
-          alive = true;
-        }
+    // The marker itself never fades. Only the smudges an eraser leaves behind settle away.
+    let alive = false, anyInk = false;
+    const grate = (ERASE_GHOST / SMUDGE_LIFE) * dt;
+    for (let i = 0; i < life.length; i++) {
+      if (life[i] > 0) { anyInk = true; continue; }
+      const gh = ghost[i];
+      if (gh > 0) {
+        const n = gh - grate * (0.5 + decay[i] * 0.5);
+        ghost[i] = n > 0 ? n : 0;
+        alive = true;
       }
-    } else {
-      for (let i = 0; i < life.length; i++) if (life[i] > 0 || ghost[i] > 0) { alive = true; break; }
     }
 
     if (this.applyDrafts()) alive = true;
     if (this.clearing) this.updateEraser(dt);
 
     // Nothing left anywhere: drop the ink shapes so old lines can't resurface later.
-    if (!alive && this.inked && !this.clearing) {
+    if (!alive && !anyInk && this.inked && !this.clearing) {
       const g = this.inkCtx;
       g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, this.ink.width, this.ink.height); g.restore();
       this.inked = false;
@@ -326,8 +333,7 @@ class Whiteboard {
     this.inked = true;
   }
 
-  // Typed text (see draftMethods): fresh ink while typing, then it dries and lifts like
-  // any line. The ink canvas only ever grows, so keep a copy of it from before typing
+  // Typed text (see draftMethods): marker that stays like any line. The ink canvas only ever grows, so keep a copy of it from before typing
   // started and redraw the typed blocks on top of it whenever one changes.
   onDraftChange() {
     if (!this.inkBase) {
