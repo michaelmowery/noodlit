@@ -8,6 +8,15 @@ import { BecomeScene } from '../lib/become.js';
 import { stageCanvas, blob, mottle, speckle } from '../lib/fade.js';
 import { sfx } from '../lib/sound.js';
 
+// Frost takes a tint from whatever light is behind the glass. The meltwater keeps it.
+const PALETTE = [
+  { name: 'Frost white', color: '#ffffff' },
+  { name: 'Glacier', color: '#7fe3ff' },
+  { name: 'Aurora', color: '#8dffc4' },
+  { name: 'Lilac', color: '#dcbcff' },
+  { name: 'Dawn', color: '#ffc4d8' },
+];
+
 export const thaw = {
   id: 'thaw',
   name: 'Thaw',
@@ -16,12 +25,13 @@ export const thaw = {
   surface: 'Frosted glass to draw frost lines on',
   clearLabel: 'Become now',
   clearIcon: 'M12 3c3 4.5 5.5 7.6 5.5 11a5.5 5.5 0 0 1-11 0C6.5 10.6 9 7.5 12 3zM9.5 14.5a2.5 2.5 0 0 0 2.5 2.5',
+  palette: PALETTE,
   create: () => new Thaw(),
 };
 
 class Thaw extends BecomeScene {
   constructor() {
-    super({ ink: '#ffffff', brush: 3.4, spacing: 11, cap: 1000, seed: 83, ghost: 2.6, settle: 9 });
+    super({ ink: PALETTE[0].color, brush: 3.4, spacing: 11, cap: 1000, seed: 83, ghost: 2.6, settle: 9 });
   }
 
   paintBase() { return paintPane(this.W, this.H, this.dpr); }
@@ -29,7 +39,7 @@ class Thaw extends BecomeScene {
   // Frost: a feathery white line with a hard bright core.
   paintSeg(g, x0, y0, r0, x1, y1, r1) {
     g.save();
-    g.strokeStyle = '#ffffff';
+    g.strokeStyle = this.ink;
     g.globalAlpha = 0.28;
     g.lineWidth = (r0 + r1) * 1.7;
     g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1 + 0.01, y1); g.stroke();
@@ -111,17 +121,17 @@ class Thaw extends BecomeScene {
       ctx.globalAlpha = clamp(p.a, 0, 1);
       ctx.fillStyle = 'rgba(24,60,96,0.55)';
       ctx.beginPath(); ctx.ellipse(p.x, p.y, r, r * 1.15, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(210,235,255,0.75)';
+      ctx.fillStyle = p.ink === '#ffffff' ? 'rgba(210,235,255,0.75)' : p.ink + 'd0'; // the bead keeps the frost's tint
       ctx.beginPath(); ctx.ellipse(p.x, p.y + r * 0.35, r * 0.7, r * 0.55, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#ffffff';
       ctx.beginPath(); ctx.arc(p.x - r * 0.3, p.y - r * 0.4, Math.max(0.5, r * 0.22), 0, Math.PI * 2); ctx.fill();
     }
     // Glints.
     ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1;
     for (const p of list) {
       if (p.delay > 0 || p.spark <= 0.02) continue;
+      ctx.strokeStyle = p.ink;
       const L = (4 + p.size * 2.2) * p.spark;
       ctx.globalAlpha = p.spark;
       ctx.beginPath();
