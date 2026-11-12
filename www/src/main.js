@@ -239,10 +239,18 @@ const demo = createDemo({
   // and a fade speed, so the drawing matches; restore() puts the user's own choices back.
   brush: () => !btnInk.hidden && brushesFor(envDef)?.length && {
     button: btnInk, pop: inkPop, open: openInk, close: closeInk,
+    // Demos always draw with the scene's thinnest brush. (Lists on a scene def aren't sorted.)
     option: () => {
-      const list = brushesFor(envDef), want = defaultBrush(list);
-      return brushOptions.children[list.indexOf(want)] || brushOptions.firstElementChild;
+      const list = brushesFor(envDef);
+      const thin = list.reduce((a, b) => (b.size < a.size ? b : a));
+      return brushOptions.children[list.indexOf(thin)] || brushOptions.firstElementChild;
     },
+  },
+  thinBrush() {
+    const list = brushesFor(envDef);
+    if (!list?.length) return;
+    saveBrush(envDef.id, list.reduce((a, b) => (b.size < a.size ? b : a)).name);
+    applyInk();
   },
   speed: () => !btnSpeed.hidden && {
     button: btnSpeed, pop: speedPop, open: openSpeed, close: closeSpeed,
@@ -290,10 +298,10 @@ const demo = createDemo({
       }
     },
   },
-  // The tour visits Shower door and Mailbox too, so their brushes are kept as well.
+  // The tour visits Shower door, Mailbox and Fireflies too, so their brushes are kept as well.
   snapshot: () => ({
     id: envDef.id, fade: fadeSeconds, held,
-    brushes: Object.fromEntries([envDef.id, 'shower-door', 'mailbox'].map((id) => [id, savedBrush(id)])),
+    brushes: Object.fromEntries([envDef.id, 'shower-door', 'mailbox', 'fireflies'].map((id) => [id, savedBrush(id)])),
   }),
   restore(snap) {
     for (const [id, b] of Object.entries(snap.brushes)) saveBrush(id, b);
