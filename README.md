@@ -1,42 +1,104 @@
-# Noodlit (MVP: shower door)
+# Noodlit
 
-A fading-canvas scratchpad. Wipe ideas through fogged glass; the fog slowly returns and erases them.
+A fading scratchpad for getting ideas out of your head. Scribble, sketch or type whatever is
+rattling around, then let it go, so the next idea always has room. It started on a foggy shower
+door: you write in the steam, and the fog quietly takes it back.
+
+**Live at [noodlit.app](https://noodlit.app)** as an installable web app (PWA) that works
+offline. Noodlit is in early preview: new scenes land often, and iOS and Android app store
+releases are planned.
+
+## What's in the app
+
+### Two modes, 31 scenes
+Every scene is defined by how strokes look, how they decay, and how they clear.
+
+- **Fade** scenes disappear on their own at the pace you pick (13): Shower door, Waves, Snow,
+  Breath on glass, Chalk sidewalk, Frosted window, Ink in water, Light painting, Sparkler,
+  Starfield, Tide pool, Water on hot stone, Windshield.
+- **Release** scenes keep the drawing until you let it go, and then carry it off (18): Message in
+  a bottle, Mailbox, Stream, Whiteboard, Autumn leaf, Balloon, Burning page, Campfire, Dandelion,
+  Kite, Lantern festival, Paper airplane, Paper boat, Rice paper, Rocket, Shake sketch, Shredder,
+  Zen garden.
+
+The scene chip at the top right opens **Choose a scene**, with live previews grouped by mode.
+Within each mode the free scenes come first, then scenes marked **Plus**, each alphabetized.
+Plus scenes will be part of Noodlit Plus once Noodlit is in the app stores; during the preview
+every scene is free and nothing is locked.
+
+### Drawing and controls
+- **Brushes**: three per scene (listed small to large) with a Round or Flat tip; some scenes also
+  offer an ink palette.
+- **Fade speed** (Fade scenes): a slider from Drift (about 45s) through Flow (20s) to Rush (8s),
+  plus **Hold** to freeze a thought while you look at it.
+- **Clear / let go**: each scene has its own clear button and animation (steam up, big wave,
+  send, cast off, and so on).
+- **Typing**: the keyboard button (or just start typing on a hardware keyboard) writes on the
+  surface in a hand-drawn style. Tap to place your words, or drag to move them.
+- **Prompts**: the lightbulb pops a suggestion bubble above the toolbar.
+- **Undo** (Release scenes): the undo button, a two-finger tap, or Ctrl/Cmd+Z takes back the last
+  stroke or typed block.
+- **Sound**: soft generated ambience and effects for each scene, with an on/off toggle.
+
+### Help, About and Preferences
+- **Show me** runs a short hands-off demo of the current scene, and each scene demos itself the
+  first time you open it. **Show me everything** (in About, and on the very first visit) is a
+  longer tour of the whole app.
+- **About** (tap the wordmark or the ⓘ button) explains the modes and has Send feedback,
+  **Check for updates**, and the current version.
+- **Preferences** (from About, saved on the device): first-visit demos, sound, the prompt button,
+  the note after updates, and which scene, fade speed and brush to start with.
+- **Updates**: when a new version has been deployed, a "New version ready" pill appears. The page
+  never reloads on its own, so nothing on the canvas is lost.
 
 ## Run locally
+No build step: it's plain HTML, CSS and JavaScript modules.
+
     cd www && python3 -m http.server 8000   # then open http://localhost:8000
-Live at https://noodlit.app (GitHub Pages, deployed by `.github/workflows/pages.yml` on every push to `main`). Installable as a PWA (manifest + offline service worker).
 
-## Layout
-- `www/index.html`, `styles.css`: shell and toolbar (Fade speed, Hold, Clear)
-- `www/src/main.js`: canvas, multi-touch input, render loop. Knows nothing about fog.
-- `www/src/environments/index.js`: environment registry and the contract every environment implements
-  (how strokes look, how they decay, how they clear)
-- `www/src/environments/shower-door.js`: the MVP environment
-- `www/sw.js`: offline cache.
+About shows the version as "dev" locally.
 
-## Versions (don't bump them in PRs)
-The deploy workflow stamps the version on every push to `main`: About shows `0.<deploy number>`
-(the workflow's run number) and the service-worker cache becomes `noodlit-v<run>-<short sha>`, so every
-deploy gets a fresh cache and the "New version ready" pill. In the repo, `sw.js` and `about.js` keep the
-placeholders `__BUILD__` and `__APP_VERSION__` (About shows "dev" locally). **PRs must not edit these
-lines**; that's what used to cause merge conflicts. New files still need adding to `SHELL` in `sw.js`.
+## Deploy
+Every push to `main` deploys `www/` to GitHub Pages (`.github/workflows/pages.yml`), served at
+noodlit.app (`www/CNAME`). Open a PR, merge it, and it's live a minute or two later.
 
+### Versions (don't edit them in PRs)
+The deploy workflow stamps the version: About shows `0.<deploy run number>` and the service-worker
+cache becomes `noodlit-v<run>-<short sha>`, so every deploy gets a fresh cache and the "New
+version ready" pill. In the repo, `const VERSION` in `www/sw.js` and `const STAMP` in
+`www/src/about.js` keep the placeholders `__BUILD__` and `__APP_VERSION__`. **PRs must not edit
+these lines**; parallel PRs bumping them used to cause merge conflicts. New files still need
+adding to `SHELL` in `www/sw.js` so they work offline.
 
-## Adding an environment (waves, sand, snow...)
-Create `src/environments/<name>.js` exporting `{ id, name, clearLabel, create }`, add it to the
-`environments` array, and add the file to `SHELL` in `sw.js`.
+## Code layout
+- `www/index.html`, `styles.css`, `about.css`, `prefs.css`: the shell, toolbar and panels
+- `www/src/main.js`: canvas, multi-touch input, render loop, toolbar, scene menu, typing, undo
+  gestures. Knows nothing about any particular scene.
+- `www/src/environments/index.js`: the scene registry, the contract every scene implements, the
+  free/Plus list and menu ordering
+- `www/src/environments/*.js`: one file per scene
+- `www/src/lib/fade.js`: shared base for most Fade scenes (and Zen garden and Shake sketch): a
+  strength map that strokes raise and time lowers
+- `www/src/lib/release.js`: shared base for Release scenes (the sheet, ink, typing and hand-off)
+- `www/src/lib/brushes.js`, `undo.js`, `sound.js`, `util.js`: brushes, Release undo, generated
+  sound, helpers
+- `www/src/demo.js`: Show me and Show me everything
+- `www/src/about.js`, `prefs.js`, `welcome.js`, `update.js`: About, Preferences, the early
+  preview note, and update checks
+- `www/sw.js`: offline cache
+- `docs/`: screenshots from past changes
 
-Most Fade scenes (frosted window, chalk sidewalk, water on hot stone, light painting) and the
-Zen garden and Shake sketch Release scenes (`keep: true`) build on `www/src/lib/fade.js`: a strength map that strokes raise and
-time lowers. A scene supplies its background, its stroke or covering layer, how decay varies across
-the surface, and its clear animation (see the header comment in fade.js).
+## Adding a scene
+1. Create `www/src/environments/<name>.js` exporting `{ id, name, blurb, clearLabel, create }`
+   (see the contract at the top of `environments/index.js`). Set `fades: false` for a Release
+   scene.
+2. Build on `lib/fade.js` or `lib/release.js` where you can; their header comments say what a
+   scene supplies.
+3. Add it to the `environments` array in `environments/index.js` and the file to `SHELL` in
+   `www/sw.js`. New scenes are Plus unless added to `FREE_SCENES`.
+4. Add its brushes to `lib/brushes.js`.
 
-## App stores later
-`www/` is already the default Capacitor `webDir`: `npm i @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android`,
-`npx cap init Noodlit com.example.noodlit --web-dir www`, then `npx cap add ios` / `android`.
-
-## Release scenes
-Release surfaces (`fades: false`) don't decay; you let the drawing go. Stream is self-contained;
-Message in a bottle and Paper lantern build on `www/src/lib/release.js`, which handles the sheet,
-ink, typing and the hand-off (released with the clear button). A new scene supplies its layout, background,
-sheet texture and how it carries the sheet away (see the header comment in release.js).
+## App stores
+`www/` is already the default Capacitor `webDir`, so the native apps will wrap this same code:
+`npm i @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android`, `npx cap init`, then
+`npx cap add ios` / `android`.
