@@ -1,12 +1,23 @@
-// One-time "early preview" welcome note. Shown on the first visit only; dismissal is
-// remembered in localStorage (if storage is blocked, it simply shows again next time).
+// "Early preview" welcome note. Shown on the first visit, and again the first time the app
+// opens on a new version (APP_VERSION is stamped at deploy). Dismissal is remembered in
+// localStorage (if storage is blocked, it simply shows again next time).
+// noodlit.previewWelcomeSeen still marks "first visit done" (main.js keys the tour off it);
+// noodlit.previewWelcomeVersion is the version the note was last dismissed on.
+
+import { APP_VERSION } from './about.js';
 
 const KEY = 'noodlit.previewWelcomeSeen';
+const VERSION_KEY = 'noodlit.previewWelcomeVersion';
 const ui = document.getElementById('ui');
 const note = document.getElementById('welcome');
 
-function seen() { try { return localStorage.getItem(KEY) === '1'; } catch { return false; } }
-function remember() { try { localStorage.setItem(KEY, '1'); } catch { /* private mode */ } }
+function seen() {
+  try { return localStorage.getItem(KEY) === '1' && localStorage.getItem(VERSION_KEY) === APP_VERSION; }
+  catch { return false; }
+}
+function remember() {
+  try { localStorage.setItem(KEY, '1'); localStorage.setItem(VERSION_KEY, APP_VERSION); } catch { /* private mode */ }
+}
 
 function dismiss() {
   if (note.hidden) return;
