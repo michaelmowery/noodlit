@@ -385,6 +385,166 @@ const SCENES = {
     },
     texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
   },
+  frost: {
+    ambient(s, amb) {
+      // Wind moaning outside a cold window.
+      const bp = s.filter('bandpass', 380, 1.4);
+      const g = s.bed(amb, 'pink', [bp], 0.05);
+      s.lfo(bp.frequency, 380, 160, 10, amb.nodes);
+      s.lfo(g.gain, 0.05, 0.03, 6, amb.nodes);
+      s.bed(amb, 'brown', [s.filter('lowpass', 180)], 0.03);
+    },
+    texture: { noise: 'white', f: 3600, q: 1.6, gain: 0.09, jitter: 0.3 },
+  },
+  mirror: {
+    ambient(s, amb) {
+      // An extractor fan and the odd drip from the tap.
+      s.bed(amb, 'brown', [s.filter('lowpass', 240)], 0.04);
+      s.bed(amb, 'pink', [s.filter('bandpass', 700, 2)], 0.012);
+      s.every(amb, 2.5, 6, () => s.tone({ f: 1200 + Math.random() * 500, f2: 600, peak: 0.02, dur: 0.1, dest: amb.bus }));
+    },
+    texture: { noise: 'white', f: 1700, q: 1.1, gain: 0.11, jitter: 0.25 },
+  },
+  chalk: {
+    ambient(s, amb) {
+      // Light rain pattering on the pavement.
+      s.bed(amb, 'white', [s.filter('highpass', 2500), s.filter('lowpass', 7000)], 0.015);
+      s.bed(amb, 'pink', [s.filter('bandpass', 900, 0.7)], 0.02);
+      s.every(amb, 0.1, 0.6, () => s.burst({ f: 2000 + Math.random() * 3000, q: 2, peak: 0.012 + Math.random() * 0.02, dur: 0.04, dest: amb.bus }));
+    },
+    texture: { noise: 'grit', f: 1800, q: 0.9, gain: 0.3, jitter: 0.5 },
+  },
+  stone: {
+    ambient(s, amb) {
+      // A warm garden: soft breeze and the odd bird.
+      const bp = s.filter('bandpass', 500, 0.8);
+      s.bed(amb, 'pink', [bp], 0.03);
+      s.lfo(bp.frequency, 500, 200, 12, amb.nodes);
+      s.every(amb, 3, 7, () => {
+        const f = 2400 + Math.random() * 1200;
+        for (let k = 0; k < 2; k++) s.tone({ f, f2: f * 1.25, peak: 0.01, attack: 0.01, dur: 0.09, at: k * 0.14, dest: amb.bus });
+      });
+    },
+    texture: { noise: 'pink', f: 900, q: 0.8, gain: 0.14, jitter: 0.2 },
+  },
+  zen: {
+    ambient(s, amb) {
+      // Stillness, a breeze, and a wind chime now and then.
+      s.bed(amb, 'pink', [s.filter('bandpass', 420, 0.8)], 0.02);
+      s.every(amb, 4, 9, () => {
+        const notes = [523, 659, 784, 880, 1047];
+        for (let k = 0; k < 3; k++) s.tone({ f: notes[Math.floor(Math.random() * notes.length)] * 2, peak: 0.01, attack: 0.004, dur: 1.6, at: k * (0.15 + Math.random() * 0.3), dest: amb.bus });
+      });
+    },
+    texture: { noise: 'grit', f: 1500, q: 0.7, gain: 0.3, jitter: 0.45 },
+  },
+  etch: {
+    ambient(s, amb) { s.bed(amb, 'brown', [s.filter('lowpass', 160)], 0.02); },
+    texture: { noise: 'grit', f: 3200, q: 1.5, gain: 0.18, jitter: 0.35 },
+  },
+  light: {
+    ambient(s, amb) {
+      // A city at night, far away.
+      s.bed(amb, 'brown', [s.filter('lowpass', 200)], 0.05);
+      s.bed(amb, 'pink', [s.filter('bandpass', 600, 0.6)], 0.012);
+    },
+    texture: { noise: 'grit', f: 5200, q: 1.2, gain: 0.16, jitter: 0.7 },
+  },
+  'burning-page': {
+    ambient(s, amb) {
+      // A fire crackling in the hearth.
+      s.bed(amb, 'brown', [s.filter('lowpass', 300)], 0.06);
+      s.every(amb, 0.05, 0.4, () => s.burst({ f: 1500 + Math.random() * 3500, q: 3, peak: 0.01 + Math.random() * 0.03, dur: 0.02 + Math.random() * 0.03, dest: amb.bus }));
+    },
+    texture: { noise: 'white', f: 3800, q: 1.3, gain: 0.08, jitter: 0.3 },
+  },
+  dandelion: {
+    ambient(s, amb) {
+      // A summer meadow: breeze and crickets.
+      const bp = s.filter('bandpass', 600, 0.7);
+      s.bed(amb, 'pink', [bp], 0.03);
+      s.lfo(bp.frequency, 600, 250, 9, amb.nodes);
+      s.every(amb, 0.8, 2, () => { for (let k = 0; k < 3; k++) s.tone({ f: 4600, peak: 0.008, attack: 0.004, dur: 0.03, at: k * 0.05, dest: amb.bus }); });
+    },
+    texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
+  shredder: {
+    ambient(s, amb) {
+      // Office room tone with a faint fluorescent hum.
+      s.bed(amb, 'brown', [s.filter('lowpass', 200)], 0.03);
+      s.bed(amb, 'pink', [s.filter('bandpass', 120, 6)], 0.02);
+    },
+    texture: { noise: 'white', f: 4000, q: 1.4, gain: 0.08, jitter: 0.25 },
+  },
+  kite: {
+    ambient(s, amb) {
+      // Gusty wind on a hilltop.
+      const bp = s.filter('bandpass', 450, 0.9);
+      const g = s.bed(amb, 'pink', [bp], 0.07);
+      s.lfo(bp.frequency, 450, 250, 7, amb.nodes);
+      s.lfo(g.gain, 0.07, 0.04, 5, amb.nodes);
+    },
+    texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
+  'rice-paper': {
+    ambient(s, amb) {
+      // A garden pond: a trickle of water and an occasional plop.
+      s.bed(amb, 'brown', [s.filter('lowpass', 500)], 0.035);
+      const bp = s.filter('bandpass', 1400, 4);
+      s.bed(amb, 'pink', [bp], 0.025);
+      s.every(amb, 0.15, 0.4, () => bp.frequency.setTargetAtTime(900 + Math.random() * 1400, s.ctx.currentTime, 0.08));
+    },
+    texture: { noise: 'pink', f: 2600, q: 1, gain: 0.1, jitter: 0.3 },
+  },
+  rocket: {
+    ambient(s, amb) {
+      // Dusk at the launch site: crickets and a far-off generator.
+      s.bed(amb, 'brown', [s.filter('lowpass', 120)], 0.04);
+      s.every(amb, 0.9, 2.2, () => { for (let k = 0; k < 3; k++) s.tone({ f: 4200, peak: 0.008, attack: 0.004, dur: 0.035, at: k * 0.06, dest: amb.bus }); });
+    },
+    texture: { noise: 'white', f: 3800, q: 1.3, gain: 0.08, jitter: 0.3 },
+  },
+  'paper-boat': {
+    ambient(s, amb) { surf(s, amb, 0.04); },
+    texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
+  leaf: {
+    ambient(s, amb) {
+      // An autumn park: breeze and rustling leaves.
+      const bp = s.filter('bandpass', 500, 0.8);
+      s.bed(amb, 'pink', [bp], 0.04);
+      s.lfo(bp.frequency, 500, 200, 8, amb.nodes);
+      s.every(amb, 0.4, 1.6, () => s.burst({ kind: 'white', f: 3500, q: 1.2, peak: 0.01, attack: 0.05, dur: 0.25, dest: amb.bus }));
+    },
+    texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
+  balloon: {
+    ambient(s, amb) {
+      const bp = s.filter('bandpass', 450, 0.8);
+      s.bed(amb, 'pink', [bp], 0.035);
+      s.lfo(bp.frequency, 450, 180, 11, amb.nodes);
+      s.every(amb, 3, 7, () => { const f = 2800 + Math.random() * 1000; for (let k = 0; k < 2; k++) s.tone({ f, f2: f * 1.2, peak: 0.01, attack: 0.01, dur: 0.08, at: k * 0.12, dest: amb.bus }); });
+    },
+    texture: { noise: 'white', f: 3600, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
+  'paper-airplane': {
+    ambient(s, amb) {
+      // A rooftop breeze and the town far below.
+      const bp = s.filter('bandpass', 500, 0.8);
+      s.bed(amb, 'pink', [bp], 0.04);
+      s.lfo(bp.frequency, 500, 200, 9, amb.nodes);
+      s.bed(amb, 'brown', [s.filter('lowpass', 150)], 0.03);
+    },
+    texture: { noise: 'white', f: 4200, q: 1.4, gain: 0.08, jitter: 0.3 },
+  },
+  campfire: {
+    ambient(s, amb) {
+      s.bed(amb, 'brown', [s.filter('lowpass', 300)], 0.05);
+      s.every(amb, 0.06, 0.45, () => s.burst({ f: 1500 + Math.random() * 3500, q: 3, peak: 0.01 + Math.random() * 0.03, dur: 0.02 + Math.random() * 0.03, dest: amb.bus }));
+      s.every(amb, 0.9, 2.2, () => { for (let k = 0; k < 3; k++) s.tone({ f: 4300, peak: 0.007, attack: 0.004, dur: 0.035, at: k * 0.06, dest: amb.bus }); });
+    },
+    texture: { noise: 'white', f: 3800, q: 1.3, gain: 0.08, jitter: 0.3 },
+  },
 };
 
 // ------------------------------------------------------------------ cues
@@ -494,6 +654,88 @@ const CUES = {
   chirp: cue((s) => {
     for (let k = 0; k < 3; k++) s.tone({ f: 3000 + k * 250, f2: 4200 + k * 200, peak: 0.025, attack: 0.008, dur: 0.07, at: k * 0.1 });
   }, 0.3),
+
+  // Frosted window: ice crackles in across the pane.
+  frost: cue((s) => {
+    s.burst({ kind: 'white', f: 5000, f2: 8000, q: 1, peak: 0.05, attack: 0.3, dur: 1.4 });
+    for (let i = 0; i < 14; i++) s.tone({ f: 2500 + Math.random() * 3500, peak: 0.012, attack: 0.002, dur: 0.05, at: Math.random() * 1.3 });
+  }, 0.4),
+
+  // Steamy mirror: the hot tap gushes for a moment.
+  tap: cue((s) => {
+    s.burst({ kind: 'pink', f: 1500, q: 0.7, peak: 0.09, attack: 0.08, dur: 1.4 });
+    s.burst({ kind: 'white', f: 3500, q: 1, peak: 0.03, attack: 0.1, dur: 1.2 });
+  }, 0.5),
+
+  // Chalk sidewalk: a downpour rushes in and passes.
+  downpour: cue((s) => {
+    s.burst({ kind: 'white', f: 3000, q: 0.5, peak: 0.12, attack: 0.5, dur: 2.2 });
+    s.burst({ kind: 'pink', f: 700, q: 0.6, peak: 0.1, attack: 0.6, dur: 2.2 });
+  }, 0.5),
+
+  // Shake sketch: powder rattling as the toy is shaken.
+  shake: cue((s) => {
+    for (let i = 0; i < 8; i++) s.burst({ kind: 'white', f: 4500 + Math.random() * 1500, q: 1.5, peak: 0.06, attack: 0.02, dur: 0.1, at: i * 0.12 });
+  }, 0.5),
+
+  // Water on hot stone: a soft sizzle as it all dries off.
+  sizzle: cue((s) => {
+    s.burst({ kind: 'white', f: 6000, f2: 4000, q: 0.8, peak: 0.05, attack: 0.2, dur: 1.6 });
+  }, 0.5),
+
+  // Zen garden: the rake drawn through gravel.
+  rake: cue((s, { soft = false }) => {
+    const k = soft ? 0.4 : 1;
+    s.burst({ kind: 'grit', f: 1400, q: 0.8, peak: 0.12 * k, attack: 0.2, dur: soft ? 0.8 : 1.3 });
+  }, 0.6),
+
+  // Light painting: a camera shutter.
+  shutter: cue((s) => {
+    s.burst({ kind: 'white', type: 'highpass', f: 2500, q: 0.7, peak: 0.12, attack: 0.002, dur: 0.04 });
+    s.burst({ kind: 'white', type: 'highpass', f: 2000, q: 0.7, peak: 0.08, attack: 0.002, dur: 0.05, at: 0.09 });
+    s.tone({ f: 180, f2: 90, peak: 0.04, dur: 0.06 });
+  }, 0.3),
+
+  // Burning page: flame catching paper, then crackles.
+  burn: cue((s) => {
+    s.burst({ kind: 'pink', type: 'lowpass', f: 400, f2: 1800, q: 0.7, peak: 0.1, attack: 0.3, dur: 3.2 });
+    for (let i = 0; i < 18; i++) s.burst({ f: 1800 + Math.random() * 3500, q: 3, peak: 0.03, dur: 0.03, at: 0.2 + Math.random() * 3 });
+  }, 0.5),
+
+  // Dandelion: a long, soft breath.
+  blow: cue((s) => {
+    s.burst({ kind: 'pink', f: 900, f2: 1600, q: 0.6, peak: 0.12, attack: 0.25, dur: 1.4 });
+  }, 0.5),
+
+  // Shredder: the motor spins up, grinds through the page and winds down.
+  shred: cue((s) => {
+    s.tone({ type: 'sawtooth', f: 70, f2: 95, peak: 0.03, attack: 0.15, dur: 2.9 });
+    s.burst({ kind: 'grit', f: 2200, q: 0.6, peak: 0.14, attack: 0.2, dur: 2.7 });
+    s.burst({ kind: 'white', f: 900, q: 1.2, peak: 0.05, attack: 0.3, dur: 2.6 });
+  }, 0.5),
+
+  // Kite: scissors snip.
+  snip: cue((s) => {
+    s.burst({ kind: 'white', type: 'highpass', f: 3000, q: 1, peak: 0.08, attack: 0.002, dur: 0.05 });
+    s.tone({ f: 2400, peak: 0.02, attack: 0.002, dur: 0.06 });
+  }, 0.3),
+
+  // Rice paper: the paper softening into the water.
+  dissolve: cue((s) => {
+    s.burst({ kind: 'pink', f: 600, f2: 300, q: 0.8, peak: 0.04, attack: 0.8, dur: 4 });
+  }, 0.5),
+
+  // Rocket: ignition and a long rumbling climb.
+  launch: cue((s) => {
+    s.burst({ kind: 'brown', type: 'lowpass', f: 200, f2: 500, q: 0.5, peak: 0.35, attack: 1, dur: 4.5 });
+    s.burst({ kind: 'pink', type: 'lowpass', f: 800, f2: 2500, q: 0.6, peak: 0.12, attack: 1.3, dur: 4 });
+    for (let i = 0; i < 20; i++) s.burst({ f: 1500 + Math.random() * 2500, q: 2, peak: 0.02, dur: 0.03, at: 1 + Math.random() * 2.5 });
+  }, 0.5),
+
+  // Autumn leaf: a gust of wind.
+  gust: cue((s) => {
+    s.burst({ kind: 'pink', f: 350, f2: 1200, q: 1, peak: 0.25, attack: 0.5, dur: 2 });
+  }, 0.5),
 
   // A fresh sheet or board arrives.
   arrive: cue((s) => s.burst({ kind: 'pink', f: 1800, f2: 900, q: 1, peak: 0.04, attack: 0.08, dur: 0.35 }), 0.5),

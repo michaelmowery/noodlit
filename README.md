@@ -19,6 +19,11 @@ Live at https://noodlit.app (GitHub Pages, deployed by `.github/workflows/pages.
 Create `src/environments/<name>.js` exporting `{ id, name, clearLabel, create }`, add it to the
 `environments` array, and add the file to `sw.js`.
 
+Most Fade scenes (frosted window, steamy mirror, chalk sidewalk, water on hot stone, zen garden,
+shake sketch, light painting) build on `www/src/lib/fade.js`: a strength map that strokes raise and
+time lowers. A scene supplies its background, its stroke or covering layer, how decay varies across
+the surface, and its clear animation (see the header comment in fade.js).
+
 ## App stores later
 `www/` is already the default Capacitor `webDir`: `npm i @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android`,
 `npx cap init Noodlit com.example.noodlit --web-dir www`, then `npx cap add ios` / `android`.

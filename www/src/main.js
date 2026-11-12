@@ -578,6 +578,8 @@ document.addEventListener('keydown', (e) => {
 
 // ------------------------------------------------------------------ boot
 window.addEventListener('resize', resize);
+// Environments can ask for frames on their own (a shake detected by the motion sensor).
+window.addEventListener('noodlit:wake', wake);
 window.addEventListener('orientationchange', () => setTimeout(resize, 150));
 document.addEventListener('visibilitychange', () => {
   sfx.setHidden(document.hidden);
