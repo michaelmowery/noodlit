@@ -1,8 +1,8 @@
 // Stream: the first Release environment.
 //   Look:  charcoal on a big piece of driftwood, beside a little storybook stream.
 //   Decay: none. Nothing fades while you draw; this surface is about choosing to let go.
-//   Clear: the release itself. Drag the orange handle into the water (or tap "Let it go")
-//          and the board drops in near the top, shrinks to fit the stream and floats down
+//   Clear: the release itself. Tap "Let it go" and the board drops in near the top,
+//          shrinks to fit the stream and floats down
 //          and off the screen. The frog hops, the fish dart off, the ducks paddle after it
 //          for a bit, and a fresh piece of wood washes up.
 //
@@ -11,7 +11,7 @@
 
 import { clamp, easeInOut, smoothstep, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from '../lib/util.js';
 import { sfx } from '../lib/sound.js';
-import { inkSegment } from '../lib/release.js';
+import { inkSegment, roundRect } from '../lib/release.js';
 
 // Inks that read on driftwood: charcoal first (the default), then chalk and a few earthy colours.
 const PALETTE = [
@@ -33,7 +33,7 @@ export const stream = {
   blurb: 'Float it off downstream',
   clearLabel: 'Let it go',
   clearIcon: 'M5 12h11M12 7l5 5-5 5M20 5v14',
-  surface: 'Driftwood drawing surface beside a stream. Drag the handle into the water to let it go.',
+  surface: 'Driftwood drawing surface beside a stream. Tap Let it go to float it downstream.',
   fades: false,            // Release surface: the shell hides fade speed and Hold
   palette: PALETTE,
   create: () => new Stream(),
@@ -46,7 +46,6 @@ class Stream {
     this.floating = [];    // boards on their way downstream
     this.splashes = [];    // ripple rings
     this.board = null;     // the board you draw on (null while the next one washes up)
-    this.drag = null;
     this.drafts = { base: null, held: [], cur: null };
     this.rand = mulberry32(77);
     this.ink = PALETTE[0].color;
@@ -121,20 +120,9 @@ class Stream {
   setPaused() {}
 
   // ---------------------------------------------------------------- input
-  handleRect() {
-    const b = this.board, r = this.rect;
-    const hw = 30, hh = Math.min(96, r.h * 0.3);
-    return { x: r.x + r.w - hw * 0.45 + b.offX, y: r.y + r.h / 2 - hh / 2 + b.offY, w: hw, h: hh };
-  }
-
   strokeStart(id, x, y, info) {
     const b = this.board;
-    if (b && b.arrive >= 1 && !this.drag) {
-      const hr = this.handleRect();
-      if (x > hr.x - 14 && x < hr.x + hr.w + 14 && y > hr.y - 14 && y < hr.y + hr.h + 14) {
-        this.drag = { id, sx: x, sy: y };
-        return;
-      }
+    if (b && b.arrive >= 1) {
       const lx = x - b.x, ly = y - b.y;
       if (lx >= 0 && ly >= 0 && lx <= this.rect.w && ly <= this.rect.h) {
         const r = this.radiusFor(info, 0);
@@ -155,13 +143,6 @@ class Stream {
   }
 
   strokeMove(id, x, y, info) {
-    if (this.drag && this.drag.id === id) {
-      const b = this.board;
-      b.offX = Math.max(0, x - this.drag.sx);
-      b.offY = clamp((y - this.drag.sy) * 0.35, -30, 30);
-      b.dirty = true;
-      return;
-    }
     const s = this.strokes.get(id);
     if (!s || !this.board) return;
     const lx = x - this.board.x, ly = y - this.board.y;
@@ -175,15 +156,6 @@ class Stream {
   }
 
   strokeEnd(id) {
-    if (this.drag && this.drag.id === id) {
-      const b = this.board;
-      const handleRight = this.rect.x + this.rect.w + b.offX;
-      const bank = this.cx(this.rect.y + this.rect.h / 2) - this.sw / 2;
-      this.drag = null;
-      if (handleRight > bank - 6 || b.offX > this.rect.w * 0.3) this.release();
-      else b.spring = true;
-      return;
-    }
     this.strokes.delete(id);
   }
 
@@ -199,7 +171,6 @@ class Stream {
     const b = this.board;
     if (!b || b.arrive < 1) return;
     this.strokes.clear();
-    this.drag = null;
     this.drafts = { base: null, held: [], cur: null };
     sfx.cue('release');
     this.compose(b);
@@ -227,13 +198,6 @@ class Stream {
         b.arrive = Math.min(1, b.arrive + dt / WASH_UP);
         active = true;
       }
-      if (b.spring) {
-        const k = Math.min(1, dt * 12);
-        b.offX += (0 - b.offX) * k; b.offY += (0 - b.offY) * k;
-        if (Math.abs(b.offX) < 0.5 && Math.abs(b.offY) < 0.5) { b.offX = b.offY = 0; b.spring = false; }
-        active = true;
-      }
-      if (this.drag) active = true;
     } else if (this.time >= this.washAt) {
       this.board = this.newBoard();
       this.board.arrive = 0;
@@ -350,17 +314,15 @@ class Stream {
       const p = easeInOut(b.arrive);
       const x = b.x + b.offX - (1 - p) * (rect.x + rect.w + 30);
       const y = b.y + b.offY;
-      const lift = this.drag || b.offX > 1 ? 1 : 0;
       ctx.save();
       ctx.globalAlpha = Math.min(1, 0.2 + p);
       ctx.translate(x + rect.w / 2, y + rect.h / 2);
-      ctx.rotate((1 - p) * -0.06 + lift * Math.min(0.04, b.offX / 4000));
+      ctx.rotate((1 - p) * -0.06);
       ctx.shadowColor = 'rgba(20,35,20,0.35)';
-      ctx.shadowBlur = 16 + lift * 14;
-      ctx.shadowOffsetY = 6 + lift * 8;
+      ctx.shadowBlur = 16;
+      ctx.shadowOffsetY = 6;
       ctx.drawImage(b.comp, -rect.w / 2, -rect.h / 2, rect.w, rect.h);
       ctx.restore();
-      if (p >= 1) drawHandle(ctx, this.handleRect(), !!this.drag);
     }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
@@ -607,35 +569,6 @@ function drawSplash(ctx, s) {
     }
   }
   ctx.restore();
-}
-
-function drawHandle(ctx, r, active) {
-  ctx.save();
-  ctx.shadowColor = 'rgba(60,30,0,0.35)';
-  ctx.shadowBlur = active ? 14 : 8;
-  ctx.shadowOffsetY = 3;
-  ctx.fillStyle = active ? '#ff9a3d' : '#f58a2e';
-  roundRect(ctx, r.x, r.y, r.w, r.h, r.w / 2);
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = '#fff6ea';
-  ctx.lineWidth = 2.2;
-  ctx.lineCap = ctx.lineJoin = 'round';
-  const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
-  for (const dy of [-10, 6]) {
-    ctx.beginPath(); ctx.moveTo(cx - 4, cy + dy - 5); ctx.lineTo(cx + 3, cy + dy); ctx.lineTo(cx - 4, cy + dy + 5); ctx.stroke();
-  }
-  ctx.restore();
-}
-
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
 }
 
 // ------------------------------------------------------------------ painting

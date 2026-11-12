@@ -2,7 +2,7 @@
 //   Look:  brush ink on a sheet of thin rice paper floating on a koi pond, seen from above,
 //          with lily pads and koi gliding underneath.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle down (or tap "Let it melt"). The paper settles into the water,
+//   Clear: tap "Let it melt". The paper settles into the water,
 //          softens and dissolves; the ink blooms out into faint clouds and is gone, and the
 //          koi come over to swim through where it was. A new sheet is laid on the water.
 //          Tap the water to make a ripple and send the koi swimming.
@@ -28,7 +28,7 @@ export const ricePaper = {
   blurb: 'It melts into the koi pond',
   clearLabel: 'Let it melt',
   clearIcon: 'M5 4h14v10H5zM3 18c2 0 2 1.5 4.5 1.5S10 18 12 18s2 1.5 4.5 1.5S19 18 21 18',
-  surface: 'Rice paper floating on a koi pond. Drag the handle down to let it dissolve.',
+  surface: 'Rice paper floating on a koi pond. Tap Let it melt to let it dissolve.',
   fades: false,
   palette: PALETTE,
   create: () => new RicePaper(),
@@ -38,7 +38,6 @@ class RicePaper extends ReleaseScene {
   constructor() {
     super(58);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'bottom';
     this.arriveFrom = { x: 0, y: -30 };
     this.washUpAt = 2.4;
     this.washUp = 1.1;

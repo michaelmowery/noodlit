@@ -1,7 +1,7 @@
 // Mailbox: a Release environment.
 //   Look:  ink on a sheet of ruled letter paper, lying on the lawn of a storybook front yard.
 //   Decay: none. Nothing fades while you write.
-//   Clear: drag the handle up toward the mailbox (or tap "Mail it"). The letter folds in
+//   Clear: tap "Mail it". The letter folds in
 //          thirds, slides into an envelope that seals itself, then flies across the yard
 //          into the mailbox. The door clunks shut, the flag pops up, and the bluebird on top
 //          startles and settles. A fresh sheet slides in.
@@ -33,7 +33,7 @@ export const mailbox = {
   blurb: 'Seal it up and send it off',
   clearLabel: 'Mail it',
   clearIcon: 'M3 6h18v12H3zM3 6l9 7 9-7',
-  surface: 'A sheet of letter paper on a front lawn. Drag the handle up to fold it into an envelope and mail it.',
+  surface: 'A sheet of letter paper on a front lawn. Tap Mail it to fold it into an envelope and mail it.',
   fades: false,
   palette: PALETTE,
   create: () => new Mailbox(),
@@ -43,7 +43,6 @@ class Mailbox extends ReleaseScene {
   constructor() {
     super(83);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 50 };
     this.washUpAt = 3.1;
     this.washUp = 0.9;
