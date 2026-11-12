@@ -30,7 +30,7 @@ export const mistyWindow = {
 
 class MistyWindow extends RevealScene {
   constructor() {
-    super({ ink: PALETTE[0].color, brush: 12, soft: 0.55, deal: 'fade', cue: 'breath', freshCaption: '…then mist it over again' });
+    super({ ink: PALETTE[0].color, brush: 12, soft: 0.55, deal: 'fade', cue: 'breath', revealCaption: 'Wipe the mist off to see the view', freshCaption: '…then mist it over again' });
     this.cueOpts = { big: true };
     this.drips = [];
     this.rand = mulberry32(77);
