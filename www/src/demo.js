@@ -369,8 +369,8 @@ export function createDemo(host, finger) {
     if (!t.promptButton.hidden) {
       if (!(await tap(t.promptButton, me))) return;
       t.showPrompt();
-      host.say('Stuck? Tap the bulb for a prompt', 2600);
-      await sleep(2600, me);
+      host.say('Stuck? Tap the bulb for a prompt', 3600);
+      await sleep(3600, me); // long enough to read a full-sentence prompt
       if (run !== me) return;
       t.popPrompt();
       await sleep(400, me);
