@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
+import { environmentsFor, modeOf, getEnvironment, isPlus } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
@@ -756,6 +756,12 @@ function buildScenes() {
       const name = document.createElement('span');
       name.className = 'scene-name';
       name.textContent = def.name;
+      if (isPlus(def)) {
+        const badge = document.createElement('span');
+        badge.className = 'scene-plus';
+        badge.textContent = 'Plus';
+        name.append(' ', badge);
+      }
       tile.append(thumb, name);
       if (def.blurb) {
         const blurb = document.createElement('span');
