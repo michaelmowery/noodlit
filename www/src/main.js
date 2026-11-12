@@ -255,6 +255,7 @@ const demo = createDemo({
   // The extra controls "Show me everything" walks through.
   tour: {
     promptButton: btnPrompt, showPrompt: () => showPromptBubble(), popPrompt: () => popBubble({ quiet: true }),
+    promptBubble: () => bubble, // its X and < > buttons, for the tour to tap
     holdButton: btnHold, setHeld: (on) => setHeld(on, true),
     undoButton: btnUndo, canUndo: () => undoable(), undo: () => { if (env.undo()) { sfx.cue('undo'); wake(); } },
     sceneButton: btnScene,
