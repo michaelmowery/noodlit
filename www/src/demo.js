@@ -2,11 +2,13 @@
 // fingertip draws the Noodlit logo through the same stroke calls a real finger uses and types
 // "Get it out.", "Let go." and, after a pause, "Noodlit!" underneath, so it works on every
 // scene. Then the scene does its thing: Fade scenes fade, Release scenes send the sheet off,
-// Become scenes change, Reveal scenes show what's underneath, Stir scenes
+// Become scenes change, Stir scenes
 // swirl it away, Echo scenes play it back. "Show me everything" (from About, and on the very
 // first visit) is the longer tour: it picks one scene from each family off the scene menu and runs
 // that same script on each, floats a prompt after the first, then opens Preferences and points
 // out Show me.
+// Reveal scenes skip the logo and the words: the finger just rubs the cover off to show what
+// is underneath, then starts a fresh one.
 // Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
@@ -257,7 +259,7 @@ export function createDemo(host, finger) {
       pts.push(...(k % 2 ? [rt, l] : [l, rt]));
     }
     finger.classList.remove('glide');
-    await draw(env, [resample(pts, 4)], me, 1500);
+    await draw(env, [resample(pts, 4)], me, 1150);
     finger.classList.remove('show');
   }
 
@@ -275,10 +277,10 @@ export function createDemo(host, finger) {
       host.wake();
       await sleep((env.becomeTime?.() ?? 10) * 1000, me);
     } else if (host.mode() === 'reveal') {
-      // The finger rubs back and forth with the widest brush, so what is underneath really
-      // shows (thin lines alone uncover next to nothing). A scene whose cover lets go by
-      // itself (the Scratch card's foil) does so once enough is off.
-      host.say(env.revealCaption || '…rub it away to see what is underneath', 4200);
+      // The whole demo here: the finger rubs back and forth with the widest brush, so what is
+      // underneath really shows. A scene whose cover lets go by itself (the Scratch card's
+      // foil) does so once enough is off.
+      host.say(env.revealCaption || 'Rub it away to see what is underneath', 5200);
       host.wideBrush?.();
       await scrub(env, me);
       if (run !== me) return;
@@ -311,10 +313,12 @@ export function createDemo(host, finger) {
     env.setPaused(true); // hold the fade until the drawing and the word are both done
     const speed = host.speed(); // false on Release scenes (no fade speed there)
     if (speed) speed.set(DEMO_SPEED);
-    host.thinBrush?.(); // the thinnest brush reads best; restore() puts the user's back
-    if (!(await drawAndType(env, me, ['Get it out.', 'Let go.', 'Noodlit!']))) return false;
-    await sleep(600, me); // a beat with all three on screen
-    if (run !== me) return false;
+    if (host.mode() !== 'reveal') { // Reveal scenes go straight to rubbing the cover off
+      host.thinBrush?.(); // the thinnest brush reads best; restore() puts the user's back
+      if (!(await drawAndType(env, me, ['Get it out.', 'Let go.', 'Noodlit!']))) return false;
+      await sleep(600, me); // a beat with all three on screen
+      if (run !== me) return false;
+    }
     await letGo(env, me, false);
     return run === me;
   }

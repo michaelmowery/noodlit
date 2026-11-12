@@ -30,7 +30,7 @@ export const scratchArt = {
 
 class ScratchArt extends RevealScene {
   constructor() {
-    super({ ink: PALETTE[0].color, brush: 3.4, freshCaption: '…then take a fresh sheet' });
+    super({ ink: PALETTE[0].color, brush: 3.4, revealCaption: 'Scratch through to the colours below', freshCaption: '…then take a fresh sheet' });
   }
 
   paintUnder() {
