@@ -8,6 +8,7 @@ const SHELL = [
   './manifest.webmanifest',
   './src/main.js',
   './src/about.js',
+  './src/welcome.js',
   './src/lib/util.js',
   './src/lib/release.js',
   './src/lib/sound.js',
