@@ -29,7 +29,6 @@ const SHELL = [
   './src/environments/bottle.js',
   './src/environments/mailbox.js',
   './src/environments/frost.js',
-  './src/environments/mirror.js',
   './src/environments/chalk.js',
   './src/environments/stone.js',
   './src/environments/zen.js',

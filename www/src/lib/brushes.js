@@ -30,7 +30,6 @@ export const BRUSHES = {
   whiteboard: [B('Marker', 1), B('Fine tip', 0.55, { steady: 1 }), B('Chisel tip', 3.7, { steady: 0.5 })],
   windshield: [...FINGER_GLASS, B('Sleeve', 4.4)],
   frost: [...FINGER_GLASS, B('Warm palm', 3.9, { soft: 0.25 })],
-  mirror: [...FINGER_GLASS, B('Towel', 4.4, { soft: 0.2 })],
   chalk: [B('Chalk', 1), B('Sharp tip', 0.5), B('Side of chalk', 3.9, { dry: true })],
   stone: [B('Water brush', 1, { flow: 0.6 }), B('Fine brush', 0.5, { flow: 0.7 }), B('Sponge', 3.7, { soft: 0.2 })],
   zen: [B('Finger', 1), B('Stick', 0.45, { steady: 0.6 }), B('Hand', 3.6)],
