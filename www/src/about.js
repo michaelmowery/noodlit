@@ -2,7 +2,7 @@
 // shell (main.js) doesn't need to know about it.
 
 // Bump with each release (keep in step with VERSION in sw.js).
-export const APP_VERSION = '0.23';
+export const APP_VERSION = '0.25';
 
 const ui = document.getElementById('ui');
 const btn = document.getElementById('btn-about');
@@ -14,7 +14,7 @@ let lastFocus = null;
 
 function open() {
   // Don't stack over the scene menu or an open type box.
-  if (ui.classList.contains('choosing') || ui.classList.contains('typing')) return;
+  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open')) return;
   lastFocus = document.activeElement;
   panel.hidden = false;
   btn.setAttribute('aria-expanded', 'true');
