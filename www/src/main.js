@@ -79,6 +79,7 @@ const btnScene = document.getElementById('btn-scene');
 const sceneMode = document.getElementById('scene-mode');
 const sceneName = document.getElementById('scene-name');
 const scenes = document.getElementById('scenes');
+const scenesPanel = scenes.querySelector('.scenes-panel');
 const scenesBody = document.getElementById('scenes-body');
 const btnPrompt = document.getElementById('btn-prompt');
 const btnType = document.getElementById('btn-type');
@@ -253,7 +254,21 @@ const demo = createDemo({
     promptButton: btnPrompt, showPrompt: () => showPromptBubble(), popPrompt: () => popBubble({ quiet: true }),
     holdButton: btnHold, setHeld: (on) => setHeld(on, true),
     undoButton: btnUndo, canUndo: () => undoable(), undo: () => { if (env.undo()) { sfx.cue('undo'); wake(); } },
-    sceneButton: btnScene, openScenes: () => openScenes(),
+    sceneButton: btnScene,
+    // The menu opens scrolled to the top; revealTile() glides down to a tile if it's out of view.
+    openScenes() { openScenes(); scenesPanel.scrollTop = 0; },
+    tile: (id) => scenesBody.querySelector(`.scene-tile[data-id="${id}"]`),
+    revealTile(tile) {
+      const p = scenesPanel.getBoundingClientRect(), r = tile.getBoundingClientRect();
+      if (r.top < p.top || r.bottom > p.bottom) {
+        scenesPanel.scrollTo({ top: scenesPanel.scrollTop + r.top - p.top - 70, behavior: 'smooth' });
+      }
+    },
+    // Switch scenes without stopping the tour (switchTo() would).
+    switchScene(id) {
+      closeScenes();
+      if (envDef.id !== id) useEnvironment(getEnvironment(id), { announce: true, auto: false });
+    },
     // Leave the menu open if that's where the interrupting tap landed.
     closeScenes: (target) => { if (!(target && scenes.contains(target))) closeScenes(); },
     demoButton: btnDemo, clearButton: btnClear,
@@ -261,7 +276,11 @@ const demo = createDemo({
     infoButton: document.getElementById('btn-info'),
     prefsButton: document.getElementById('about-prefs-btn'),
     openAbout: () => document.getElementById('btn-info').click(),
-    openPrefs: () => document.getElementById('about-prefs-btn').click(),
+    openPrefs() {
+      document.getElementById('about-prefs-btn').click();
+      const panel = document.querySelector('#prefs .about-panel');
+      if (panel) panel.scrollTop = 0;
+    },
     // Close About/Preferences unless that's where the interrupting tap landed.
     closePanels(target) {
       for (const id of ['about', 'prefs']) {
@@ -270,11 +289,16 @@ const demo = createDemo({
       }
     },
   },
-  snapshot: () => ({ id: envDef.id, brush: savedBrush(envDef.id), fade: fadeSeconds, held }),
+  // The tour visits Shower door and Mailbox too, so their brushes are kept as well.
+  snapshot: () => ({
+    id: envDef.id, fade: fadeSeconds, held,
+    brushes: Object.fromEntries([envDef.id, 'shower-door', 'mailbox'].map((id) => [id, savedBrush(id)])),
+  }),
   restore(snap) {
+    for (const [id, b] of Object.entries(snap.brushes)) saveBrush(id, b);
+    // Back to the scene the user was on (the tour may have moved on).
+    if (snap.id !== envDef.id) { useEnvironment(getEnvironment(snap.id), { auto: false }); }
     if (held !== snap.held) setHeld(snap.held, false);
-    if (snap.id !== envDef.id) return;
-    saveBrush(snap.id, snap.brush);
     fadeSeconds = snap.fade;
     store.set('fadeSeconds', fadeSeconds);
     applySpeed();
@@ -834,7 +858,7 @@ document.addEventListener('keydown', (e) => {
 
 // ------------------------------------------------------------------ environments
 // Swap the active surface live. The shell keeps speed and Hold; the new env starts blank.
-function useEnvironment(def, { announce = false } = {}) {
+function useEnvironment(def, { announce = false, auto = true } = {}) {
   env?.dispose?.();
   envDef = def;
   env = def.create();
@@ -858,7 +882,7 @@ function useEnvironment(def, { announce = false } = {}) {
   store.set('env', def.id);
   sfx.setScene(def.id);
   if (announce) showToast(def.name);
-  scheduleAutoDemo(def);
+  if (auto) scheduleAutoDemo(def);
   wake();
 }
 

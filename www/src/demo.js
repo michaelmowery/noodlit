@@ -2,8 +2,8 @@
 // logo through the same stroke calls a real finger uses and types "Noodlit" underneath, so it
 // works on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the
 // sheet off. "Show me everything" (from About, and on the very first visit) is the longer tour: it
-// peeks at the scene menu first, then also opens the brush and fade trays, floats a prompt, shows
-// Hold or Undo, opens Preferences from About and points out Show me.
+// picks Shower door from the scene menu for the Fade features (brush and fade trays, prompt, Hold),
+// then Mailbox for the Release ones (Undo, send), opens Preferences and points out Show me.
 // Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
@@ -266,19 +266,6 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  // The scene menu opens for a look, then closes again.
-  async function peekScenes(me) {
-    const t = host.tour;
-    if (!(await tap(t.sceneButton, me))) return false;
-    finger.classList.remove('show');
-    t.openScenes();
-    host.say('Pick a new scene any time', 2600);
-    await sleep(2400, me);
-    t.closeScenes();
-    await sleep(300, me);
-    return run === me;
-  }
-
   // About (ⓘ) → Preferences, for a look, then closed again.
   async function showPrefs(me) {
     const t = host.tour;
@@ -290,7 +277,7 @@ export function createDemo(host, finger) {
     if (run !== me) return false;
     if (!(await tap(t.prefsButton, me))) return false;
     finger.classList.remove('show');
-    t.openPrefs();
+    t.openPrefs(); // opens scrolled to the top
     host.say('Make it yours in Preferences', 2800);
     await sleep(2800, me);
     t.closePanels();
@@ -336,11 +323,36 @@ export function createDemo(host, finger) {
   }
 
   // The full tour, on whatever scene is showing.
+  // Open the scene menu (from the top) and pick a scene from it, scrolling to its tile if needed.
+  async function chooseScene(id, caption, me) {
+    const t = host.tour;
+    if (!(await tap(t.sceneButton, me))) return false;
+    finger.classList.remove('show');
+    t.openScenes();
+    host.say(caption, 3000);
+    await sleep(1000, me);
+    if (run !== me) return false;
+    const tile = t.tile(id);
+    if (tile) {
+      t.revealTile(tile);
+      await sleep(700, me);
+      if (!(await tap(tile, me))) return false;
+    }
+    t.switchScene(id);
+    finger.classList.remove('show');
+    await sleep(700, me);
+    return run === me;
+  }
+
+  // The full tour: Shower door for the Fade features, then Mailbox for the Release ones, then
+  // Preferences and the Show me button. The user's own scene comes back at the end.
   async function playTour(me) {
-    const env = host.env();
     const t = host.tour;
     host.onPeek(true); // keep the toolbar bright: the tour is about it
-    if (!(await peekScenes(me))) return; // first: where the scenes are
+
+    // Fade: Shower door.
+    if (!(await chooseScene('shower-door', 'Pick a scene: Fade scenes disappear on their own', me))) return;
+    let env = host.env();
     await blank(env, me);
     if (run !== me) return;
     env.setPaused(true);
@@ -358,18 +370,35 @@ export function createDemo(host, finger) {
       await sleep(400, me);
       if (run !== me) return;
     }
-    if (host.mode() === 'release') {
-      if (!(await showUndo(env, me))) return;
-    } else {
-      if (!(await tap(t.holdButton, me))) return;
-      t.setHeld(true);
-      host.say('Hold keeps a thought from fading', 2200);
-      await sleep(2000, me);
-      if (run !== me) return;
-    }
+    if (!(await tap(t.holdButton, me))) return;
+    t.setHeld(true);
+    host.say('Hold keeps a thought from fading', 2200);
+    await sleep(2000, me);
+    if (run !== me) return;
+    if (!(await tap(t.holdButton, me))) return;
+    t.setHeld(false);
+    host.say('…let go, and it fades', 2600);
+    await sleep(Math.min(host.fadeSeconds() * 1000, 5000), me);
+    if (run !== me) return;
+
+    // Release: Mailbox.
+    if (!(await chooseScene('mailbox', 'Release scenes keep it until you send it off', me))) return;
+    env = host.env();
+    await blank(env, me);
+    if (run !== me) return;
+    if (!(await pickBrush(me))) return;
+    if (!(await drawAndType(env, me))) return;
+    if (!(await showUndo(env, me))) return;
+    if (!(await tap(t.clearButton, me))) return;
+    host.say('…then let it go', 3000);
+    env.clear(); // the same as tapping the send button
+    host.wake();
+    await sleep(4200, me);
+    if (run !== me) return;
+
+    // The rest.
     if (!(await showPrefs(me))) return;
-    if (!(await point(t.demoButton, 'Show me runs a quick demo of any scene', 2400, me))) return;
-    await letGo(env, me, true);
+    await point(t.demoButton, 'Show me runs a quick demo of any scene', 2600, me);
   }
 
   async function play(kind) {
