@@ -12,16 +12,6 @@
 }
 .wordmark:active { background: rgba(255, 255, 255, 0.14); }
 .wordmark:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.wordmark-info {
-  width: 15px;
-  height: 15px;
-  margin-left: -3px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  opacity: 0.8;
-}
 #ui.drawing .wordmark, #ui.typing .wordmark, #ui.choosing .wordmark { pointer-events: none; }
 #ui.choosing .wordmark { opacity: 0; }
 #ui.about-open .toolbar, #ui.about-open .scene-chip, #ui.about-open .sound-btn, #ui.about-open .wordmark { opacity: 0; pointer-events: none; }
@@ -117,24 +107,7 @@
 @keyframes about-up { from { transform: translateY(40px); opacity: 0; } }
 @keyframes about-pop { from { transform: translate(-50%, -48%); opacity: 0; } }
 
-/* Early preview: a quiet tag by the wordmark, a section in About, and a one-time note. */
-.preview-tag {
-  margin-left: -2px;
-  padding: 1px 6px 1px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  line-height: 1.5;
-  opacity: 0.85;
-}
-/* Phones: no room beside the wordmark next to the scene chip, so tuck it underneath. */
-@media (max-width: 440px) {
-  .preview-tag { position: absolute; left: 40px; top: 31px; margin: 0; padding: 0 5px; font-size: 8px; line-height: 1.45; }
-}
-
+/* Early preview: a section in About and a one-time welcome note. */
 .about-preview { margin: 0 0 16px; padding: 12px 13px 13px; border-radius: 14px; background: rgba(255, 217, 168, 0.08); border: 1px solid rgba(255, 217, 168, 0.18); }
 .about-preview h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
 .about-preview p { font-size: 13.5px; line-height: 1.45; opacity: 0.82; margin-bottom: 10px; }
