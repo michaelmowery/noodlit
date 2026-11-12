@@ -21,6 +21,7 @@
 // arriveFrom { x, y } (offset the new sheet slides in from), washUpAt, washUp, grain (0..1).
 
 import { clamp, easeInOut, mulberry32, makeCanvas, valueNoise, layoutText, drawText, HAND } from './util.js';
+import { sfx } from './sound.js';
 
 const SIDES = {
   right: { dx: 1, dy: 0, angle: 0 },
@@ -171,6 +172,7 @@ export class ReleaseScene {
       from: { x: x + w / 2 + s.offX, y: y + h / 2 + s.offY },
       x: x + w / 2 + s.offX, y: y + h / 2 + s.offY, s: 1, a: 0, alpha: 1,
     };
+    sfx.cue('release');
     this.launch(f);
     this.carried.push(f);
     this.sheet = null;
@@ -194,6 +196,7 @@ export class ReleaseScene {
     } else if (this.time >= this.washAt) {
       this.sheet = this.newSheet();
       this.sheet.arrive = 0;
+      sfx.cue('arrive');
       active = true;
     } else active = true;
 

@@ -7,6 +7,7 @@
 //   Clear: one big wave runs up past the bottom of the screen and leaves the beach smooth.
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;          // extra depth above 1.0 = a short "fully crisp" hold before slumping
 const RIPPLE = 1.9;         // berm reach, as a multiple of groove radius
@@ -161,6 +162,7 @@ class Waves {
       erode: big ? 6 : 1.1,
       cleared: false,
     };
+    sfx.cue('wave', this.wave);
   }
 
   // 0 at rest, 1 at full reach; also reports which way the water is moving.

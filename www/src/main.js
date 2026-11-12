@@ -2,6 +2,7 @@
 // everything visual is delegated to the active fade environment.
 
 import { environmentsFor, modeOf, getEnvironment } from './environments/index.js';
+import { sfx } from './lib/sound.js';
 
 const SPEEDS = [
   { id: 'drift', label: 'Drift', seconds: 45, hint: 'Slow fade · about 45 seconds' },
@@ -63,6 +64,7 @@ const typeSpot = document.getElementById('type-spot');
 const clearIcon = document.getElementById('clear-icon');
 const defaultClearIcon = clearIcon.getAttribute('d');
 const toast = document.getElementById('toast');
+const btnSound = document.getElementById('btn-sound');
 
 let envDef, env;
 let speedIndex = Math.max(0, SPEEDS.findIndex((s) => s.id === store.get('speed', 'flow')));
@@ -101,6 +103,7 @@ function wake() {
 
 // ------------------------------------------------------------------ input
 const pointers = new Set();
+const lastPos = new Map(); // pointerId -> { x, y, t }, for how fast the finger moves (drawing sound)
 const info = (e) => ({
   pointerType: e.pointerType,
   pressure: e.pressure || 0.5,
@@ -111,9 +114,11 @@ const info = (e) => ({
 canvas.addEventListener('pointerdown', (e) => {
   if (e.button > 0) return;
   e.preventDefault();
+  sfx.unlock();
   if (typing) { moveTyping(e.clientX, e.clientY); return; }
   canvas.setPointerCapture?.(e.pointerId);
   pointers.add(e.pointerId);
+  lastPos.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp });
   env.strokeStart(e.pointerId, e.clientX, e.clientY, info(e));
   ui.classList.add('drawing');
   wake();
@@ -122,10 +127,20 @@ canvas.addEventListener('pointermove', (e) => {
   if (!pointers.has(e.pointerId)) return;
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
   for (const ce of events.length ? events : [e]) env.strokeMove(e.pointerId, ce.clientX, ce.clientY, info(ce));
+  const lp = lastPos.get(e.pointerId);
+  const dt = (e.timeStamp - lp.t) / 1000;
+  if (dt > 0.008) {
+    const speed = Math.hypot(e.clientX - lp.x, e.clientY - lp.y) / dt;
+    lp.speed = lp.speed == null ? speed : lp.speed * 0.6 + speed * 0.4;
+    Object.assign(lp, { x: e.clientX, y: e.clientY, t: e.timeStamp });
+    sfx.stroke(lp.speed);
+  }
   wake();
 });
 const end = (e) => {
   if (!pointers.delete(e.pointerId)) return;
+  lastPos.delete(e.pointerId);
+  if (!pointers.size) sfx.strokeEnd();
   env.strokeEnd(e.pointerId);
   if (!pointers.size) ui.classList.remove('drawing');
   wake();
@@ -166,6 +181,21 @@ btnHold.addEventListener('click', () => {
   showToast(held ? 'Holding this thought' : 'Letting it fade again');
   wake();
 });
+
+// Sound: on by default (it follows the iPhone's silent switch and mixes with your music),
+// and the choice is remembered. Audio can only start from a tap, so the first touch unlocks it.
+function applySound(announce) {
+  const on = sfx.enabled;
+  btnSound.setAttribute('aria-pressed', String(on));
+  btnSound.setAttribute('aria-label', on ? 'Sound on' : 'Sound off');
+  store.set('sound', on);
+  if (announce) showToast(on ? 'Sound on' : 'Sound off');
+}
+btnSound.addEventListener('click', () => {
+  sfx.setEnabled(!sfx.enabled);
+  applySound(true);
+});
+for (const type of ['pointerdown', 'keydown']) document.addEventListener(type, () => sfx.unlock(), { capture: true, passive: true });
 
 btnClear.addEventListener('click', () => {
   env.clear();
@@ -304,6 +334,7 @@ function useEnvironment(def, { announce = false } = {}) {
   // Release surfaces don't fade, so fade speed and Hold have nothing to do there.
   btnSpeed.hidden = btnHold.hidden = mode === 'release';
   store.set('env', def.id);
+  sfx.setScene(def.id);
   if (announce) showToast(def.name);
   wake();
 }
@@ -414,7 +445,7 @@ function openScenes() {
   requestAnimationFrame(() => {
     for (const slot of scenesBody.querySelectorAll('.scene-thumb:empty')) {
       const def = getEnvironment(slot.dataset.id);
-      slot.append(renderThumb(def));
+      slot.append(sfx.silently(() => renderThumb(def)));
     }
   });
 }
@@ -436,8 +467,13 @@ document.addEventListener('keydown', (e) => {
 // ------------------------------------------------------------------ boot
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 150));
-document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+document.addEventListener('visibilitychange', () => {
+  sfx.setHidden(document.hidden);
+  if (!document.hidden) wake();
+});
 
+sfx.enabled = store.get('sound', true) !== false;
+applySound(false);
 useEnvironment(getEnvironment(store.get('env', 'shower-door')));
 applySpeed(false);
 resize();

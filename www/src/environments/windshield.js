@@ -8,6 +8,7 @@
 //   Clear: the wipers sweep straight away.
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;        // extra clarity above 1.0 = a short "fully clear" hold before rain returns
 const PARK = 0.05;        // blade angle at rest (radians, measured from pointing right)
@@ -191,6 +192,7 @@ class Windshield {
   startSweep(leg = 0.75) {
     if (this.sweep) return;
     this.sweep = { t: 0, up: leg, rest: 0.12, down: leg, a: PARK };
+    sfx.cue('wipers', this.sweep);
     this.timer = 0;
   }
 

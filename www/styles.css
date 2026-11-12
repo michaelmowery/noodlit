@@ -109,6 +109,36 @@ html, body {
 }
 #ui.drawing .scene-chip, #ui.typing .scene-chip { opacity: 0; pointer-events: none; }
 
+/* Sound toggle: a small round button tucked under the scene chip. */
+.sound-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 62px);
+  right: calc(env(safe-area-inset-right) + 12px);
+  appearance: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--glass);
+  border: 1px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  color: var(--ink);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: opacity 0.35s ease, background 0.2s ease;
+}
+.sound-btn:active { background: rgba(255, 255, 255, 0.14); }
+.sound-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sound-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.sound-btn .sound-off { display: none; }
+.sound-btn[aria-pressed="false"] { color: rgba(238, 243, 246, 0.6); }
+.sound-btn[aria-pressed="false"] .sound-on { display: none; }
+.sound-btn[aria-pressed="false"] .sound-off { display: inline; }
+#ui.drawing .sound-btn, #ui.typing .sound-btn, #ui.choosing .sound-btn { opacity: 0; pointer-events: none; }
+
 /* Scene menu: a bottom sheet on phones, a panel under the chip on wider screens. */
 .scenes { position: absolute; inset: 0; pointer-events: auto; z-index: 5; }
 .scenes[hidden] { display: none; }

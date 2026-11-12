@@ -5,6 +5,7 @@
 //   Clear: a roll of steam sweeps up from the bottom and fogs the whole door.
 
 import { clamp, smoothstep, easeInOut, mulberry32, makeCanvas, valueNoise, layoutFor, drawText, TextOverlay, draftMethods } from '../lib/util.js';
+import { sfx } from '../lib/sound.js';
 
 const HOLD = 0.35;       // extra clarity above 1.0 = a short "fully clear" hold before fog returns
 const MAX_DRIPS = 40;
@@ -144,6 +145,7 @@ class ShowerDoor {
   // ---------------------------------------------------------------- drips
   spawnDrip(x, y) {
     if (this.drips.length >= MAX_DRIPS || y > this.H - 4) return;
+    sfx.cue('drip');
     this.drips.push({
       x, y, vy: 0, pause: 0.15 + Math.random() * 0.4,
       size: 2.2 + Math.random() * 1.3,
@@ -179,6 +181,7 @@ class ShowerDoor {
 
   // ---------------------------------------------------------------- time
   clear() {
+    sfx.cue('steam');
     this.clearing = { t: 0, dur: 1.15 };
     this.strokes.clear();
   }

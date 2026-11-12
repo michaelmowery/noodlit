@@ -7,6 +7,7 @@
 
 import { clamp, easeInOut, mulberry32, makeCanvas } from '../lib/util.js';
 import { ReleaseScene, fitRect, paintPaper } from '../lib/release.js';
+import { sfx } from '../lib/sound.js';
 
 const LIGHT = 1.1;    // flame catches and the paper warms up
 const RISE = 9;
@@ -82,6 +83,7 @@ class Lantern extends ReleaseScene {
   }
 
   launch(f) {
+    sfx.cue('ignite');
     f.drift = (this.rand() - 0.4) * this.W * 0.3;
     const c = f.sheet.comp;
     // A warm-lit version of the panel to fade to as the flame catches.
