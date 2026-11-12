@@ -6,8 +6,11 @@ import { loadEnvironment } from './environments/index.js';
 
 // Tidy up after scenes that have been retired, so nothing of theirs is left on the device.
 // (Moss wall, the one Grow scene, kept its wall in localStorage.)
-const RETIRED = ['moss-wall'];
+const RETIRED = ['moss-wall', 'whirlpool'];
 try {
+  // Whirlpool became Flush: anyone who left off there opens on Flush.
+  if (localStorage.getItem('noodlit.env') === JSON.stringify('whirlpool')) localStorage.setItem('noodlit.env', JSON.stringify('flush'));
+  if (prefs.get('startScene') === 'whirlpool') prefs.set('startScene', 'flush');
   localStorage.removeItem('noodlit.grow.moss-wall');
   for (const id of RETIRED) {
     for (const k of ['brush', 'ink', 'tip', 'demoSeen']) localStorage.removeItem(`noodlit.${k}.${id}`);

@@ -106,7 +106,7 @@ export const environments = [
   // Stir
   scene('latte', 'Latte art', 'stir', 'Pour milk lines; the cup swirls them away', () => import('./latte.js').then((m) => m.latte)),
   scene('rinse', 'Rinse water', 'stir', 'Paint swirls and mingles in the rinse jar', () => import('./rinse.js').then((m) => m.rinse)),
-  scene('whirlpool', 'Whirlpool', 'stir', 'Your lines spiral down the middle and are gone', () => import('./whirlpool.js').then((m) => m.whirlpool)),
+  scene('flush', 'Flush', 'stir', 'Your lines swirl round the bowl and are flushed away', () => import('./flush.js').then((m) => m.flush)),
   scene('kaleidoscope', 'Kaleidoscope', 'stir', 'Your lines mirror, turn and melt together', () => import('./kaleidoscope.js').then((m) => m.kaleidoscope)),
   // Echo
   scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),

@@ -71,7 +71,7 @@ export const BRUSHES = {
   // Stir (drag: a pick that pulls the milk around without pouring any)
   latte: [B('Fine pour', 0.5, { steady: 0.8 }), B('Milk pour', 1, { flow: 0.3 }), B('Latte pick', 1.3, { steady: 1, drag: true }), B('Big pour', 2.6)],
   rinse: [B('Fine brush', 0.5, { steady: 0.6 }), B('Brush', 1, { flow: 0.4 }), B('Stir stick', 1.3, { steady: 1, drag: true }), B('Loaded brush', 2.6)],
-  whirlpool: [B('Thin stream', 0.5), B('Stream', 1), B('Paddle', 1.3, { steady: 1, drag: true }), B('Wide stream', 2.6)],
+  flush: [B('Fine line', 0.5), B('Line', 1), B('Swish', 1.3, { steady: 1, drag: true }), B('Wide line', 2.6)],
   kaleidoscope: [B('Thread', 0.5, { steady: 0.8 }), B('Ribbon', 1), B('Twist', 1.3, { steady: 1, drag: true }), B('Band', 2.6)],
   // Echo
   canyon: [B('Whisper', 0.5, { steady: 0.8 }), B('Call', 1), B('Shout', 2.6)],
