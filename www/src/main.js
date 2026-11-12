@@ -1067,7 +1067,7 @@ function buildScenes() {
   listHint.innerHTML = `<h4>All ${all.length} scenes</h4><p>A to Z</p>`;
   const grid = document.createElement('div');
   grid.className = 'scenes-grid';
-  for (const def of all) grid.append(buildTile(def, { tierTag: true }));
+  for (const def of all) grid.append(buildTile(def, { tierTag: true, modeTag: true }));
   list.append(listHint, grid);
 
   const grouped = document.createElement('div');
@@ -1089,7 +1089,7 @@ function buildFeatured() {
   head.innerHTML = '<h4>Featured</h4><p>A good place to start</p>';
   const grid = document.createElement('div');
   grid.className = 'scenes-grid';
-  for (const def of picks) grid.append(buildTile(def, { tierTag: true }));
+  for (const def of picks) grid.append(buildTile(def, { tierTag: true, modeTag: true }));
   section.append(head, grid);
   return section;
 }
@@ -1136,6 +1136,7 @@ function sceneViewChanged() {
 function buildGroup(mode, group) {
   const section = document.createElement('section');
   section.className = 'scenes-group';
+  section.dataset.mode = mode;
   const head = document.createElement('div');
   head.className = 'scenes-group-head';
   const info = modeInfo(mode);
@@ -1148,11 +1149,12 @@ function buildGroup(mode, group) {
 }
 
 // One scene's button: preview, name, blurb (and, in the one-list view, its plan).
-function buildTile(def, { tierTag = false } = {}) {
+function buildTile(def, { tierTag = false, modeTag = false } = {}) {
   const tile = document.createElement('button');
   tile.type = 'button';
   tile.className = 'scene-tile';
   tile.dataset.id = def.id;
+  tile.dataset.mode = modeOf(def); // tints the tile in its mode's colour (styles.css)
   const thumb = document.createElement('span');
   thumb.className = 'scene-thumb';
   thumb.dataset.id = def.id;
@@ -1166,7 +1168,14 @@ function buildTile(def, { tierTag = false } = {}) {
     tag.textContent = tier.label;
     name.append(' ', tag);
   }
-  tile.append(thumb, name);
+  tile.append(thumb);
+  if (modeTag) {
+    const kicker = document.createElement('span');
+    kicker.className = 'scene-mode';
+    kicker.textContent = modeInfo(modeOf(def)).label;
+    tile.append(kicker);
+  }
+  tile.append(name);
   if (def.blurb) {
     const blurb = document.createElement('span');
     blurb.className = 'scene-blurb';
