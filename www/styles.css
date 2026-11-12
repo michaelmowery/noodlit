@@ -653,3 +653,80 @@ html, body {
   .scenes-panel, .scenes-backdrop, .speed-pop { animation: none; }
   #type-spot.show { animation: none; opacity: 1; }
 }
+
+/* Prompt bubble: the lightbulb floats a prompt up in a speech bubble above the surface. It isn't
+   drawn on the canvas, so it never fades or gets released. Tap it and it pops. */
+.prompt-bubble {
+  --tail-x: 40px;
+  position: absolute;
+  bottom: calc(env(safe-area-inset-bottom) + 86px);
+  max-width: min(300px, calc(100vw - 28px));
+  min-width: 132px;
+  padding: 14px 22px 15px;
+  appearance: none;
+  border: 0;
+  border-radius: 26px;
+  background: rgba(255, 252, 245, 0.96);
+  color: #26323a;
+  font-family: "Bradley Hand", "Segoe Print", "Noteworthy", ui-rounded, system-ui, sans-serif;
+  font-size: 23px;
+  line-height: 1.18;
+  text-align: center;
+  white-space: pre-line;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28), inset 0 -3px 0 rgba(38, 50, 58, 0.06);
+  transform-origin: var(--tail-x) 100%;
+  animation: bubble-in 0.42s cubic-bezier(0.2, 1.5, 0.4, 1) both, bubble-bob 4.5s ease-in-out 0.45s infinite;
+  transition: opacity 0.3s ease;
+  z-index: 3;
+}
+.prompt-bubble::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--tail-x) - 9px);
+  bottom: -8px;
+  width: 18px;
+  height: 18px;
+  background: inherit;
+  border-radius: 0 0 5px 0;
+  transform: rotate(45deg);
+}
+.prompt-bubble span { position: relative; z-index: 1; display: block; }
+.prompt-bubble:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* Little bits that fly off when it pops. */
+.prompt-bubble i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px;
+  border-radius: 50%;
+  background: rgba(255, 252, 245, 0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+.prompt-bubble.popping {
+  animation: bubble-pop 0.22s ease-out forwards;
+  background: transparent;
+  box-shadow: none;
+  color: transparent;
+}
+.prompt-bubble.popping i { animation: bubble-bit 0.36s ease-out forwards; }
+.prompt-bubble.gone { animation: bubble-gone 0.18s ease-in forwards; }
+@keyframes bubble-in { from { transform: scale(0.2) translateY(14px); opacity: 0; } 60% { opacity: 1; } }
+@keyframes bubble-bob { 50% { transform: translateY(-4px); } }
+@keyframes bubble-pop { to { transform: scale(1.3); opacity: 0.9; } }
+@keyframes bubble-bit {
+  0% { opacity: 1; transform: rotate(var(--a)) translateX(10px) scale(1); }
+  100% { opacity: 0; transform: rotate(var(--a)) translateX(90px) scale(0.3); }
+}
+@keyframes bubble-gone { to { transform: scale(0.85) translateY(6px); opacity: 0; } }
+#ui.drawing .prompt-bubble { opacity: 0.45; pointer-events: none; }
+#ui.typing .prompt-bubble, #ui.choosing .prompt-bubble { opacity: 0; pointer-events: none; }
+/* The bubble sits where hints usually pop up, so hints move to the top while it's there. */
+#ui.has-bubble #toast { bottom: auto; top: calc(env(safe-area-inset-top) + 18px); }
+@media (prefers-reduced-motion: reduce) {
+  .prompt-bubble { animation: bubble-gone 0.2s ease-out reverse both; }
+}

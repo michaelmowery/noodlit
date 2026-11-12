@@ -551,6 +551,13 @@ const SCENES = {
 function cue(fn, gap = 0) { fn.gap = gap; return fn; }
 
 const CUES = {
+  // Prompt bubble: a soft bloop as it floats up, and a bright little pop when tapped.
+  bloop: cue((s) => s.tone({ f: 420, f2: 760, peak: 0.05, attack: 0.01, dur: 0.16 }), 0.1),
+  pop: cue((s) => {
+    s.tone({ f: 900, f2: 240, peak: 0.09, attack: 0.002, dur: 0.09 });
+    s.burst({ kind: 'white', f: 2600, q: 1.4, peak: 0.06, attack: 0.002, dur: 0.06 });
+  }, 0.08),
+
   // Shower door: a drip lets go and runs down the glass.
   drip: cue((s) => s.tone({ f: 1300 + Math.random() * 400, f2: 700, peak: 0.035, dur: 0.09 }), 0.25),
 
