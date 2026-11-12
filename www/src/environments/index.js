@@ -92,7 +92,7 @@ export const environments = [
 // shows a "Plus" badge in the scene menu. Nothing is locked yet: every scene stays free
 // while Noodlit is in preview.
 export const FREE_SCENES = new Set([
-  'shower-door', 'waves', 'snow', 'chalk', // Fade
+  'shower-door', 'waves', 'snow', // Fade
   'stream', 'bottle', 'mailbox', 'whiteboard', // Release
 ]);
 export const isPlus = (env) => !FREE_SCENES.has(env.id);
