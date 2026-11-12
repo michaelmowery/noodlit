@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environmentsFor, modeOf, tierOf, TIERS, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
+import { environments, environmentsFor, modeOf, tierOf, TIERS, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { track } from './analytics.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
@@ -270,8 +270,9 @@ const demo = createDemo({
     openScenes() { openScenes(); scenesPanel.scrollTop = 0; },
     // Switches to the tile's tab first, so it's on show.
     tile(id) {
-      const tile = scenesBody.querySelector(`.scene-tile[data-id="${id}"]`);
-      if (tile) showTier(tile.closest('.scenes-tier').id.replace('scenes-tier-', ''));
+      const tile = viewRoot().querySelector(`.scene-tile[data-id="${id}"]`);
+      const tier = tile?.closest('.scenes-tier');
+      if (tier) showTier(tier.id.replace('scenes-tier-', ''));
       return tile;
     },
     revealTile(tile) {
@@ -1106,7 +1107,62 @@ function buildScenes() {
     tierTabs[j].click();
     tierTabs[j].focus();
   });
-  scenesBody.append(bar, tierHint, ...panels);
+  // The other view: every scene in one A-to-Z grid, each tile labelled with its plan.
+  const all = environments.slice().sort((a, b) => a.name.localeCompare(b.name));
+  const list = document.createElement('section');
+  list.className = 'scenes-all';
+  const listHint = document.createElement('p');
+  listHint.className = 'scenes-tier-hint';
+  listHint.textContent = `All ${all.length} scenes, A to Z`;
+  const grid = document.createElement('div');
+  grid.className = 'scenes-grid';
+  for (const def of all) grid.append(buildTile(def, { tierTag: true }));
+  list.append(listHint, grid);
+
+  const grouped = document.createElement('div');
+  grouped.className = 'scenes-grouped';
+  grouped.append(bar, tierHint, ...panels);
+  scenesBody.append(grouped, list);
+  applySceneView();
+}
+
+// Grouped (tabs) or one list. A preference (prefs.js), also switchable in the menu's header.
+const viewButtons = [...scenes.querySelectorAll('.scenes-view [data-view]')];
+const sceneView = () => (prefs.get('sceneView') === 'list' ? 'list' : 'grouped');
+const viewRoot = () => scenesBody.querySelector(sceneView() === 'list' ? '.scenes-all' : '.scenes-grouped') || scenesBody;
+function applySceneView() {
+  const view = sceneView();
+  for (const b of viewButtons) {
+    const on = b.dataset.view === view;
+    b.setAttribute('aria-checked', on ? 'true' : 'false');
+    b.tabIndex = on ? 0 : -1;
+  }
+  const grouped = scenesBody.querySelector('.scenes-grouped');
+  const list = scenesBody.querySelector('.scenes-all');
+  if (grouped) grouped.hidden = view !== 'grouped';
+  if (list) list.hidden = view !== 'list';
+}
+for (const b of viewButtons) {
+  b.addEventListener('click', () => {
+    if (b.dataset.view === sceneView()) return;
+    track('menu/view/' + b.dataset.view, `Scene menu view: ${b.dataset.view}`);
+    prefs.set('sceneView', b.dataset.view); // the prefs listener below applies it
+  });
+}
+applySceneView();
+scenes.querySelector('.scenes-view').addEventListener('keydown', (e) => {
+  if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+  e.preventDefault();
+  const next = viewButtons.find((b) => b.dataset.view !== sceneView());
+  next.click();
+  next.focus();
+});
+function sceneViewChanged() {
+  applySceneView();
+  if (scenes.hidden) return;
+  scenesPanel.scrollTop = 0;
+  syncScenes();
+  fillThumbs();
 }
 
 // Show one tier's tab. Back to the top of the list when it changes.
@@ -1133,33 +1189,43 @@ function buildGroup(mode, group) {
   head.innerHTML = `<h4>${info.label}</h4>${info.hint ? `<p>${info.hint}</p>` : ''}`;
   const grid = document.createElement('div');
   grid.className = 'scenes-grid';
-  for (const def of group) {
-    const tile = document.createElement('button');
-    tile.type = 'button';
-    tile.className = 'scene-tile';
-    tile.dataset.id = def.id;
-    const thumb = document.createElement('span');
-    thumb.className = 'scene-thumb';
-    thumb.dataset.id = def.id;
-    const name = document.createElement('span');
-    name.className = 'scene-name';
-    name.textContent = def.name;
-    tile.append(thumb, name);
-    if (def.blurb) {
-      const blurb = document.createElement('span');
-      blurb.className = 'scene-blurb';
-      blurb.textContent = def.blurb;
-      tile.append(blurb);
-    }
-    tile.addEventListener('click', () => {
-      trackPick(def);
-      closeScenes();
-      if (def.id !== envDef.id) switchTo(def);
-    });
-    grid.append(tile);
-  }
+  for (const def of group) grid.append(buildTile(def));
   section.append(head, grid);
   return section;
+}
+
+// One scene's button: preview, name, blurb (and, in the one-list view, its plan).
+function buildTile(def, { tierTag = false } = {}) {
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'scene-tile';
+  tile.dataset.id = def.id;
+  const thumb = document.createElement('span');
+  thumb.className = 'scene-thumb';
+  thumb.dataset.id = def.id;
+  const name = document.createElement('span');
+  name.className = 'scene-name';
+  name.textContent = def.name;
+  if (tierTag) {
+    const tier = TIERS.find((t) => t.id === tierOf(def));
+    const tag = document.createElement('span');
+    tag.className = `scene-tier-tag tier-${tier.id}`;
+    tag.textContent = tier.label;
+    name.append(' ', tag);
+  }
+  tile.append(thumb, name);
+  if (def.blurb) {
+    const blurb = document.createElement('span');
+    blurb.className = 'scene-blurb';
+    blurb.textContent = def.blurb;
+    tile.append(blurb);
+  }
+  tile.addEventListener('click', () => {
+    trackPick(def);
+    closeScenes();
+    if (def.id !== envDef.id) switchTo(def);
+  });
+  return tile;
 }
 
 // Which scenes and families people pick, and how often they reach for a Plus or Premium scene
@@ -1219,15 +1285,26 @@ function openScenes() {
   btnScene.setAttribute('aria-expanded', 'true');
   ui.classList.add('choosing');
   lastFocus = document.activeElement;
-  (scenesBody.querySelector('[aria-current="true"]') || scenesBody.querySelector('button'))?.focus({ preventScroll: true });
+  (viewRoot().querySelector('.scene-tile[aria-current="true"]') || viewRoot().querySelector('button'))?.focus({ preventScroll: true });
   // Fill in the previews just after the menu shows, so opening it never stutters.
-  requestAnimationFrame(() => {
-    for (const slot of scenesBody.querySelectorAll('.scene-thumb:empty')) {
-      loadEnvironment(slot.dataset.id).then((def) => {
-        if (!slot.childElementCount) slot.append(sfx.silently(() => renderThumb(def)));
-      }).catch(() => { /* offline and not cached yet: the name still says what it is */ });
-    }
-  });
+  requestAnimationFrame(fillThumbs);
+}
+
+// Previews for the view on show. Each scene renders once; the other view gets a copy.
+function fillThumbs() {
+  for (const slot of viewRoot().querySelectorAll('.scene-thumb:empty')) {
+    loadEnvironment(slot.dataset.id).then((def) => {
+      if (slot.childElementCount) return;
+      let c = sfx.silently(() => renderThumb(def));
+      if (c.isConnected || c.parentNode) {
+        const copy = document.createElement('canvas');
+        copy.width = c.width; copy.height = c.height;
+        copy.getContext('2d').drawImage(c, 0, 0);
+        c = copy;
+      }
+      slot.append(c);
+    }).catch(() => { /* offline and not cached yet: the name still says what it is */ });
+  }
 }
 
 function closeScenes() {
@@ -1272,6 +1349,7 @@ window.addEventListener('noodlit:prefs', ({ detail: { key, value } }) => {
     store.set('fadeSeconds', fadeSeconds);
     applySpeed();
   } else if (key === 'brush') { sessionBrush.clear(); applyInk(); }
+  else if (key === 'sceneView') sceneViewChanged();
 });
 applySpeed();
 resize();
