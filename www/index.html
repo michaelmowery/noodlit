@@ -43,13 +43,13 @@
         <div class="scenes-head">
           <h2 id="scenes-title">Choose a scene</h2>
           <div class="scenes-view" role="radiogroup" aria-label="Show scenes">
-            <button type="button" role="radio" data-view="grouped" aria-label="Grouped by plan" title="Grouped by plan">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
-              <span>Groups</span>
-            </button>
             <button type="button" role="radio" data-view="list" aria-label="All in one list" title="All in one list">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14M5 12h14M5 17.5h14"/></svg>
               <span>All</span>
+            </button>
+            <button type="button" role="radio" data-view="grouped" aria-label="Grouped by type" title="Grouped by type">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+              <span>Groups</span>
             </button>
           </div>
           <button type="button" class="scenes-close" data-close aria-label="Close">
@@ -110,7 +110,7 @@
         <section class="about-preview">
           <h3>Early preview</h3>
           <p>Noodlit is brand new and growing fast. New scenes land often, and now and then something may wobble. Ideas, bugs, or a scene you'd love to see? We'd like to hear it.</p>
-          <p>Scenes in the <span class="scene-plus">Plus</span> and <span class="scene-plus">Premium</span> tabs of the scene menu will be part of Noodlit's paid plans when Noodlit arrives in the app stores. While we're in preview, every scene is free.</p>
+          <p>Scenes marked <span class="scene-plus">Plus</span> or <span class="scene-plus">Premium</span> in the scene menu will be part of Noodlit's paid plans when Noodlit arrives in the app stores. While we're in preview, every scene is free.</p>
           <a class="about-feedback" href="mailto:mountmtech@gmail.com?subject=Noodlit%20feedback">Send feedback</a>
         </section>
         <section class="about-privacy">
@@ -170,8 +170,8 @@
             <label class="pref-row">
               <span class="pref-text"><span class="pref-name">Show scenes</span><span class="pref-hint">Also switchable at the top of the scene menu</span></span>
               <select name="sceneView" class="pref-select">
-                <option value="grouped">Grouped by plan</option>
                 <option value="list">All in one list</option>
+                <option value="grouped">Grouped by type</option>
               </select>
             </label>
           </section>
