@@ -1,7 +1,7 @@
 // Message in a bottle: a Release environment.
 //   Look:  ink on an old parchment note lying on the sand of a storybook beach.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up toward the sea (or tap "Cast it off"). The note rolls up and
+//   Clear: tap "Cast it off". The note rolls up and
 //          slips into a bottle, the bottle is tossed out past the waves with a plop, and it
 //          bobs away toward the horizon. The crab scuttles off; a new note washes up.
 
@@ -29,7 +29,7 @@ export const bottle = {
   blurb: 'Cast it out to sea',
   clearLabel: 'Cast it off',
   clearIcon: 'M10 3h4v3l1.5 2.5V20a1 1 0 0 1-1 1h-5a1 1 0 0 1-1-1V8.5L10 6V3zM8.5 12h7',
-  surface: 'A parchment note on a beach. Drag the handle up to put it in a bottle and cast it out to sea.',
+  surface: 'A parchment note on a beach. Tap Cast it off to put it in a bottle and cast it out to sea.',
   fades: false,
   palette: PALETTE,
   create: () => new Bottle(),
@@ -39,7 +39,6 @@ class Bottle extends ReleaseScene {
   constructor() {
     super(71);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 40 };
     this.washUpAt = 2.4;
     this.washUp = 1.1;

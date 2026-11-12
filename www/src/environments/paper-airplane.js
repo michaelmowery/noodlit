@@ -1,7 +1,7 @@
 // Paper airplane: a Release environment.
 //   Look:  pencil on a page of lined notebook paper, up on a rooftop above a little town.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle to the right (or tap "Throw it"). The page folds into a paper
+//   Clear: tap "Throw it". The page folds into a paper
 //          airplane with your drawing on its wings, gets thrown, does a loop-the-loop and
 //          glides away over the rooftops. The pigeons scatter; a fresh page is torn out.
 
@@ -28,7 +28,7 @@ export const paperAirplane = {
   blurb: 'Fold it up and throw it',
   clearLabel: 'Throw it',
   clearIcon: 'M3 11l18-7-6 16-3.5-6.5L3 11zM11.5 13.5L21 4',
-  surface: 'A notebook page to draw on. Drag the handle to the right to fold it into a paper airplane and throw it.',
+  surface: 'A notebook page to draw on. Tap Throw it to fold it into a paper airplane and throw it.',
   fades: false,
   palette: PALETTE,
   create: () => new PaperAirplane(),
@@ -38,7 +38,6 @@ class PaperAirplane extends ReleaseScene {
   constructor() {
     super(33);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'right';
     this.arriveFrom = { x: -40, y: 20 };
     this.washUpAt = 2.4;
     this.grain = 0.85;

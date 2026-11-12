@@ -1,7 +1,7 @@
 // Burning page: a Release environment.
 //   Look:  pen on a lined notebook page, held over a glowing hearth at night.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle down toward the fire (or tap "Burn it"). Flame catches the bottom
+//   Clear: tap "Burn it". Flame catches the bottom
 //          edge, a glowing line eats inward from the edges, the page chars and curls, and
 //          embers drift up the chimney. A fresh page is torn from the pad.
 
@@ -26,7 +26,7 @@ export const burning = {
   blurb: 'It curls and burns into embers',
   clearLabel: 'Burn it',
   clearIcon: 'M12 3c1 3 4 4.5 4 9a4 4 0 0 1-8 0c0-2 1-3 1-3 0 1.5 1 2 1.5 2C10 8 12 6 12 3z',
-  surface: 'A notebook page held over a fire. Drag the handle down to burn it.',
+  surface: 'A notebook page held over a fire. Tap Burn it to set it alight.',
   fades: false,
   palette: PALETTE,
   create: () => new Burning(),
@@ -36,7 +36,6 @@ class Burning extends ReleaseScene {
   constructor() {
     super(33);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'bottom';
     this.arriveFrom = { x: 0, y: -50 };
     this.washUpAt = 1.6;
     this.washUp = 0.8;

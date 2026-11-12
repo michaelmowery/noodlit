@@ -1,7 +1,7 @@
 // Dandelion: a Release environment.
 //   Look:  ink on a big white dandelion clock, standing in a meadow at golden hour.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up (or tap "Blow"). A breath of wind takes the seeds, each one
+//   Clear: tap "Blow". A breath of wind takes the seeds, each one
 //          carrying its own little piece of your drawing off across the meadow on a tiny
 //          parachute. A new flower opens on the stem.
 
@@ -26,7 +26,7 @@ export const dandelion = {
   blurb: 'Make a wish and blow the seeds away',
   clearLabel: 'Blow',
   clearIcon: 'M12 22V12M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM17 6l3-2M18 10l3 0M16 13l3 2',
-  surface: 'A dandelion seed head to draw on. Drag the handle up to blow the seeds away.',
+  surface: 'A dandelion seed head to draw on. Tap Blow to blow the seeds away.',
   fades: false,
   palette: PALETTE,
   create: () => new Dandelion(),
@@ -36,7 +36,6 @@ class Dandelion extends ReleaseScene {
   constructor() {
     super(71);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: 0, y: 14 };
     this.washUpAt = 2.2;
     this.washUp = 1.1;

@@ -2,7 +2,7 @@
 //   Look:  marker on a bright diamond kite flying over a breezy green hill, its string
 //          running down to a stake in the grass.
 //   Decay: none. Nothing fades while you draw.
-//   Clear: drag the handle up (or tap "Cut string"). Snip: the string goes slack and the
+//   Clear: tap "Cut string". Snip: the string goes slack and the
 //          kite tumbles up and away on the wind, tail fluttering, until it's a speck past
 //          the clouds. A new kite is sent up.
 
@@ -27,7 +27,7 @@ export const kite = {
   blurb: 'Cut the string and let it fly',
   clearLabel: 'Cut string',
   clearIcon: 'M12 2l7 8-7 12-7-12zM5 10h14M12 2v20M6 20l3-3M3 17l3 3',
-  surface: 'A kite to draw on. Drag the handle up to cut the string.',
+  surface: 'A kite to draw on. Tap Cut string to cut the string.',
   fades: false,
   palette: PALETTE,
   create: () => new Kite(),
@@ -37,7 +37,6 @@ class Kite extends ReleaseScene {
   constructor() {
     super(19);
     this.ink = PALETTE[0].color;
-    this.handleSide = 'top';
     this.arriveFrom = { x: -40, y: 90 };
     this.washUpAt = 1.8;
     this.washUp = 1.1;
