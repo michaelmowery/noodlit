@@ -89,3 +89,9 @@ window.addEventListener('keydown', (e) => {
   }
   e.stopImmediatePropagation();
 }, true);
+
+// "Show me everything": close About and let the shell (main.js) run the full tour.
+document.getElementById('about-tour-btn').addEventListener('click', () => {
+  close();
+  window.dispatchEvent(new Event('noodlit:tour'));
+});

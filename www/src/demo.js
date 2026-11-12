@@ -1,8 +1,9 @@
-// "Show me": a short, hands-off demo of the current scene. A ghost fingertip picks a brush,
-// sets the fade speed (Fade scenes), draws the Noodlit logo through the same stroke calls a real
-// finger uses, and types "Noodlit" underneath with a random prompt in quotes below it, so it works
-// on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the sheet
-// off. Any touch, tap or key stops it, and the user's own brush and fade speed come back.
+// "Show me": a short, hands-off demo of the current scene. A ghost fingertip draws the Noodlit
+// logo through the same stroke calls a real finger uses and types "Noodlit" underneath, so it
+// works on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the
+// sheet off. "Show me everything" (from About) is the longer tour: it also opens the brush and
+// fade trays, floats a prompt, shows Hold or Undo, peeks at the scene menu and points out Show me.
+// Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
 // rings. Coordinates come from icons/icon.svg (a 512 box); each entry is one stroke.
@@ -55,7 +56,8 @@ const sleep = (ms, run) => new Promise((res) => {
 });
 const nextFrame = () => new Promise((res) => requestAnimationFrame(res));
 
-// host: { env(), mode(), size() -> { W, H }, wake(), fadeSeconds(), held(), say(text, ms), sfx, onChange(running) }
+// host: { env(), mode(), size() -> { W, H }, wake(), fadeSeconds(), held(), say(text, ms), sfx, onChange(running),
+//   brush(), speed(), typeButton, snapshot(), restore(snap), onPeek(on), and for the tour: tour.* (see main.js) }
 export function createDemo(host, finger) {
   let run = null;
   const ID = 'demo';
@@ -118,7 +120,7 @@ export function createDemo(host, finger) {
 
   // Open a settings panel for the demo; stop() closes it if interrupted.
   function openPanel(p, me) { p.open(); me.panel = p; host.onPeek(true); }
-  function closePanel(p, me) { p.close(); me.panel = null; host.onPeek(false); }
+  function closePanel(p, me) { p.close(); me.panel = null; host.onPeek(me.kind === 'tour'); }
 
   async function draw(env, strokes, me) {
     for (const pts of strokes) {
@@ -155,127 +157,207 @@ export function createDemo(host, finger) {
     }
   }
 
-  async function play() {
-    const me = run;
-    const env = host.env();
-    await blank(env, me);
-    if (run !== me) return;
-    env.setPaused(true); // hold the fade until the drawing and the word are both done
+  // Glide to a control, show a caption, wait. For buttons the tour only points at.
+  async function point(el, text, ms, me) {
+    if (!el || el.hidden) return run === me;
+    if (!(await tap(el, me))) return false;
+    host.say(text, ms + 400);
+    await sleep(ms, me);
+    return run === me;
+  }
 
-    // 1. Pick a brush.
+  async function pickBrush(me) {
     const brush = host.brush();
-    if (brush) {
-      if (!(await tap(brush.button, me))) return;
-      openPanel(brush, me);
-      host.say('Pick a brush', 1800);
-      await sleep(650, me);
-      if (run !== me) return;
-      const opt = brush.option();
-      if (opt && !(await tap(opt, me))) return;
-      opt?.click();
-      await sleep(700, me);
-      if (run !== me) return;
-      closePanel(brush, me);
-      await sleep(200, me);
-    }
+    if (!brush) return true;
+    if (!(await tap(brush.button, me))) return false;
+    openPanel(brush, me);
+    host.say('Pick a brush', 1800);
+    await sleep(650, me);
+    if (run !== me) return false;
+    const opt = brush.option();
+    if (opt && !(await tap(opt, me))) return false;
+    opt?.click();
+    await sleep(700, me);
+    if (run !== me) return false;
+    closePanel(brush, me);
+    await sleep(200, me);
+    return run === me;
+  }
 
-    // 2. Set how fast it fades (Fade scenes only).
+  async function setSpeed(me) {
     const speed = host.speed();
-    if (speed) {
-      if (!(await tap(speed.button, me))) return;
-      openPanel(speed, me);
-      host.say('Set how fast it fades', 2000);
-      await sleep(400, me);
-      if (run !== me) return;
-      // Slide the knob: the finger rides along it.
-      const r = speed.pop.querySelector('input').getBoundingClientRect();
-      const knobX = (v) => r.left + 12 + (r.width - 24) * (v / 100);
-      const from = speed.get(), cy = r.top + r.height / 2;
-      finger.classList.remove('glide');
-      showFinger(knobX(from), cy, true);
-      const t0 = performance.now();
-      for (let t = 0; t < 1;) {
-        await nextFrame();
-        if (run !== me) return;
-        t = Math.min(1, (performance.now() - t0) / 800);
-        const v = Math.round(from + (DEMO_SPEED - from) * (1 - (1 - t) ** 2));
-        speed.set(v);
-        showFinger(knobX(v), cy, true);
-      }
-      showFinger(knobX(DEMO_SPEED), cy, false);
-      await sleep(700, me);
-      if (run !== me) return;
-      closePanel(speed, me);
-      await sleep(200, me);
-    }
+    if (!speed) return true;
+    if (!(await tap(speed.button, me))) return false;
+    openPanel(speed, me);
+    host.say('Set how fast it fades', 2000);
+    await sleep(400, me);
+    if (run !== me) return false;
+    // Slide the knob: the finger rides along it.
+    const r = speed.pop.querySelector('input').getBoundingClientRect();
+    const knobX = (v) => r.left + 12 + (r.width - 24) * (v / 100);
+    const from = speed.get(), cy = r.top + r.height / 2;
     finger.classList.remove('glide');
+    showFinger(knobX(from), cy, true);
+    const t0 = performance.now();
+    for (let t = 0; t < 1;) {
+      await nextFrame();
+      if (run !== me) return false;
+      t = Math.min(1, (performance.now() - t0) / 800);
+      const v = Math.round(from + (DEMO_SPEED - from) * (1 - (1 - t) ** 2));
+      speed.set(v);
+      showFinger(knobX(v), cy, true);
+    }
+    showFinger(knobX(DEMO_SPEED), cy, false);
+    await sleep(700, me);
+    if (run !== me) return false;
+    closePanel(speed, me);
+    await sleep(200, me);
+    return run === me;
+  }
 
-    // 3. Draw the logo.
+  // Draw the logo and type the name under it.
+  async function drawAndType(env, me) {
+    finger.classList.remove('glide');
     const { W, H } = host.size();
     const b = box(env, W, H);
     const strokes = logo().map((s) => resample(s.map(([u, v]) => [b.x + u * b.s, b.y + v * b.s]), 4));
     host.say('Draw anything…', 2600);
     await draw(env, strokes, me);
-    if (run !== me) return;
+    if (run !== me) return false;
 
-    // 4. Type the name underneath.
-    if (!(await tap(host.typeButton, me))) return;
+    if (!(await tap(host.typeButton, me))) return false;
     finger.classList.remove('show', 'glide');
     host.say('…or type it', 2000);
     const at = (b.y + b.s + Math.min(W, H) * 0.09) / H;
     const word = 'Noodlit';
     for (let n = 1; n <= word.length; n++) {
       await sleep(n === 1 ? 250 : 170, me);
-      if (run !== me) return;
+      if (run !== me) return false;
       env.setDraft(word.slice(0, n), { at });
       me.typing = true;
       host.wake();
     }
-    // …and a random prompt under it, smaller and in quotes, as its own block.
-    const prompt = host.prompt?.();
-    if (prompt) {
-      await sleep(350, me);
-      if (run !== me) return;
-      env.nextDraft?.();
-      const tw = host.mode() === 'release' && env.rect ? env.rect.w * 0.85 : W;
-      const wordSize = Math.min(tw * 0.12, 50); // about how tall "Noodlit" came out
-      const opts = { at: at + (wordSize * 1.2) / H, scale: 0.62, top: true };
-      const text = `\u201C${prompt}\u201D`;
-      for (let n = 1; n <= text.length; n++) {
-        await sleep(n === 1 ? 200 : 75, me);
-        if (run !== me) return;
-        env.setDraft(text.slice(0, n), opts);
-        host.wake();
-      }
-    }
-    await sleep(prompt ? 900 : 500, me);
-    if (run !== me) return;
+    await sleep(500, me);
+    if (run !== me) return false;
     env.commitDraft();
     me.typing = false;
     host.wake();
     await sleep(500, me);
-    if (run !== me) return;
+    return run === me;
+  }
 
-    // 5. Let the scene take it.
+  // Release scenes: a quick scribble, then Undo takes it back.
+  async function showUndo(env, me) {
+    const t = host.tour;
+    if (host.mode() !== 'release' || !t.canUndo()) return true;
+    const { W, H } = host.size();
+    const b = box(env, W, H);
+    const y = b.y + b.s * 0.92, x0 = b.x + b.s * 0.1, x1 = b.x + b.s * 0.9;
+    const squiggle = [];
+    for (let k = 0; k <= 40; k++) squiggle.push([x0 + (x1 - x0) * (k / 40), y + Math.sin(k / 3) * 8]);
+    host.say('Oops?', 1400);
+    await draw(env, [resample(squiggle, 4)], me);
+    if (run !== me) return false;
+    if (!(await tap(t.undoButton, me))) return false;
+    t.undo();
+    host.say('Undo takes back the last mark', 2000);
+    await sleep(1600, me);
+    return run === me;
+  }
+
+  // The scene menu opens for a look, then closes again.
+  async function peekScenes(me) {
+    const t = host.tour;
+    if (!(await tap(t.sceneButton, me))) return false;
+    finger.classList.remove('show');
+    t.openScenes();
+    host.say('Pick a new scene any time', 2600);
+    await sleep(2400, me);
+    t.closeScenes();
+    await sleep(300, me);
+    return run === me;
+  }
+
+  // Let the scene take it: Fade scenes fade, Release scenes let it go.
+  async function letGo(env, me, viaButton) {
     if (host.mode() === 'release') {
+      if (viaButton && !(await tap(host.tour.clearButton, me))) return;
       host.say('…then let it go', 3000);
       env.clear(); // the same as tapping the release button
       host.wake();
       await sleep(4200, me);
     } else {
+      if (viaButton) {
+        if (!(await tap(host.tour.holdButton, me))) return;
+        host.tour.setHeld(false);
+      }
       host.say('…and watch it fade', 3000);
       env.setPaused(false);
       host.wake();
       await sleep(host.fadeSeconds() * 1000 + 1500, me);
     }
+  }
+
+  // The scene demo: draw, type, let go. It quietly uses a quick fade so nobody waits.
+  async function playScene(me) {
+    const env = host.env();
+    await blank(env, me);
+    if (run !== me) return;
+    env.setPaused(true); // hold the fade until the drawing and the word are both done
+    host.speed()?.set(DEMO_SPEED);
+    if (!(await drawAndType(env, me))) return;
+    await letGo(env, me, false);
+  }
+
+  // The full tour, on whatever scene is showing.
+  async function playTour(me) {
+    const env = host.env();
+    const t = host.tour;
+    host.onPeek(true); // keep the toolbar bright: the tour is about it
+    await blank(env, me);
+    if (run !== me) return;
+    env.setPaused(true);
+    if (!(await pickBrush(me))) return;
+    if (!(await setSpeed(me))) return;
+    if (!(await drawAndType(env, me))) return;
+    // A prompt floats up from the lightbulb, then pops (unless prompts are off in Preferences).
+    if (!t.promptButton.hidden) {
+      if (!(await tap(t.promptButton, me))) return;
+      t.showPrompt();
+      host.say('Stuck? Tap the bulb for a prompt', 2600);
+      await sleep(2600, me);
+      if (run !== me) return;
+      t.popPrompt();
+      await sleep(400, me);
+      if (run !== me) return;
+    }
+    if (host.mode() === 'release') {
+      if (!(await showUndo(env, me))) return;
+    } else {
+      if (!(await tap(t.holdButton, me))) return;
+      t.setHeld(true);
+      host.say('Hold keeps a thought from fading', 2200);
+      await sleep(2000, me);
+      if (run !== me) return;
+    }
+    if (!(await peekScenes(me))) return;
+    if (!(await point(t.demoButton, 'Show me runs a quick demo of any scene', 2400, me))) return;
+    await letGo(env, me, true);
+  }
+
+  async function play(kind) {
+    const me = run;
+    if (kind === 'tour') await playTour(me);
+    else await playScene(me);
     if (run === me) stop();
   }
 
-  function start() {
+  // kind: 'scene' (the Show me button) or 'tour' (Show me everything).
+  function start(kind = 'scene') {
     if (run) return;
-    run = { timers: [], down: false, snap: host.snapshot() };
+    run = { timers: [], down: false, snap: host.snapshot(), kind };
     host.onChange(true);
-    play().catch(() => stop());
+    play(kind).catch(() => stop());
   }
 
   // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
@@ -286,10 +368,9 @@ export function createDemo(host, finger) {
     run = null;
     r.timers.forEach(clearTimeout);
     const env = host.env();
-    if (r.panel) {
-      if (!(e?.target && r.panel.pop.contains(e.target))) r.panel.close();
-      host.onPeek(false);
-    }
+    if (r.panel && !(e?.target && r.panel.pop.contains(e.target))) r.panel.close();
+    host.onPeek(false);
+    if (r.kind === 'tour') { host.tour.popPrompt(); host.tour.closeScenes(e?.target); }
     if (r.down) { env.strokeEnd(ID); host.sfx.strokeEnd(); }
     if (r.typing) env.commitDraft();
     // Put back the user's own brush, fade speed and Hold.
