@@ -152,6 +152,32 @@ export function createDemo(host, finger) {
     finger.classList.remove('show');
     if (run !== me) return;
 
+    // A quick look at the settings: the finger taps each button, its panel opens with a caption,
+    // then closes again. Nothing is changed.
+    for (const pk of host.peeks()) {
+      const r = pk.el.getBoundingClientRect();
+      finger.classList.add('glide');
+      showFinger(r.left + r.width / 2, r.top + r.height / 2, false);
+      await sleep(520, me);
+      if (run !== me) return;
+      showFinger(r.left + r.width / 2, r.top + r.height / 2, true);
+      await sleep(160, me);
+      if (run !== me) return;
+      pk.open();
+      me.peek = pk;
+      host.onPeek(true);
+      showFinger(r.left + r.width / 2, r.top + r.height / 2, false);
+      host.say(pk.say, 2200);
+      await sleep(2300, me);
+      if (run !== me) return;
+      pk.close();
+      me.peek = null;
+      host.onPeek(false);
+      await sleep(250, me);
+      if (run !== me) return;
+    }
+    finger.classList.remove('show', 'glide');
+
     if (host.mode() === 'release') {
       host.say('…then let it go', 3000);
       env.clear(); // the same as tapping the release button
@@ -174,9 +200,15 @@ export function createDemo(host, finger) {
     play().catch(() => stop());
   }
 
-  function stop() {
+  // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
+  // open so the user can carry on from there.
+  function stop(e) {
     if (!run) return;
     const r = run;
+    if (r.peek) {
+      if (!(e?.target && r.peek.pop.contains(e.target))) r.peek.close();
+      host.onPeek(false);
+    }
     run = null;
     r.timers.forEach(clearTimeout);
     const env = host.env();
@@ -184,7 +216,7 @@ export function createDemo(host, finger) {
     // Put back the user's own fade speed and Hold.
     env.setFadeSeconds(host.fadeSeconds());
     env.setPaused(host.held());
-    finger.classList.remove('show', 'down');
+    finger.classList.remove('show', 'down', 'glide');
     host.onChange(false);
     host.wake();
   }
