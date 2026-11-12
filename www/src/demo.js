@@ -1,8 +1,8 @@
 // "Show me": a short, hands-off demo of the current scene. A ghost fingertip picks a brush,
 // sets the fade speed (Fade scenes), draws the Noodlit logo through the same stroke calls a real
-// finger uses, and types "Noodlit" underneath, so it works on every scene. Then the scene does
-// its thing: Fade scenes fade, Release scenes send the sheet off. Any touch, tap or key stops it,
-// and the user's own brush and fade speed come back.
+// finger uses, and types "Noodlit" underneath with a random prompt in quotes below it, so it works
+// on every scene. Then the scene does its thing: Fade scenes fade, Release scenes send the sheet
+// off. Any touch, tap or key stops it, and the user's own brush and fade speed come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
 // rings. Coordinates come from icons/icon.svg (a 512 box); each entry is one stroke.
@@ -231,7 +231,24 @@ export function createDemo(host, finger) {
       me.typing = true;
       host.wake();
     }
-    await sleep(500, me);
+    // …and a random prompt under it, smaller and in quotes, as its own block.
+    const prompt = host.prompt?.();
+    if (prompt) {
+      await sleep(350, me);
+      if (run !== me) return;
+      env.nextDraft?.();
+      const tw = host.mode() === 'release' && env.rect ? env.rect.w * 0.85 : W;
+      const wordSize = Math.min(tw * 0.12, 50); // about how tall "Noodlit" came out
+      const opts = { at: at + (wordSize * 1.2) / H, scale: 0.62, top: true };
+      const text = `\u201C${prompt}\u201D`;
+      for (let n = 1; n <= text.length; n++) {
+        await sleep(n === 1 ? 200 : 75, me);
+        if (run !== me) return;
+        env.setDraft(text.slice(0, n), opts);
+        host.wake();
+      }
+    }
+    await sleep(prompt ? 900 : 500, me);
     if (run !== me) return;
     env.commitDraft();
     me.typing = false;
@@ -261,8 +278,6 @@ export function createDemo(host, finger) {
     play().catch(() => stop());
   }
 
-  // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
-  // open so the user can carry on from there.
   // e: the touch or key that interrupted, if any. A tap inside an open settings panel leaves it
   // open so the user can carry on from there.
   function stop(e) {

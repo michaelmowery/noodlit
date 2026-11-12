@@ -86,7 +86,8 @@ export function layoutText(g, text, { size, minSize = size, maxWidth, weight = 3
 
 // Where a laid-out block goes. With x/y (a tap) it starts there, left-aligned, nudged to
 // stay on screen; otherwise it's centred at `at` (fraction of height), like the prompts.
-export function placeText(lay, { W, H, at, x, y, defaultAt = 0.42 }) {
+// top: `at` marks the first line rather than the middle of the block (text that hangs below something).
+export function placeText(lay, { W, H, at, x, y, top = false, defaultAt = 0.42 }) {
   const block = (lay.lines.length - 1) * lay.lh;
   if (x != null && y != null) {
     return {
@@ -98,7 +99,7 @@ export function placeText(lay, { W, H, at, x, y, defaultAt = 0.42 }) {
   return {
     align: 'center',
     x: W / 2,
-    y0: clamp(H * (at ?? defaultAt) - block / 2, 56 + lay.size * 0.6, H - 130 - block),
+    y0: clamp(H * (at ?? defaultAt) - (top ? 0 : block / 2), 56 + lay.size * 0.6, H - 130 - block),
   };
 }
 
@@ -138,12 +139,14 @@ export class TextOverlay {
 }
 
 // Layout + placement in one go. Prompts use the environment's own size; typed text
-// (opts.typed) is a little smaller and wraps so a sentence fits on a phone.
+// (opts.typed) is a little smaller and wraps so a sentence fits on a phone. opts.scale shrinks
+// typed text further (the demo's quoted prompt); opts.top hangs it below `at` (see placeText).
 export function layoutFor(g, text, opts, { W, H, size, maxFrac = 0.82, weight = 300, defaultAt = 0.42, pad = 0.14 }) {
+  const k = opts.scale || 1;
   const lay = layoutText(g, text, opts.typed
-    ? { size: Math.min(W * 0.11, 54), minSize: Math.min(26, W * 0.07), maxWidth: W - 40, weight, wrap: true, pad }
+    ? { size: Math.min(W * 0.11, 54) * k, minSize: Math.min(26, W * 0.07) * k, maxWidth: W - 40, weight, wrap: true, pad }
     : { size, maxWidth: W * maxFrac, weight, pad });
-  return { lay, place: placeText(lay, { W, H, at: opts.at, x: opts.x, y: opts.y, defaultAt }) };
+  return { lay, place: placeText(lay, { W, H, at: opts.at, x: opts.x, y: opts.y, top: opts.top, defaultAt }) };
 }
 
 // Draft handling shared by every environment. An environment provides stampText(text, opts)
