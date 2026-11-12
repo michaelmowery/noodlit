@@ -737,9 +737,24 @@ document.addEventListener('keydown', (e) => {
 });
 
 // The lightbulb floats a prompt in a speech bubble above the surface. It isn't part of the
-// drawing, so it never fades, washes away or gets released. Tap the bubble to pop it;
-// tap the lightbulb again for a different prompt.
+// drawing, so it never fades, washes away or gets released. The bubble has an X to pop it
+// and ‹ › to step back and forward through the prompts you've seen (forward past the last
+// one deals a new one); Left/Right arrow keys do the same. Tapping the lightbulb again
+// always deals a fresh prompt.
 let bubble = null;
+const promptHistory = [];
+let promptAt = -1;
+function dealPrompt() {
+  promptHistory.push(pickPrompt());
+  if (promptHistory.length > 100) promptHistory.shift();
+  promptAt = promptHistory.length - 1;
+  return promptHistory[promptAt];
+}
+const ICON = {
+  prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6"/></svg>',
+  next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.5 6l6 6-6 6"/></svg>',
+  close: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>',
+};
 function placeBubble(el) {
   const b = btnPrompt.getBoundingClientRect();
   const w = el.offsetWidth, vw = window.innerWidth, edge = 14;
@@ -751,30 +766,60 @@ function placeBubble(el) {
 function popBubble({ quiet = false } = {}) {
   const el = bubble;
   if (!el) return;
+  const hadFocus = el.contains(document.activeElement);
   bubble = null;
   ui.classList.remove('has-bubble');
   el.classList.add(quiet ? 'gone' : 'popping');
-  el.disabled = true;
+  el.inert = true;
+  if (hadFocus) btnPrompt.focus({ preventScroll: true });
   if (!quiet) sfx.cue('pop');
   setTimeout(() => el.remove(), quiet ? 200 : 380);
+}
+function setBubbleText(el, animate) {
+  const text = promptHistory[promptAt];
+  const span = el.querySelector('.prompt-text');
+  el.querySelector('.prompt-prev').disabled = promptAt <= 0;
+  if (!animate) { span.textContent = text; return; }
+  span.classList.add('swap');
+  setTimeout(() => {
+    if (bubble !== el) return;
+    span.textContent = text;
+    placeBubble(el);
+    span.classList.remove('swap');
+  }, 120);
+}
+function stepPrompt(dir) {
+  if (!bubble) return;
+  if (dir < 0) { if (promptAt <= 0) return; promptAt--; }
+  else if (promptAt < promptHistory.length - 1) promptAt++;
+  else dealPrompt();
+  setBubbleText(bubble, true);
+  sfx.cue('bloop');
 }
 function showPromptBubble() {
   const swap = !!bubble;
   popBubble({ quiet: swap });
-  const el = document.createElement('button');
-  el.type = 'button';
+  dealPrompt();
+  const el = document.createElement('div');
   el.className = 'prompt-bubble';
-  const text = pickPrompt();
-  el.setAttribute('aria-label', `Prompt: ${text} Tap to pop.`);
-  const span = document.createElement('span');
-  span.textContent = text;
-  el.append(span);
+  el.setAttribute('role', 'group');
+  el.setAttribute('aria-label', 'Prompt');
+  el.innerHTML = `
+    <span class="prompt-text" aria-live="polite"></span>
+    <button type="button" class="prompt-close" aria-label="Close prompt">${ICON.close}</button>
+    <span class="prompt-nav">
+      <button type="button" class="prompt-prev" aria-label="Previous prompt">${ICON.prev}</button>
+      <button type="button" class="prompt-next" aria-label="Next prompt">${ICON.next}</button>
+    </span>`;
   for (let i = 0; i < 8; i++) {
     const bit = document.createElement('i');
     bit.style.setProperty('--a', `${i * 45 + 20}deg`);
     el.append(bit);
   }
-  el.addEventListener('click', () => { if (bubble === el) popBubble(); });
+  el.querySelector('.prompt-close').addEventListener('click', () => { if (bubble === el) popBubble(); });
+  el.querySelector('.prompt-prev').addEventListener('click', () => { if (bubble === el) stepPrompt(-1); });
+  el.querySelector('.prompt-next').addEventListener('click', () => { if (bubble === el) stepPrompt(1); });
+  setBubbleText(el, false);
   ui.append(el);
   placeBubble(el);
   bubble = el;
@@ -786,6 +831,17 @@ btnPrompt.addEventListener('click', () => {
   closeSpeed();
   closeInk();
   showPromptBubble();
+});
+// Left/Right step through prompts while the bubble is up, unless you're typing or a panel
+// (scene menu, brush, speed, About, Preferences, welcome note) has the keys.
+document.addEventListener('keydown', (e) => {
+  if (!bubble || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+  if (typing || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing) return;
+  if (e.target.closest?.('textarea, input, select, [contenteditable]')) return;
+  if (!scenes.hidden || !speedPop.hidden || !inkPop.hidden) return;
+  if (['about-open', 'prefs-open', 'welcome-open', 'choosing', 'typing'].some((c) => ui.classList.contains(c))) return;
+  e.preventDefault();
+  stepPrompt(e.key === 'ArrowLeft' ? -1 : 1);
 });
 window.addEventListener('resize', () => { if (bubble) placeBubble(bubble); });
 
