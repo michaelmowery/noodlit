@@ -1,6 +1,6 @@
 // "Show me": a short, hands-off demo of the current scene that acts out the tagline. A ghost
 // fingertip draws the Noodlit logo through the same stroke calls a real finger uses and types
-// "Get it out.", "Let go." and, after a pause, "Noodlit!" underneath, so it works on every
+// "Get it out.", "Let it go." and, after a pause, "Noodlit!" underneath, so it works on every
 // scene. Then the scene does its thing: Fade scenes fade, Release scenes send the sheet off,
 // Become scenes change, Stir scenes
 // swirl it away, Echo scenes play it back. "Show me everything" (from About, and on the very
@@ -196,7 +196,7 @@ export function createDemo(host, finger) {
   }
 
   // Draw the logo, then type under it. The scene demo (and the tour, on
-  // each scene) types the tagline ("Get it out." / "Let go." / "Noodlit!") a line at a time, with a pause between, so
+  // each scene) types the tagline ("Get it out." / "Let it go." / "Noodlit!") a line at a time, with a pause between, so
   // all three are on screen together before the scene takes them.
   async function drawAndType(env, me, words = ['Noodlit']) {
     finger.classList.remove('glide');
@@ -315,7 +315,7 @@ export function createDemo(host, finger) {
     if (speed) speed.set(DEMO_SPEED);
     if (host.mode() !== 'reveal') { // Reveal scenes go straight to rubbing the cover off
       host.thinBrush?.(); // the thinnest brush reads best; restore() puts the user's back
-      if (!(await drawAndType(env, me, ['Get it out.', 'Let go.', 'Noodlit!']))) return false;
+      if (!(await drawAndType(env, me, ['Get it out.', 'Let it go.', 'Noodlit!']))) return false;
       await sleep(600, me); // a beat with all three on screen
       if (run !== me) return false;
     }
