@@ -30,8 +30,8 @@ export const chalk = {
 
 class Chalk extends MapFade {
   constructor() {
-    super({ paint: true, brush: 9, seed: 23, ink: PALETTE[0].color, textWeight: 600 });
-    this.textLine = 0.1;
+    super({ paint: true, brush: 9, seed: 23, ink: PALETTE[0].color, textWeight: 400 });
+    this.textLine = 0.035;
     this.drops = [];
     this.spots = [];
     this.dropClock = 0;

@@ -20,8 +20,8 @@ export const stone = {
 
 class Stone extends MapFade {
   constructor() {
-    super({ brush: 13, edgeFirst: 0.6, soft: 0.45, seed: 41, textWeight: 500 });
-    this.textLine = 0.12;
+    super({ brush: 13, edgeFirst: 0.6, soft: 0.45, seed: 41, textWeight: 400 });
+    this.textLine = 0.05;
     this.wisps = [];
   }
 

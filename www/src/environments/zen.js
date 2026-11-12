@@ -24,8 +24,8 @@ export const zen = {
 
 class Zen extends MapFade {
   constructor() {
-    super({ brush: 9, soft: 0.5, seed: 61, textWeight: 500, keep: true });
-    this.textLine = 0.1;
+    super({ brush: 9, soft: 0.5, seed: 61, textWeight: 400, keep: true });
+    this.textLine = 0.05;
     this.rake = { x: -60, on: false };
   }
 
