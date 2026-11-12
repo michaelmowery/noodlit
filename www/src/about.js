@@ -4,7 +4,7 @@
 import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from './update.js';
 
 // Bump with each release (keep in step with VERSION in sw.js).
-export const APP_VERSION = '0.29';
+export const APP_VERSION = '0.30';
 
 const ui = document.getElementById('ui');
 const btns = [document.getElementById('btn-info'), document.getElementById('btn-about')];

@@ -1,5 +1,5 @@
 // Offline app shell. Bump VERSION whenever any cached file changes.
-const VERSION = 'noodlit-v29';
+const VERSION = 'noodlit-v30';
 const SHELL = [
   './',
   './index.html',
