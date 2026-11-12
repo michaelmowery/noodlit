@@ -8,6 +8,7 @@
 //   steady  0..1: how much it ignores pressure and speed (1 = an even line, like a fine liner)
 //   flow    0..1: how much a quick stroke thins it out (a soft brush or a quill)
 //   soft    optional edge softness for map-based Fade scenes (low = feathered, high = crisp)
+//   shape   'round' or 'flat' (set by the shell from the Tip picker, not in the lists below)
 //   dry     breaks the stroke into bristle streaks (a dry brush, the side of a chalk stick);
 //           scenes that draw ink onto a layer honour it (Release sheets, chalk)
 //
@@ -16,42 +17,42 @@
 
 const B = (name, size, extra = {}) => ({ name, size, ...extra });
 
-const PEN = [B('Pen', 1), B('Fine liner', 0.55, { steady: 1 }), B('Marker', 2, { steady: 0.6 })];
-const MARKER = [B('Marker', 1), B('Fine marker', 0.55, { steady: 1 }), B('Fat marker', 2.2, { steady: 0.5 })];
-const SUMI = [B('Brush', 1, { flow: 0.6 }), B('Fine brush', 0.55, { flow: 0.6 }), B('Dry brush', 2.4, { dry: true })];
+const PEN = [B('Pen', 1), B('Fine liner', 0.55, { steady: 1 }), B('Marker', 3.4, { steady: 0.6 })];
+const MARKER = [B('Marker', 1), B('Fine marker', 0.55, { steady: 1 }), B('Fat marker', 3.7, { steady: 0.5 })];
+const SUMI = [B('Brush', 1, { flow: 0.6 }), B('Fine brush', 0.55, { flow: 0.6 }), B('Dry brush', 4.1, { dry: true })];
 const FINGER_GLASS = [B('Fingertip', 1), B('Fingernail', 0.35, { steady: 0.7, soft: 0.85 })];
 
 export const BRUSHES = {
   // Fade
-  'shower-door': [...FINGER_GLASS, B('Side of hand', 2.4, { soft: 0.3 })],
-  waves: [B('Finger', 1), B('Stick', 0.4, { steady: 0.6 }), B('Palm', 2.2)],
-  snow: [B('Mitten', 1), B('Stick', 0.4, { steady: 0.6 }), B('Boot', 2.1)],
-  whiteboard: [B('Marker', 1), B('Fine tip', 0.55, { steady: 1 }), B('Chisel tip', 2.2, { steady: 0.5 })],
-  windshield: [...FINGER_GLASS, B('Sleeve', 2.6)],
-  frost: [...FINGER_GLASS, B('Warm palm', 2.3, { soft: 0.25 })],
-  mirror: [...FINGER_GLASS, B('Towel', 2.6, { soft: 0.2 })],
-  chalk: [B('Chalk', 1), B('Sharp tip', 0.5), B('Side of chalk', 2.3, { dry: true })],
-  stone: [B('Water brush', 1, { flow: 0.6 }), B('Fine brush', 0.5, { flow: 0.7 }), B('Sponge', 2.2, { soft: 0.2 })],
-  zen: [B('Finger', 1), B('Stick', 0.45, { steady: 0.6 }), B('Hand', 2.1)],
-  etch: [B('Fine', 1, { steady: 1 }), B('Bold', 1.9, { steady: 1 }), B('Heavy', 3, { steady: 1 })],
-  light: [B('Sparkler', 1), B('Fine wire', 0.5, { steady: 0.8 }), B('Glow stick', 2)],
+  'shower-door': [...FINGER_GLASS, B('Side of hand', 4.1, { soft: 0.3 })],
+  waves: [B('Finger', 1), B('Stick', 0.4, { steady: 0.6 }), B('Palm', 3.7)],
+  snow: [B('Mitten', 1), B('Stick', 0.4, { steady: 0.6 }), B('Boot', 3.6)],
+  whiteboard: [B('Marker', 1), B('Fine tip', 0.55, { steady: 1 }), B('Chisel tip', 3.7, { steady: 0.5 })],
+  windshield: [...FINGER_GLASS, B('Sleeve', 4.4)],
+  frost: [...FINGER_GLASS, B('Warm palm', 3.9, { soft: 0.25 })],
+  mirror: [...FINGER_GLASS, B('Towel', 4.4, { soft: 0.2 })],
+  chalk: [B('Chalk', 1), B('Sharp tip', 0.5), B('Side of chalk', 3.9, { dry: true })],
+  stone: [B('Water brush', 1, { flow: 0.6 }), B('Fine brush', 0.5, { flow: 0.7 }), B('Sponge', 3.7, { soft: 0.2 })],
+  zen: [B('Finger', 1), B('Stick', 0.45, { steady: 0.6 }), B('Hand', 3.6)],
+  etch: [B('Fine', 1, { steady: 1 }), B('Bold', 1.9, { steady: 1 }), B('Heavy', 5.1, { steady: 1 })],
+  light: [B('Sparkler', 1), B('Fine wire', 0.5, { steady: 0.8 }), B('Glow stick', 3.4)],
   // Release
-  stream: [B('Charcoal', 1), B('Fine charcoal', 0.55, { steady: 0.6 }), B('Charcoal side', 2.3, { dry: true })],
-  bottle: [B('Quill', 1, { flow: 0.5 }), B('Fine nib', 0.55, { steady: 0.8 }), B('Broad nib', 1.8, { flow: 0.3 })],
+  stream: [B('Charcoal', 1), B('Fine charcoal', 0.55, { steady: 0.6 }), B('Charcoal side', 3.9, { dry: true })],
+  bottle: [B('Quill', 1, { flow: 0.5 }), B('Fine nib', 0.55, { steady: 0.8 }), B('Broad nib', 3.1, { flow: 0.3 })],
   lantern: SUMI,
   'lantern-flock': SUMI,
   'rice-paper': SUMI,
-  mailbox: [B('Fountain pen', 1, { flow: 0.3 }), B('Fine liner', 0.55, { steady: 1 }), B('Felt tip', 1.8, { steady: 0.6 })],
+  mailbox: [B('Fountain pen', 1, { flow: 0.3 }), B('Fine liner', 0.55, { steady: 1 }), B('Felt tip', 3.1, { steady: 0.6 })],
   'burning-page': PEN,
   shredder: PEN,
   'paper-airplane': PEN,
   'paper-boat': PEN,
-  campfire: [B('Pencil', 1), B('Sharp pencil', 0.5, { steady: 0.6 }), B('Crayon', 2.1, { dry: true })],
+  campfire: [B('Pencil', 1), B('Sharp pencil', 0.5, { steady: 0.6 }), B('Crayon', 3.6, { dry: true })],
   balloon: MARKER,
   kite: MARKER,
   rocket: MARKER,
-  dandelion: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 1.9, { flow: 0.6 })],
-  leaf: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 1.9, { flow: 0.6 })],
+  dandelion: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 3.2, { flow: 0.6 })],
+  leaf: [B('Pen', 1), B('Fine pen', 0.55, { steady: 1 }), B('Brush', 3.2, { flow: 0.6 })],
 };
 
 // Smallest to largest, however a list above happens to be written.
@@ -72,6 +73,9 @@ export function brushRadius(base, info, speed, brush) {
   }
   r *= brush.size;
   if (brush.flow) r *= 1 - brush.flow * Math.min(0.6, speed / 1600);
+  // Flat tip: a nib held at 45° (up and to the right). Moving along the nib draws a hairline,
+  // moving across it draws the full width.
+  if (brush.shape === 'flat' && info.angle != null) r *= 0.22 + 1.1 * Math.abs(Math.sin(info.angle + Math.PI / 4));
   return Math.max(0.4, r);
 }
 
