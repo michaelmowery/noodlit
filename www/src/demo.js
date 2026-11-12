@@ -3,10 +3,10 @@
 // "Get it out.", "Let go." and, after a pause, "Noodlit!" underneath, so it works on every
 // scene. Then the scene does its thing: Fade scenes fade, Release scenes send the sheet off,
 // Become scenes change, Reveal scenes show what's underneath, Stir scenes
-// swirl it away, Echo scenes play it back. "Show me everything" (from About, and on the very first visit) is the longer tour: it
-// picks Shower door from the scene menu for the Fade features (brush and fade trays, prompt, Hold),
-// then Mailbox for the Release ones (Undo, send), then Fireflies for Become (the pause, the lift-off),
-// opens Preferences and points out Show me.
+// swirl it away, Echo scenes play it back. "Show me everything" (from About, and on the very
+// first visit) is the longer tour: it picks one scene from each family off the scene menu and runs
+// that same script on each, floats a prompt after the first, then opens Preferences and points
+// out Show me.
 // Any touch, tap or key stops either one, and the user's own brush, fade speed and Hold come back.
 
 // The doodle: the Noodlit logo, a finger-painted N that ends in a touch point with ripple
@@ -66,7 +66,6 @@ export function createDemo(host, finger) {
   let run = null;
   const ID = 'demo';
   const PX_PER_SEC = 520; // ghost finger speed, a relaxed doodling pace
-  const BECOME_PAUSE = 56; // slider position for about a 3 s pause on Become scenes
   const DEMO_SPEED = 90;  // fade slider position the demo picks (about 6 s, so nobody waits)
 
   // Where the logo goes, with room for the word underneath it.
@@ -126,10 +125,6 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  // Open a settings panel for the demo; stop() closes it if interrupted.
-  function openPanel(p, me) { p.open(); me.panel = p; host.onPeek(true); }
-  function closePanel(p, me) { p.close(); me.panel = null; host.onPeek(me.kind === 'tour'); }
-
   async function draw(env, strokes, me, pace = PX_PER_SEC) {
     for (const pts of strokes) {
       if (run !== me) return;
@@ -174,56 +169,6 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  async function pickBrush(me) {
-    const brush = host.brush();
-    if (!brush) return true;
-    if (!(await tap(brush.button, me))) return false;
-    openPanel(brush, me);
-    host.say('Pick a brush', 1800);
-    await sleep(650, me);
-    if (run !== me) return false;
-    const opt = brush.option();
-    if (opt && !(await tap(opt, me))) return false;
-    opt?.click();
-    await sleep(700, me);
-    if (run !== me) return false;
-    closePanel(brush, me);
-    await sleep(200, me);
-    return run === me;
-  }
-
-  // target: slider position; Become scenes use the same slider for the pause before they change.
-  async function setSpeed(me, target = DEMO_SPEED, caption = 'Set how fast it fades') {
-    const speed = host.speed();
-    if (!speed) return true;
-    if (!(await tap(speed.button, me))) return false;
-    openPanel(speed, me);
-    host.say(caption, 2000);
-    await sleep(400, me);
-    if (run !== me) return false;
-    // Slide the knob: the finger rides along it.
-    const r = speed.pop.querySelector('input').getBoundingClientRect();
-    const knobX = (v) => r.left + 12 + (r.width - 24) * (v / 100);
-    const from = speed.get(), cy = r.top + r.height / 2;
-    finger.classList.remove('glide');
-    showFinger(knobX(from), cy, true);
-    const t0 = performance.now();
-    for (let t = 0; t < 1;) {
-      await nextFrame();
-      if (run !== me) return false;
-      t = Math.min(1, (performance.now() - t0) / 800);
-      const v = Math.round(from + (target - from) * (1 - (1 - t) ** 2));
-      speed.set(v);
-      showFinger(knobX(v), cy, true);
-    }
-    showFinger(knobX(target), cy, false);
-    await sleep(700, me);
-    if (run !== me) return false;
-    closePanel(speed, me);
-    await sleep(200, me);
-    return run === me;
-  }
-
   // Type text into the current draft a letter at a time ("\n" starts a new line). base: text
   // already in the block, so a block can be typed in parts with a pause between.
   async function typeOut(env, text, opts, me, base = '') {
@@ -248,8 +193,8 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  // Draw the logo, then type under it. The tour types the name; the scene demo types the
-  // tagline ("Get it out." / "Let go." / "Noodlit!") a line at a time, with a pause between, so
+  // Draw the logo, then type under it. The scene demo (and the tour, on
+  // each scene) types the tagline ("Get it out." / "Let go." / "Noodlit!") a line at a time, with a pause between, so
   // all three are on screen together before the scene takes them.
   async function drawAndType(env, me, words = ['Noodlit']) {
     finger.classList.remove('glide');
@@ -275,25 +220,6 @@ export function createDemo(host, finger) {
     }
     if (!(await commitTyping(env, me))) return false;
     await sleep(500, me);
-    return run === me;
-  }
-
-  // Release scenes: a quick scribble, then Undo takes it back.
-  async function showUndo(env, me) {
-    const t = host.tour;
-    if (host.mode() !== 'release' || !t.canUndo()) return true;
-    const { W, H } = host.size();
-    const b = box(env, W, H);
-    const y = b.y + b.s * 0.92, x0 = b.x + b.s * 0.1, x1 = b.x + b.s * 0.9;
-    const squiggle = [];
-    for (let k = 0; k <= 40; k++) squiggle.push([x0 + (x1 - x0) * (k / 40), y + Math.sin(k / 3) * 8]);
-    host.say('Oops?', 1400);
-    await draw(env, [resample(squiggle, 4)], me);
-    if (run !== me) return false;
-    if (!(await tap(t.undoButton, me))) return false;
-    t.undo();
-    host.say('Undo takes back the last mark', 2000);
-    await sleep(1600, me);
     return run === me;
   }
 
@@ -377,23 +303,32 @@ export function createDemo(host, finger) {
   }
 
   // The scene demo: draw, type, let go. It quietly uses a quick fade so nobody waits.
-  async function playScene(me) {
+  // The tour runs this same script on each scene it visits.
+  async function sceneScript(me) {
     const env = host.env();
     await blank(env, me);
-    if (run !== me) return;
+    if (run !== me) return false;
     env.setPaused(true); // hold the fade until the drawing and the word are both done
     const speed = host.speed(); // false on Release scenes (no fade speed there)
     if (speed) speed.set(DEMO_SPEED);
     host.thinBrush?.(); // the thinnest brush reads best; restore() puts the user's back
-    if (!(await drawAndType(env, me, ['Get it out.', 'Let go.', 'Noodlit!']))) return;
+    if (!(await drawAndType(env, me, ['Get it out.', 'Let go.', 'Noodlit!']))) return false;
     await sleep(600, me); // a beat with all three on screen
-    if (run !== me) return;
+    if (run !== me) return false;
     await letGo(env, me, false);
-    if (run !== me) return;
-    // Sign-off: the toolbar lights up and points at the rest of the settings.
+    return run === me;
+  }
+
+  // Sign-off: the toolbar lights up and points at the rest of the settings.
+  async function signOff(me) {
     host.signoff?.(true);
     host.say('Check out the brushes and other settings in the tray', 3200);
     await sleep(3000, me);
+  }
+
+  async function playScene(me) {
+    if (!(await sceneScript(me))) return;
+    await signOff(me);
   }
 
   // The full tour, on whatever scene is showing.
@@ -420,77 +355,41 @@ export function createDemo(host, finger) {
     return run === me;
   }
 
-  // The full tour: Shower door for the Fade features, then Mailbox for the Release ones, then
-  // Preferences and the Show me button. The user's own scene comes back at the end.
+  // The full tour: one scene from each family, picked from the scene menu, each running its
+  // own Show me script; a prompt along the way, then Preferences and the sign-off. The user's
+  // own scene, brushes and settings come back at the end.
+  const TOUR = [
+    ['shower-door', 'Fade scenes disappear on their own'],
+    ['mailbox', 'Release scenes keep it until you send it off'],
+    ['fireflies', 'Become scenes turn it into something new'],
+    ['scratch-card', 'Reveal scenes hide something underneath'],
+    ['latte', 'Stir scenes swirl it away'],
+    ['canyon', 'Echo scenes play it back to you'],
+  ];
   async function playTour(me) {
     const t = host.tour;
     host.onPeek(true); // keep the toolbar bright: the tour is about it
-
-    // Fade: Shower door.
-    if (!(await chooseScene('shower-door', 'Pick a scene: Fade scenes disappear on their own', me))) return;
-    let env = host.env();
-    await blank(env, me);
-    if (run !== me) return;
-    env.setPaused(true);
-    if (!(await pickBrush(me))) return;
-    if (!(await setSpeed(me))) return;
-    if (!(await drawAndType(env, me))) return;
-    // A prompt floats up from the lightbulb, then pops (unless prompts are off in Preferences).
-    if (!t.promptButton.hidden) {
-      if (!(await tap(t.promptButton, me))) return;
-      t.showPrompt();
-      host.say('Stuck? Tap the bulb for a prompt', 3600);
-      await sleep(3600, me); // long enough to read a full-sentence prompt
-      if (run !== me) return;
-      t.popPrompt();
-      await sleep(400, me);
-      if (run !== me) return;
+    for (const [k, [id, caption]] of TOUR.entries()) {
+      if (!(await chooseScene(id, caption, me))) return;
+      if (!(await sceneScript(me))) return;
+      // After the first scene: a prompt floats up from the lightbulb, then pops
+      // (unless prompts are off in Preferences).
+      if (!k && !t.promptButton.hidden) {
+        if (!(await tap(t.promptButton, me))) return;
+        t.showPrompt();
+        host.say('Stuck? Tap the bulb for a prompt', 3600);
+        await sleep(3600, me); // long enough to read a full-sentence prompt
+        if (run !== me) return;
+        t.popPrompt();
+        await sleep(400, me);
+        if (run !== me) return;
+      }
     }
-    if (!(await tap(t.holdButton, me))) return;
-    t.setHeld(true);
-    host.say('Hold keeps a thought from fading', 2200);
-    await sleep(2000, me);
-    if (run !== me) return;
-    if (!(await tap(t.holdButton, me))) return;
-    t.setHeld(false);
-    host.say('…let go, and it fades', 2600);
-    await sleep(Math.min(host.fadeSeconds() * 1000, 5000), me);
-    if (run !== me) return;
-
-    // Release: Mailbox.
-    if (!(await chooseScene('mailbox', 'Release scenes keep it until you send it off', me))) return;
-    env = host.env();
-    await blank(env, me);
-    if (run !== me) return;
-    if (!(await pickBrush(me))) return;
-    if (!(await drawAndType(env, me))) return;
-    if (!(await showUndo(env, me))) return;
-    if (!(await tap(t.clearButton, me))) return;
-    host.say('…then let it go', 3000);
-    env.clear(); // the same as tapping the send button
-    host.wake();
-    await sleep(4200, me);
-    if (run !== me) return;
-
-    // Become: Fireflies. Pause, and the words lift off as fireflies.
-    if (!(await chooseScene('fireflies', 'Become scenes turn what you write into something new', me))) return;
-    env = host.env();
-    await blank(env, me);
-    if (run !== me) return;
-    env.setPaused(true); // the pause clock waits until the drawing and the word are done
-    if (!(await pickBrush(me))) return;
-    if (!(await setSpeed(me, BECOME_PAUSE, 'Set how long it waits'))) return;
-    if (!(await drawAndType(env, me))) return;
-    host.say('Stop for a moment, and it becomes fireflies', 3400);
-    env.setPaused(false);
-    host.wake();
-    await sleep(Math.min(env.becomeTime?.() ?? 6, 9) * 1000, me); // long enough to see them lift off
-    if (run !== me) return;
-    if (!(await point(t.clearButton, 'Or tap Become now any time', 2200, me))) return;
 
     // The rest.
     if (!(await showPrefs(me))) return;
-    await point(t.demoButton, 'Show me runs a quick demo of any scene', 2600, me);
+    if (!(await point(t.demoButton, 'Show me runs a quick demo of any scene', 2600, me))) return;
+    await signOff(me);
   }
 
   async function play(kind) {
