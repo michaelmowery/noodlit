@@ -1,0 +1,118 @@
+/* Preferences: shares the About sheet's look (.about / .about-panel), with rows of switches and pickers. */
+#ui.prefs-open .toolbar, #ui.prefs-open .scene-chip, #ui.prefs-open .sound-btn, #ui.prefs-open .wordmark,
+#ui.prefs-open .demo-btn, #ui.prefs-open .update-pill, #ui.prefs-open .prompt-bubble { opacity: 0; pointer-events: none; }
+
+/* The entry point, just under the About hero. */
+.about-prefs-btn {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: -4px auto 16px;
+  padding: 8px 16px 8px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.about-prefs-btn svg { width: 18px; height: 18px; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linecap: round; }
+.about-prefs-btn:active { background: rgba(255, 255, 255, 0.14); }
+.about-prefs-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.prefs-panel { -webkit-user-select: none; user-select: none; }
+.prefs-title { margin: 2px 0 2px; font-size: 21px; font-weight: 600; letter-spacing: 0.03em; }
+.about-panel .prefs-note { margin: 0 0 14px; font-size: 13px; opacity: 0.6; }
+.prefs-form { margin: 0; }
+.prefs-group { margin: 0 0 14px; padding: 2px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); }
+.prefs-group h3 {
+  margin: 12px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.pref-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 52px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+.prefs-group > .pref-row:first-child, .prefs-group h3 + .pref-row { border-top: 0; }
+.pref-row-sub { display: block; min-height: 0; padding: 0 0 10px; border-top: 0; margin-top: -6px; cursor: default; }
+.pref-text { display: flex; flex-direction: column; min-width: 0; }
+.pref-name { font-size: 15px; font-weight: 500; }
+.pref-hint { font-size: 12.5px; line-height: 1.35; opacity: 0.6; }
+
+/* A switch built from a checkbox, so it stays a real form control for screen readers. */
+.pref-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  position: relative;
+  width: 48px;
+  height: 28px;
+  margin: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.pref-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f4f7f9;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.pref-switch:checked { background: var(--accent); }
+.pref-switch:checked::after { transform: translateX(20px); }
+.pref-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.pref-select {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  max-width: 58%;
+  padding: 7px 30px 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5' fill='none' stroke='%23ffd9a8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 9px center / 16px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.pref-select option, .pref-select optgroup { background: #1b242b; color: var(--ink); }
+.pref-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.pref-link {
+  appearance: none;
+  border: 0;
+  padding: 2px 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.pref-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.about-panel .pref-status { margin: 2px 0 0; font-size: 12.5px; opacity: 0.7; }
+.about-panel .pref-status:empty { display: none; }
+
+@media (prefers-reduced-motion: reduce) { .pref-switch, .pref-switch::after { transition: none; } }

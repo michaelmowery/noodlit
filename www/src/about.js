@@ -51,7 +51,7 @@ updBtn.addEventListener('click', async () => {
 
 function open() {
   // Don't stack over the scene menu or an open type box.
-  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open')) return;
+  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open') || ui.classList.contains('prefs-open')) return;
   lastFocus = document.activeElement;
   resetUpdateUi();
   panel.hidden = false;
@@ -69,6 +69,11 @@ function close() {
 }
 
 btns.forEach((b) => b.addEventListener('click', open));
+// Preferences live in their own panel (prefs.js); About just hands over to it.
+document.getElementById('about-prefs-btn').addEventListener('click', () => {
+  close();
+  window.dispatchEvent(new Event('noodlit:open-prefs'));
+});
 panel.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
 
 // While open, keys belong to the panel: Escape closes, Tab stays inside, and nothing
