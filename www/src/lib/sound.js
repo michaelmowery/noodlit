@@ -906,7 +906,6 @@ SCENES['invisible-ink'] = SCENES.breath;   // a quiet room
 SCENES['pencil-rubbing'] = SCENES['scratch-card'];
 SCENES['beach-dig'] = SCENES.waves;
 SCENES.marbling = SCENES.ink;
-SCENES['tea-leaves'] = SCENES.ink;
 SCENES.galaxy = SCENES.starfield;
 SCENES['music-box'] = SCENES.breath;
 SCENES.pond = SCENES.tidepool;
