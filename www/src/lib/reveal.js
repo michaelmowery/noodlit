@@ -11,7 +11,9 @@
 //
 // A scene subclass provides paintUnder() -> canvas (full-res) and paintCover(g) (CSS px), and
 // may set: brush (stroke radius), soft (0..1: how feathered the rubbed edge is), deal ('sweep'
-// or 'fade': how a fresh cover arrives), cue (sound for it), revealCaption, freshCaption (Show me's captions).
+// or 'fade': how a fresh cover arrives), cue (sound for it), revealCaption, freshCaption (Show me's captions),
+// textInk (typed words are written in this colour onto the picture underneath, for scenes whose
+// picture is plain where nothing is hidden: invisible ink, a pencil rubbing, sand).
 // Optional hooks: next() before a fresh cover is painted, rubbed(x, y, r) after each mark,
 // lifted(stroke) when a finger lifts, tick(dt) -> boolean for animation of its own.
 
@@ -31,6 +33,7 @@ export class RevealScene {
     this.revealCaption = o.revealCaption;
     this.freshCaption = o.freshCaption;
     this.textWeight = o.textWeight ?? 600;
+    this.textInk = o.textInk || null;
     this.strokes = new Map();
     this.deal = null;   // { t, under, cover } while a fresh cover arrives
     this.calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -44,6 +47,7 @@ export class RevealScene {
     Object.assign(this, { W: width, H: height, dpr });
     this.under = this.paintUnder();
     this.cover = this.coat();
+    this.written = [];
     this.pattern = null;
     this.deal = null;
     this.strokes.clear();
@@ -68,6 +72,7 @@ export class RevealScene {
     this.ink = color;
     if (!this.W) return;
     this.under = this.paintUnder();
+    if (this.textInk) this.writeUnder(this.written || []);
     this.pattern = null;
   }
 
@@ -124,6 +129,7 @@ export class RevealScene {
     this.commitDraft();
     this.strokes.clear();
     this.next?.();
+    this.written = [];
     this.deal = { t: 0, under: this.paintUnder(), cover: this.coat() };
     sfx.cue(this.cue, this.cueOpts || {});
   }
@@ -196,6 +202,14 @@ export class RevealScene {
   // While typing, the letters already show what's under them (they're filled with it); on
   // Done they're cut out of the cover for real.
   drawBlock(g, { lay, place }) {
+    if (this.textInk) {
+      g.save();
+      g.fillStyle = g.strokeStyle = this.wordInk();
+      g.font = `${this.textWeight} ${lay.size}px ${HAND}`;
+      drawText(g, lay, place, Math.max(1.4, lay.size * 0.06));
+      g.restore();
+      return;
+    }
     if (!this.pattern) {
       this.pattern = g.createPattern(this.under, 'no-repeat');
       this.pattern.setTransform(new DOMMatrix().scale(1 / this.dpr));
@@ -207,8 +221,24 @@ export class RevealScene {
     g.restore();
   }
 
+  writeUnder(blocks) {
+    const u = this.under.getContext('2d');
+    u.save();
+    u.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    for (const b of blocks) this.drawBlock(u, b);
+    u.restore();
+    this.pattern = null;
+  }
+
+  wordInk() { return typeof this.textInk === 'function' ? this.textInk() : this.textInk; }
+
   onCommit(blocks) {
     const g = this.cover.g;
+    if (this.textInk) {
+      // Write the words into the picture first, so cutting them out of the cover shows them.
+      this.writeUnder(blocks);
+      this.written.push(...blocks);
+    }
     for (const { lay, place } of blocks) {
       g.save();
       g.globalCompositeOperation = 'destination-out';

@@ -102,15 +102,24 @@ export const environments = [
   scene('scratch-card', 'Scratch card', 'reveal', 'Scratch off the foil to find a prompt', () => import('./scratch-card.js').then((m) => m.scratchCard)),
   scene('scratch-art', 'Scratch art', 'reveal', 'Scrape through black to the colours below', () => import('./scratch-art.js').then((m) => m.scratchArt)),
   scene('misty-window', 'Misty window', 'reveal', 'Wipe the mist away to see the view', () => import('./misty-window.js').then((m) => m.mistyWindow)),
+  scene('invisible-ink', 'Invisible ink', 'reveal', 'Warm the page to bring out a hidden note', () => import('./invisible-ink.js').then((m) => m.invisibleInk)),
+  scene('pencil-rubbing', 'Pencil rubbing', 'reveal', 'Shade over the paper to raise what is carved below', () => import('./pencil-rubbing.js').then((m) => m.pencilRubbing)),
+  scene('beach-dig', 'Beach dig', 'reveal', 'Brush the sand aside to find a message', () => import('./beach-dig.js').then((m) => m.beachDig)),
   // Stir
   scene('latte', 'Latte art', 'stir', 'Pour milk lines; the cup swirls them away', () => import('./latte.js').then((m) => m.latte)),
   scene('rinse', 'Rinse water', 'stir', 'Paint swirls and mingles in the rinse jar', () => import('./rinse.js').then((m) => m.rinse)),
   scene('flush', 'Flush', 'stir', 'Your lines swirl round the bowl and are flushed away', () => import('./flush.js').then((m) => m.flush)),
   scene('kaleidoscope', 'Kaleidoscope', 'stir', 'Your lines mirror, turn and melt together', () => import('./kaleidoscope.js').then((m) => m.kaleidoscope)),
+  scene('marbling', 'Paper marbling', 'stir', 'Float inks, comb them, and pull a print', () => import('./marbling.js').then((m) => m.marbling)),
+  scene('tea-leaves', 'Tea leaves', 'stir', 'Swirl the cup and see what the leaves say', () => import('./tea-leaves.js').then((m) => m.teaLeaves)),
+  scene('galaxy', 'Galaxy', 'stir', 'Your lines turn to stardust and wind into spiral arms', () => import('./galaxy.js').then((m) => m.galaxy)),
   // Echo
   scene('canyon', 'Canyon echo', 'echo', 'Pause, and the canyon plays your lines back', () => import('./canyon.js').then((m) => m.canyon)),
   scene('neon', 'Neon sign', 'echo', 'Pause, and your drawing lights up in neon', () => import('./neon.js').then((m) => m.neon)),
   scene('skywriting', 'Skywriting', 'echo', 'Pause, and a plane writes it across the sky', () => import('./skywriting.js').then((m) => m.skywriting)),
+  scene('music-box', 'Music box', 'echo', 'Pause, and your lines are punched and played as a tune', () => import('./music-box.js').then((m) => m.musicBox)),
+  scene('pond', 'Pond ripples', 'echo', 'Pause, and your lines play back as ripples', () => import('./pond.js').then((m) => m.pond)),
+  scene('seismograph', 'Seismograph', 'echo', 'Pause, and a recording pen traces it onto the chart', () => import('./seismograph.js').then((m) => m.seismograph)),
 ];
 
 // Tiers: which scenes are Free, Plus or Premium, by id. The scene menu has a tab for each.
