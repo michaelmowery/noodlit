@@ -16,11 +16,6 @@ export const thaw = {
   surface: 'Frosted glass to draw frost lines on',
   clearLabel: 'Become now',
   clearIcon: 'M12 3c3 4.5 5.5 7.6 5.5 11a5.5 5.5 0 0 1-11 0C6.5 10.6 9 7.5 12 3zM9.5 14.5a2.5 2.5 0 0 0 2.5 2.5',
-  brushes: [
-    { name: 'Frost line', size: 1 },
-    { name: 'Ice needle', size: 0.5, steady: 0.8 },
-    { name: 'Thick frost', size: 3 },
-  ],
   create: () => new Thaw(),
 };
 

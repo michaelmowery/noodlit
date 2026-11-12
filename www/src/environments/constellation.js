@@ -25,11 +25,6 @@ export const constellation = {
   clearLabel: 'Become now',
   clearIcon: 'M5 17l5-9 5 6 4-8M5 17h.01M10 8h.01M15 14h.01M19 6h.01',
   palette: PALETTE,
-  brushes: [
-    { name: 'Silver line', size: 1 },
-    { name: 'Hairline', size: 0.55, steady: 1 },
-    { name: 'Bright line', size: 2.4 },
-  ],
   create: () => new Constellation(),
 };
 

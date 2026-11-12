@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environmentsFor, modeOf, getEnvironment, isPlus } from './environments/index.js';
+import { environmentsFor, modeOf, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll, isPlus } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
@@ -268,8 +268,10 @@ const demo = createDemo({
     // Switch scenes without stopping the tour (switchTo() would).
     switchScene(id) {
       closeScenes();
-      if (envDef.id !== id) useEnvironment(getEnvironment(id), { announce: true, auto: false });
+      // The tour waits on ready(id) first, so the scene's code is here by now.
+      if (envDef.id !== id && loadedEnvironment(id)) useEnvironment(loadedEnvironment(id), { announce: true, auto: false });
     },
+    ready: (id) => loadEnvironment(id).catch(() => null),
     // Leave the menu open if that's where the interrupting tap landed.
     closeScenes: (target) => { if (!(target && scenes.contains(target))) closeScenes(); },
     demoButton: btnDemo, clearButton: btnClear,
@@ -900,9 +902,22 @@ function useEnvironment(def, { announce = false, auto = true } = {}) {
   wake();
 }
 
-function switchTo(def) {
+// `scene` is a line from the catalogue; its code is fetched if it hasn't been yet. If you pick
+// another scene while one is still on its way, the last pick wins.
+let switching = 0;
+async function switchTo(scene) {
   demo.stop();
   if (typing) finishTyping();
+  const mine = ++switching;
+  let def = loadedEnvironment(scene.id);
+  if (!def) {
+    showToast(`Loading ${scene.name}…`, 4000);
+    try { def = await loadEnvironment(scene.id); } catch {
+      if (mine === switching) showToast(`Couldn't load ${scene.name}. Check your connection.`, 3500);
+      return;
+    }
+    if (mine !== switching) return;
+  }
   useEnvironment(def, { announce: true });
   wake();
 }
@@ -955,7 +970,7 @@ function buildScenes() {
       }
       tile.addEventListener('click', () => {
         closeScenes();
-        if (def !== envDef) switchTo(def);
+        if (def.id !== envDef.id) switchTo(def);
       });
       grid.append(tile);
     }
@@ -1013,8 +1028,9 @@ function openScenes() {
   // Fill in the previews just after the menu shows, so opening it never stutters.
   requestAnimationFrame(() => {
     for (const slot of scenesBody.querySelectorAll('.scene-thumb:empty')) {
-      const def = getEnvironment(slot.dataset.id);
-      slot.append(sfx.silently(() => renderThumb(def)));
+      loadEnvironment(slot.dataset.id).then((def) => {
+        if (!slot.childElementCount) slot.append(sfx.silently(() => renderThumb(def)));
+      }).catch(() => { /* offline and not cached yet: the name still says what it is */ });
     }
   });
 }
@@ -1063,5 +1079,9 @@ window.addEventListener('noodlit:prefs', ({ detail: { key, value } }) => {
 applySpeed();
 resize();
 wake();
+
+// Once the app is up, fetch the other scenes in the background so the menu and the tour
+// never wait for them.
+setTimeout(preloadAll, 2500);
 
 // Service worker registration and update checks live in update.js.

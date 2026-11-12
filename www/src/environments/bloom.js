@@ -28,11 +28,6 @@ export const bloom = {
   clearLabel: 'Become now',
   clearIcon: 'M12 21v-9M12 12c-4 0-6-2-6-5 3 0 6 1 6 5zM12 14c3.5 0 5.5-1.7 5.5-4.5-2.8 0-5.5 1-5.5 4.5zM12 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
   palette: PALETTE,
-  brushes: [
-    { name: 'Stem', size: 1 },
-    { name: 'Tendril', size: 0.5, steady: 0.8 },
-    { name: 'Thick vine', size: 2.6 },
-  ],
   create: () => new Bloom(),
 };
 

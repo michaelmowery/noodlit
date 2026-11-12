@@ -48,52 +48,54 @@
 // (fades: false) keep the drawing until you let it go; Become surfaces (mode: 'become') turn
 // the drawing into something that leaves. The scene menu (top right) lists every family,
 // sorted by environmentsFor() below.
+//
+// Scenes load on demand. The list below is the catalogue: what the menu and Preferences need
+// to name a scene (id, name, family, blurb) and how to fetch its code. Only the scene you open
+// on is loaded at startup (see boot.js); the rest arrive in the background a moment later, or
+// the instant you pick one. To add a scene: write its file, then add one line here. Its name
+// and blurb come from this list, so set them here.
 
-import { showerDoor } from './shower-door.js';
-import { waves } from './waves.js';
-import { snow } from './snow.js';
-import { whiteboard } from './whiteboard.js';
-import { windshield } from './windshield.js';
-import { stream } from './stream.js';
-import { bottle } from './bottle.js';
-import { mailbox } from './mailbox.js';
-import { frost } from './frost.js';
-import { chalk } from './chalk.js';
-import { stone } from './stone.js';
-import { zen } from './zen.js';
-import { etch } from './etch.js';
-import { light } from './light.js';
-import { breath } from './breath.js';
-import { tidepool } from './tidepool.js';
-import { ink } from './ink.js';
-import { sparkler } from './sparkler.js';
-import { starfield } from './starfield.js';
-import { burning } from './burning.js';
-import { dandelion } from './dandelion.js';
-import { shredder } from './shredder.js';
-import { kite } from './kite.js';
-import { lanternFlock } from './lantern-flock.js';
-import { ricePaper } from './rice-paper.js';
-import { rocket } from './rocket.js';
-import { paperBoat } from './paper-boat.js';
-import { leaf } from './leaf.js';
-import { balloon } from './balloon.js';
-import { paperAirplane } from './paper-airplane.js';
-import { campfire } from './campfire.js';
-import { fireflies } from './fireflies.js';
-import { constellation } from './constellation.js';
-import { bloom } from './bloom.js';
-import { thaw } from './thaw.js';
+const scene = (id, name, mode, blurb, load) => ({ id, name, mode, blurb, load });
 
 export const environments = [
   // Fade
-  showerDoor, waves, snow, windshield, frost, chalk, stone, light,
-  breath, tidepool, ink, sparkler, starfield,
+  scene('shower-door', 'Shower door', 'fade', 'Steam fogs over your lines', () => import('./shower-door.js').then((m) => m.showerDoor)),
+  scene('waves', 'Waves', 'fade', 'Wet sand, smoothed by the tide', () => import('./waves.js').then((m) => m.waves)),
+  scene('snow', 'Snow', 'fade', 'Fresh snow fills in the grooves', () => import('./snow.js').then((m) => m.snow)),
+  scene('windshield', 'Windshield', 'fade', 'Rain beads up, wipers clear it', () => import('./windshield.js').then((m) => m.windshield)),
+  scene('frost', 'Frosted window', 'fade', 'Frost creeps back over your lines', () => import('./frost.js').then((m) => m.frost)),
+  scene('chalk', 'Chalk sidewalk', 'fade', 'Rain washes the chalk away', () => import('./chalk.js').then((m) => m.chalk)),
+  scene('stone', 'Water on hot stone', 'fade', 'Paint with water; the sun dries it', () => import('./stone.js').then((m) => m.stone)),
+  scene('light', 'Light painting', 'fade', 'Glowing trails fade like a long exposure', () => import('./light.js').then((m) => m.light)),
+  scene('breath', 'Breath on glass', 'fade', 'Breathe on a cold window and draw in the fog', () => import('./breath.js').then((m) => m.breath)),
+  scene('tidepool', 'Tide pool', 'fade', 'Water seeps into lines in the wet sand', () => import('./tidepool.js').then((m) => m.tidepool)),
+  scene('ink', 'Ink in water', 'fade', 'Lines bloom like ink drops, then clear', () => import('./ink.js').then((m) => m.ink)),
+  scene('sparkler', 'Sparkler', 'fade', 'Sizzling trails cool to embers and smoke', () => import('./sparkler.js').then((m) => m.sparkler)),
+  scene('starfield', 'Starfield', 'fade', 'Join the stars; they fade as dawn comes up', () => import('./starfield.js').then((m) => m.starfield)),
   // Release
-  stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, whiteboard, etch, rocket,
-  paperBoat, leaf, balloon, paperAirplane, campfire,
+  scene('stream', 'Stream', 'release', 'Float it off downstream', () => import('./stream.js').then((m) => m.stream)),
+  scene('bottle', 'Message in a bottle', 'release', 'Cast it out to sea', () => import('./bottle.js').then((m) => m.bottle)),
+  scene('lantern-flock', 'Lantern festival', 'release', 'Yours rises with hundreds of others', () => import('./lantern-flock.js').then((m) => m.lanternFlock)),
+  scene('mailbox', 'Mailbox', 'release', 'Seal it up and send it off', () => import('./mailbox.js').then((m) => m.mailbox)),
+  scene('burning-page', 'Burning page', 'release', 'It curls and burns into embers', () => import('./burning.js').then((m) => m.burning)),
+  scene('dandelion', 'Dandelion', 'release', 'Make a wish and blow the seeds away', () => import('./dandelion.js').then((m) => m.dandelion)),
+  scene('shredder', 'Shredder', 'release', 'Feed it through and hear it go', () => import('./shredder.js').then((m) => m.shredder)),
+  scene('kite', 'Kite', 'release', 'Cut the string and let it fly', () => import('./kite.js').then((m) => m.kite)),
+  scene('rice-paper', 'Rice paper', 'release', 'It melts into the koi pond', () => import('./rice-paper.js').then((m) => m.ricePaper)),
+  scene('zen', 'Zen garden', 'release', 'Rake the gravel smooth again', () => import('./zen.js').then((m) => m.zen)),
+  scene('whiteboard', 'Whiteboard', 'release', 'Marker stays until you wipe it', () => import('./whiteboard.js').then((m) => m.whiteboard)),
+  scene('etch', 'Shake sketch', 'release', 'Shake it to wipe the screen clean', () => import('./etch.js').then((m) => m.etch)),
+  scene('rocket', 'Rocket', 'release', 'Blast it off into space', () => import('./rocket.js').then((m) => m.rocket)),
+  scene('paper-boat', 'Paper boat', 'release', 'Fold a boat and sail it away', () => import('./paper-boat.js').then((m) => m.paperBoat)),
+  scene('leaf', 'Autumn leaf', 'release', 'Let the autumn wind take it', () => import('./leaf.js').then((m) => m.leaf)),
+  scene('balloon', 'Balloon', 'release', 'Untie it and watch it float away', () => import('./balloon.js').then((m) => m.balloon)),
+  scene('paper-airplane', 'Paper airplane', 'release', 'Fold it up and throw it', () => import('./paper-airplane.js').then((m) => m.paperAirplane)),
+  scene('campfire', 'Campfire', 'release', 'Toss it into the fire', () => import('./campfire.js').then((m) => m.campfire)),
   // Become
-  fireflies, constellation, bloom, thaw,
+  scene('fireflies', 'Fireflies', 'become', 'Pause, and your lines lift off as fireflies', () => import('./fireflies.js').then((m) => m.fireflies)),
+  scene('constellation', 'Constellation', 'become', 'Pause, and your lines snap into stars', () => import('./constellation.js').then((m) => m.constellation)),
+  scene('bloom', 'Bloom', 'become', 'Pause, and your stems sprout leaves and flowers', () => import('./bloom.js').then((m) => m.bloom)),
+  scene('thaw', 'Thaw', 'become', 'Pause, and your frost lines melt and run', () => import('./thaw.js').then((m) => m.thaw)),
 ];
 
 // Noodlit Plus: the free scenes, by id. Every other scene (including new ones) is Plus and
@@ -113,13 +115,47 @@ export const modeOf = (env) => env.mode || (env.fades === false ? 'release' : 'f
 // Shower door, whatever the menu order.)
 const byName = (a, b) => a.name.localeCompare(b.name);
 export function environmentsFor(mode) {
-  const group = environments.filter((e) => modeOf(e) === mode);
+  const group = environments.filter((e) => e.mode === mode);
   return [
     ...group.filter((e) => !isPlus(e)).sort(byName),
     ...group.filter(isPlus).sort(byName),
   ];
 }
 
+// ------------------------------------------------------------------ loading
+// A loaded scene is its own definition (create, palette, clear label…) plus its catalogue line.
+const loaded = new Map();   // id -> definition
+const loading = new Map();  // id -> Promise<definition>
+const entryFor = (id) => environments.find((e) => e.id === id) || environments[0];
+
+// Fetch a scene's code (once) and return its definition. An unknown id gives the default scene.
+// If the fetch fails (offline before the scene was ever cached) the promise rejects.
+export function loadEnvironment(id) {
+  const entry = entryFor(id);
+  if (loaded.has(entry.id)) return Promise.resolve(loaded.get(entry.id));
+  if (!loading.has(entry.id)) {
+    loading.set(entry.id, entry.load().then((def) => {
+      const full = { ...def, id: entry.id, name: entry.name, mode: entry.mode, blurb: entry.blurb };
+      loaded.set(entry.id, full);
+      return full;
+    }).finally(() => loading.delete(entry.id)));
+  }
+  return loading.get(entry.id);
+}
+
+// A scene that has already loaded, or null. (Use loadEnvironment when it might not have.)
+export const loadedEnvironment = (id) => loaded.get(entryFor(id).id) || null;
+
+// The loaded scene for an id, falling back to whichever scene is loaded (boot.js makes sure
+// the starting one is). For code that can't wait.
 export function getEnvironment(id) {
-  return environments.find((e) => e.id === id) || environments[0];
+  return loadedEnvironment(id) || loaded.values().next().value;
+}
+
+// Fetch every scene in the background, one after another, so the menu's previews and the next
+// scene you pick are ready.
+export async function preloadAll() {
+  for (const e of environments) {
+    try { await loadEnvironment(e.id); } catch { /* offline: it loads when it's picked */ }
+  }
 }
