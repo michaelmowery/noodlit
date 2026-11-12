@@ -219,3 +219,26 @@
 #ui.drawing .update-pill, #ui.typing .update-pill, #ui.choosing .update-pill, #ui.about-open .update-pill { opacity: 0; pointer-events: none; }
 @keyframes update-in { from { transform: translate(-50%, 10px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .update-pill { animation: none; } }
+
+/* "Show me everything": starts the full tour of the app. */
+.about-tour-btn {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 4px 0 18px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #10151f;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.about-tour-btn svg { width: 16px; height: 16px; fill: currentColor; }
+.about-tour-btn:active { filter: brightness(0.92); }
+.about-tour-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }

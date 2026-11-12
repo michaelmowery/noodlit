@@ -248,10 +248,19 @@ const demo = createDemo({
     get: () => Number(speedRange.value),
   },
   typeButton: btnType,
-  // A random lightbulb prompt, typed in quotes under "Noodlit" (line breaks become spaces).
-  prompt: () => pickPrompt().replace(/\n/g, ' '),
-  snapshot: () => ({ id: envDef.id, brush: savedBrush(envDef.id), fade: fadeSeconds }),
+  // The extra controls "Show me everything" walks through.
+  tour: {
+    promptButton: btnPrompt, showPrompt: () => showPromptBubble(), popPrompt: () => popBubble({ quiet: true }),
+    holdButton: btnHold, setHeld: (on) => setHeld(on, true),
+    undoButton: btnUndo, canUndo: () => undoable(), undo: () => { if (env.undo()) { sfx.cue('undo'); wake(); } },
+    sceneButton: btnScene, openScenes: () => openScenes(),
+    // Leave the menu open if that's where the interrupting tap landed.
+    closeScenes: (target) => { if (!(target && scenes.contains(target))) closeScenes(); },
+    demoButton: btnDemo, clearButton: btnClear,
+  },
+  snapshot: () => ({ id: envDef.id, brush: savedBrush(envDef.id), fade: fadeSeconds, held }),
   restore(snap) {
+    if (held !== snap.held) setHeld(snap.held, false);
     if (snap.id !== envDef.id) return;
     saveBrush(snap.id, snap.brush);
     fadeSeconds = snap.fade;
@@ -277,6 +286,17 @@ btnDemo.addEventListener('click', () => {
   cancelAutoDemo();
   store.set('demoSeen.' + envDef.id, true);
   demo.start();
+});
+// "Show me everything" in About: the full tour of the toolbar, on the scene that's showing.
+window.addEventListener('noodlit:tour', () => {
+  demo.stop();
+  if (typing) finishTyping();
+  closeSpeed();
+  closeInk();
+  closeScenes();
+  popBubble({ quiet: true });
+  cancelAutoDemo();
+  demo.start('tour');
 });
 // Any touch, click or key takes the surface back (the Stop button handles itself).
 for (const type of ['pointerdown', 'keydown']) {
@@ -512,14 +532,15 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !inkPop.hidden) { e.preventDefault(); closeInk(); btnInk.focus({ preventScroll: true }); }
 }, true);
 
-btnHold.addEventListener('click', () => {
-  held = !held;
+function setHeld(on, announce) {
+  held = on;
   env.setPaused(held);
   btnHold.setAttribute('aria-pressed', String(held));
   btnHold.querySelector('.label').textContent = held ? 'Holding' : 'Hold';
-  showToast(held ? 'Holding this thought' : 'Letting it fade again');
+  if (announce) showToast(held ? 'Holding this thought' : 'Letting it fade again');
   wake();
-});
+}
+btnHold.addEventListener('click', () => setHeld(!held, true));
 
 // Sound: on by default (it follows the iPhone's silent switch and mixes with your music),
 // and the choice is remembered. Audio can only start from a tap, so the first touch unlocks it.
