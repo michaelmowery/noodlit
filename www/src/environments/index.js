@@ -61,6 +61,11 @@ import { stone } from './stone.js';
 import { zen } from './zen.js';
 import { etch } from './etch.js';
 import { light } from './light.js';
+import { breath } from './breath.js';
+import { tidepool } from './tidepool.js';
+import { ink } from './ink.js';
+import { sparkler } from './sparkler.js';
+import { starfield } from './starfield.js';
 import { burning } from './burning.js';
 import { dandelion } from './dandelion.js';
 import { shredder } from './shredder.js';
@@ -77,6 +82,7 @@ import { campfire } from './campfire.js';
 export const environments = [
   // Fade
   showerDoor, waves, snow, whiteboard, windshield, frost, mirror, chalk, stone, etch, light,
+  breath, tidepool, ink, sparkler, starfield,
   // Release
   stream, bottle, lanternFlock, mailbox, burning, dandelion, shredder, kite, ricePaper, zen, rocket,
   paperBoat, leaf, balloon, paperAirplane, campfire,
