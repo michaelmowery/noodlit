@@ -113,9 +113,10 @@ export const environments = [
   scene('skywriting', 'Skywriting', 'echo', 'Pause, and a plane writes it across the sky', () => import('./skywriting.js').then((m) => m.skywriting)),
 ];
 
-// Noodlit Plus: the free scenes, by id. Every other scene (including new ones) is Plus and
-// shows a "Plus" badge in the scene menu. Nothing is locked yet: every scene stays free
-// while Noodlit is in preview.
+// Tiers: which scenes are Free, Plus or Premium, by id. The scene menu has a tab for each.
+// Free and Premium are listed; everything else, including any new scene, is Plus. To move a
+// scene, move its id between these two lists (or out of both, for Plus). Nothing is locked yet:
+// every scene stays free while Noodlit is in preview.
 export const FREE_SCENES = new Set([
   'shower-door', 'waves', 'snow', // Fade
   'stream', 'bottle', 'mailbox', 'whiteboard', // Release
@@ -124,17 +125,35 @@ export const FREE_SCENES = new Set([
   'latte', // Stir
   'canyon', // Echo
 ]);
-export const isPlus = (env) => !FREE_SCENES.has(env.id);
+// A first pass at Premium (a possible tier above Plus): the showpiece scenes with the most
+// going on, about one in four of the rest, so every family keeps some Plus scenes too.
+export const PREMIUM_SCENES = new Set([
+  'starfield', 'sparkler', 'light', // Fade
+  'lantern-flock', 'rocket', 'campfire', 'burning-page', // Release
+  'constellation', // Become
+  'bubble-wrap', // Reveal
+  'kaleidoscope', // Stir
+  'skywriting', // Echo
+]);
+// In menu order. The label names the tab; the hint sits under the tabs.
+export const TIERS = [
+  { id: 'free', label: 'Free', hint: 'Always included' },
+  { id: 'plus', label: 'Plus', hint: 'Free during the preview' },
+  { id: 'premium', label: 'Premium', hint: 'Our richest scenes. Free during the preview' },
+];
+export const tierOf = (env) => (FREE_SCENES.has(env.id) ? 'free' : PREMIUM_SCENES.has(env.id) ? 'premium' : 'plus');
+// A paid scene (Plus or Premium).
+export const isPlus = (env) => tierOf(env) !== 'free';
 
 export const modeOf = (env) => env.mode || (env.fades === false ? 'release' : 'fade');
 
-// Scene menu: grouped by tier (Free, then Plus), then by family, each alphabetized by name,
-// so a new scene lands in the right place on its own. (The default scene is still
+// Scene menu: a tab per tier (Free, Plus, Premium), grouped by family inside each, each
+// alphabetized by name, so a new scene lands in the right place on its own. (The default scene is still
 // environments[0], Shower door, whatever the menu order.)
 const byName = (a, b) => a.name.localeCompare(b.name);
-export function environmentsFor(mode, { plus } = {}) {
+export function environmentsFor(mode, { tier } = {}) {
   return environments
-    .filter((e) => modeOf(e) === mode && (plus === undefined || isPlus(e) === plus))
+    .filter((e) => modeOf(e) === mode && (tier === undefined || tierOf(e) === tier))
     .sort(byName);
 }
 // Every family in the registry, in first-seen order (fade, release, become, …).

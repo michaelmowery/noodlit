@@ -1,7 +1,7 @@
 // App shell: canvas, input, render loop, toolbar. Knows nothing about fog;
 // everything visual is delegated to the active fade environment.
 
-import { environmentsFor, modeOf, isPlus, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
+import { environmentsFor, modeOf, tierOf, TIERS, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
 import { sfx } from './lib/sound.js';
 import { track } from './analytics.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
@@ -268,7 +268,12 @@ const demo = createDemo({
     sceneButton: btnScene,
     // The menu opens scrolled to the top; revealTile() glides down to a tile if it's out of view.
     openScenes() { openScenes(); scenesPanel.scrollTop = 0; },
-    tile: (id) => scenesBody.querySelector(`.scene-tile[data-id="${id}"]`),
+    // Switches to the tile's tab first, so it's on show.
+    tile(id) {
+      const tile = scenesBody.querySelector(`.scene-tile[data-id="${id}"]`);
+      if (tile) showTier(tile.closest('.scenes-tier').id.replace('scenes-tier-', ''));
+      return tile;
+    },
     revealTile(tile) {
       const p = scenesPanel.getBoundingClientRect(), r = tile.getBoundingClientRect();
       if (r.top < p.top || r.bottom > p.bottom) {
@@ -1017,8 +1022,8 @@ async function switchTo(scene) {
 
 // ------------------------------------------------------------------ scene menu
 // One obvious place to pick a scene: a chip in the top corner opens a menu of every
-// surface, grouped by tier (Free, then Plus) and then by family, each with a small live
-// preview of how it looks.
+// surface: a tab per tier (Free, Plus, Premium), grouped by family inside each, every tile
+// with a small live preview of how it looks.
 // clock: false = nothing runs on its own, so the shell hides fade speed and Hold. pause/speed:
 // what the speed slider is called there. resume: the toast when Hold is let go.
 const MODES = {
@@ -1030,29 +1035,81 @@ const MODES = {
   echo: { label: 'Echo', hint: 'Plays back stroke by stroke, then fades', pause: 'Pause before it plays back', resume: 'Letting it play back again' },
 };
 
-const TIERS = [
-  { plus: false, label: 'Free', hint: 'Always included' },
-  { plus: true, label: 'Plus', hint: 'Free during the preview' },
-];
 // A family missing from MODES still shows up, named after its id.
 const modeInfo = (mode) => MODES[mode] || { label: mode[0].toUpperCase() + mode.slice(1), hint: '' };
 
+// Tabs: Free, Plus, Premium (TIERS in environments/index.js says which scene is where). A tier
+// with no scenes gets no tab. The menu opens on the tab holding the scene you're on.
 let lastFocus = null;
+let tierTabs = [];
+let tierHint = null;
 function buildScenes() {
   scenesBody.textContent = '';
+  const bar = document.createElement('div');
+  bar.className = 'scenes-tabs';
+  bar.setAttribute('role', 'tablist');
+  bar.setAttribute('aria-label', 'Plans');
+  tierHint = document.createElement('p');
+  tierHint.className = 'scenes-tier-hint';
+  const panels = [];
+  tierTabs = [];
   for (const tier of TIERS) {
-    const tierEl = document.createElement('section');
-    tierEl.className = 'scenes-tier';
-    const tierHead = document.createElement('div');
-    tierHead.className = 'scenes-tier-head';
-    tierHead.innerHTML = `<h3>${tier.label}</h3><p>${tier.hint}</p>`;
-    tierEl.append(tierHead);
+    const panel = document.createElement('section');
+    panel.className = 'scenes-tier';
+    panel.id = `scenes-tier-${tier.id}`;
+    panel.setAttribute('role', 'tabpanel');
+    let count = 0;
     for (const mode of modes()) {
-      const group = environmentsFor(mode, { plus: tier.plus });
-      if (group.length) tierEl.append(buildGroup(mode, group));
+      const group = environmentsFor(mode, { tier: tier.id });
+      count += group.length;
+      if (group.length) panel.append(buildGroup(mode, group));
     }
-    if (tierEl.childElementCount > 1) scenesBody.append(tierEl);
+    if (!count) continue;
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'scenes-tab';
+    tab.id = `scenes-tab-${tier.id}`;
+    tab.dataset.tier = tier.id;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', panel.id);
+    tab.innerHTML = `<span>${tier.label}</span><span class="scenes-tab-count" aria-label="${count} scenes">${count}</span>`;
+    tab.addEventListener('click', () => {
+      if (tab.getAttribute('aria-selected') === 'true') return;
+      track('menu/tab/' + tier.id, `Scene menu tab: ${tier.label}`);
+      showTier(tier.id);
+    });
+    panel.setAttribute('aria-labelledby', tab.id);
+    bar.append(tab);
+    tierTabs.push(tab);
+    panels.push(panel);
   }
+  // Left/right arrows (and Home/End) move between tabs.
+  bar.addEventListener('keydown', (e) => {
+    const i = tierTabs.indexOf(document.activeElement);
+    if (i < 0) return;
+    const n = tierTabs.length;
+    const j = { ArrowRight: (i + 1) % n, ArrowLeft: (i - 1 + n) % n, Home: 0, End: n - 1 }[e.key];
+    if (j === undefined) return;
+    e.preventDefault();
+    tierTabs[j].click();
+    tierTabs[j].focus();
+  });
+  scenesBody.append(bar, tierHint, ...panels);
+}
+
+// Show one tier's tab. Back to the top of the list when it changes.
+function showTier(id) {
+  const tab = tierTabs.find((t) => t.dataset.tier === id) || tierTabs[0];
+  if (!tab) return;
+  const changed = tab.getAttribute('aria-selected') !== 'true';
+  for (const t of tierTabs) {
+    const on = t === tab;
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  }
+  tierHint.textContent = TIERS.find((t) => t.id === tab.dataset.tier)?.hint || '';
+  if (changed) scenesPanel.scrollTop = 0;
 }
 
 function buildGroup(mode, group) {
@@ -1093,14 +1150,15 @@ function buildGroup(mode, group) {
   return section;
 }
 
-// Which scenes and families people pick, and how often they reach for a Plus scene (all free
-// during the preview), to see what's worth building before the paid tier exists.
+// Which scenes and families people pick, and how often they reach for a Plus or Premium scene
+// (all free during the preview), to see what's worth building before the paid tiers exist.
 function trackPick(def) {
   const mode = modeInfo(modeOf(def)).label;
-  const plus = isPlus(def);
-  track('scene/' + def.id, `Scene: ${def.name} (${mode}${plus ? ', Plus' : ''})`);
+  const tier = TIERS.find((t) => t.id === tierOf(def));
+  const paid = tier.id !== 'free';
+  track('scene/' + def.id, `Scene: ${def.name} (${mode}${paid ? ', ' + tier.label : ''})`);
   track('mode/' + modeOf(def), `Mode: ${mode}`);
-  if (plus) track('plus/' + def.id, `Plus scene tapped: ${def.name}`);
+  if (paid) track(tier.id + '/' + def.id, `${tier.label} scene tapped: ${def.name}`);
 }
 
 // Previews: run each scene off-screen at a small phone-ish size with a scribble on it.
@@ -1143,6 +1201,7 @@ function openScenes() {
   closeSpeed();
   closeInk();
   if (!scenesBody.childElementCount) buildScenes();
+  showTier(tierOf(envDef));
   syncScenes();
   scenes.hidden = false;
   btnScene.setAttribute('aria-expanded', 'true');
