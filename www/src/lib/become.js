@@ -29,9 +29,8 @@
 // (most particles alive at once), ghost (seconds the old ink takes to fade), settle (seconds a
 // change takes from start to empty, for the demo).
 
-import { clamp, smoothstep, mulberry32, makeCanvas, layoutFor, drawText, HAND } from './util.js';
+import { clamp, smoothstep, mulberry32, makeCanvas, layoutFor, drawText, draftMethods, HAND } from './util.js';
 import { undoMethods, copyCanvas, pasteCanvas } from './undo.js';
-import { draftMethods } from './util.js';
 
 const NO_OVERLAY = { apply() {}, restore() {} }; // drafts are drawn live, not stamped into a map
 

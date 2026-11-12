@@ -174,8 +174,8 @@ function paintMeadow(W, H, dpr) {
   g.beginPath(); g.moveTo(0, horizon + 4);
   let x = -20;
   while (x < W + 40) {
-    const w = 26 + rand() * 60, h = H * (0.03 + rand() * 0.07);
-    g.quadraticCurveTo(x + w * 0.5, horizon - h * 2, x + w, horizon - h * 0.25);
+    const w = 40 + rand() * 90, h = H * (0.012 + rand() * 0.03);
+    g.quadraticCurveTo(x + w * 0.5, horizon - h * 2, x + w, horizon - h * 0.35);
     x += w;
   }
   g.lineTo(W + 40, horizon + 4); g.closePath(); g.fill();
