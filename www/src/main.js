@@ -9,6 +9,8 @@ import { createDemo } from './demo.js';
 import { createBrushCursor } from './cursor.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
 import { PROMPTS } from './lib/prompts.js';
+import { createRainbow, RAINBOW, RAINBOW_SWATCH } from './lib/rainbow.js';
+import { canUse, tierTag } from './plus.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -164,6 +166,7 @@ canvas.addEventListener('pointerdown', (e) => {
   lastPos.set(e.pointerId, { x: e.clientX, y: e.clientY, t: e.timeStamp });
   closeSpeed();
   closeInk();
+  if (rainbowOn) rainbow.start(e.pointerId, e.clientX, e.clientY);
   env.strokeStart(e.pointerId, e.clientX, e.clientY, info(e));
   ui.classList.add('drawing');
   wake();
@@ -174,7 +177,13 @@ canvas.addEventListener('pointermove', (e) => {
   const at = tap?.at.get(e.pointerId);
   if (at && Math.hypot(e.clientX - at.x, e.clientY - at.y) > TAP_SLOP) tap.moved = true;
   const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
-  for (const ce of events.length ? events : [e]) env.strokeMove(e.pointerId, ce.clientX, ce.clientY, { ...info(ce), angle: heading(e.pointerId, ce) });
+  for (const ce of events.length ? events : [e]) {
+    if (rainbowOn) {
+      const c = rainbow.move(e.pointerId, ce.clientX, ce.clientY);
+      if (c) { env.setInk(c); brushCursor.refresh(c); }
+    }
+    env.strokeMove(e.pointerId, ce.clientX, ce.clientY, { ...info(ce), angle: heading(e.pointerId, ce) });
+  }
   const lp = lastPos.get(e.pointerId);
   const dt = (e.timeStamp - lp.t) / 1000;
   if (dt > 0.008) {
@@ -190,6 +199,7 @@ const end = (e) => {
   if (!pointers.delete(e.pointerId)) return;
   lastPos.delete(e.pointerId);
   tipPos.delete(e.pointerId);
+  rainbow.end(e.pointerId);
   if (!pointers.size) sfx.strokeEnd();
   env.strokeEnd(e.pointerId);
   if (!pointers.size) ui.classList.remove('drawing');
@@ -476,8 +486,16 @@ function inkFor(def) {
   const pal = def.palette;
   if (!pal?.length) return null;
   const saved = store.get('ink.' + def.id, null);
+  if (saved === RAINBOW && rainbowFits(def)) return RAINBOW_INK;
   return pal.find((p) => p.color === saved) || pal[0];
 }
+// Rainbow ink (Plus): one more swatch after the scene's own inks, whose colour walks round the
+// wheel as you draw (lib/rainbow.js). Not on Reveal scenes, where the ink tints what's hidden
+// rather than your line, or on a scene that sets rainbow: false.
+const RAINBOW_INK = { name: 'Rainbow', color: RAINBOW, rainbow: true };
+const rainbow = createRainbow();
+let rainbowOn = false;
+const rainbowFits = (def) => def.rainbow !== false && modeOf(def) !== 'reveal' && canUse('rainbow-ink');
 // Tip shape works with any brush: round (the usual), or flat like a chisel marker or a
 // calligraphy nib held at 45°, so the line swells and thins as it changes direction.
 const TIPS = [{ id: 'round', name: 'Round' }, { id: 'flat', name: 'Flat' }];
@@ -538,7 +556,7 @@ function applyInk() {
   applyBrushAndInk();
   // The ring cursor follows the brush, tip and ink (white on scenes with no ink choice).
   const pal = envDef.palette;
-  brushCursor.refresh(pal?.length && env.setInk ? inkFor(envDef).color : null);
+  brushCursor.refresh(pal?.length && env.setInk ? (rainbowOn ? rainbow.color() : inkFor(envDef).color) : null);
 }
 function applyBrushAndInk() {
   const pal = envDef.palette;
@@ -547,12 +565,13 @@ function applyBrushAndInk() {
   btnInk.hidden = !hasInk && !brushes?.length;
   if (btnInk.hidden) { closeInk(); return; }
   const cur = hasInk ? inkFor(envDef) : null;
-  if (cur) env.setInk(cur.color);
+  rainbowOn = !!cur?.rainbow;
+  if (cur) env.setInk(rainbowOn ? rainbow.tune(pal) : cur.color);
   const brush = brushFor(envDef);
   const tip = tipFor(envDef);
   env.brushType = brush && { ...brush, shape: tip.id };
   fitBrush(env);
-  btnInk.style.setProperty('--ink-color', cur ? cur.color : 'transparent');
+  btnInk.style.setProperty('--ink-color', cur ? (rainbowOn ? RAINBOW_SWATCH : cur.color) : 'transparent');
   btnInk.classList.toggle('has-ink', !!cur);
   btnInk.style.setProperty('--brush-w', String(Math.max(1.6, Math.min(4.2, 2.2 * (brush?.size || 1)))));
   btnInk.classList.toggle('dry', !!brush?.dry);
@@ -596,16 +615,20 @@ function applyBrushAndInk() {
   inkSwatches.textContent = '';
   if (!hasInk) return;
   inkValue.textContent = cur.name;
-  for (const p of pal) {
+  if (rainbowOn) inkValue.append(' ', tierTag('rainbow-ink'));
+  const swatches = rainbowFits(envDef) ? [...pal, RAINBOW_INK] : pal;
+  for (const p of swatches) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'ink-swatch';
     b.setAttribute('role', 'radio');
     b.setAttribute('aria-checked', String(p === cur));
-    b.setAttribute('aria-label', p.name);
-    b.title = p.name;
-    b.style.setProperty('--ink-color', p.color);
+    b.setAttribute('aria-label', p.rainbow ? 'Rainbow (Plus)' : p.name);
+    b.title = p.rainbow ? 'Rainbow (Plus): changes colour as you draw' : p.name;
+    b.style.setProperty('--ink-color', p.rainbow ? RAINBOW_SWATCH : p.color);
+    if (p.rainbow) b.classList.add('plus');
     b.addEventListener('click', () => {
+      if (p.rainbow && !rainbowOn) track('plus/rainbow-ink/' + envDef.id, `Plus feature: Rainbow ink (${envDef.name})`);
       store.set('ink.' + envDef.id, p.color);
       applyInk();
       sfx.unlock();

@@ -118,6 +118,12 @@ export class BecomeScene {
     if (d < 0.75) return;
     const speed = (d / Math.max(4, info.time - s.t)) * 1000;
     const r = s.r + (this.radiusFor(info, speed) - s.r) * 0.25;
+    // The ink changed mid-line (Rainbow ink): carry on as a new piece of the same line, so each
+    // piece remembers its own colour. cont is the piece it carries on from.
+    if (s.path.ink !== this.ink) {
+      s.path = { ink: this.ink, pts: [s.x, s.y, s.r], cont: s.path };
+      this.paths.push(s.path);
+    }
     this.paintSeg(this.paintCtx, s.x, s.y, s.r, x, y, r);
     s.path.pts.push(x, y, r);
     Object.assign(s, { x, y, r, t: info.time });
@@ -189,10 +195,14 @@ export class BecomeScene {
     const step = this.spacing / thin;
     const rand = this.rand;
     const born = [];
-    let along = 0;
-    for (const { pts, ink } of this.paths) {
-      let carry = step * rand(); // so parallel lines don't line their points up
-      born.push({ x: pts[0], y: pts[1], r: pts[2], ink, along, ang: pts.length > 3 ? Math.atan2(pts[4] - pts[1], pts[3] - pts[0]) : -Math.PI / 2 });
+    let along = 0, carry = 0;
+    for (const { pts, ink, cont } of this.paths) {
+      // A piece that continues the line before it (cont) keeps the spacing going; a new line
+      // starts with a point of its own.
+      if (!cont) {
+        carry = step * rand(); // so parallel lines don't line their points up
+        born.push({ x: pts[0], y: pts[1], r: pts[2], ink, along, ang: pts.length > 3 ? Math.atan2(pts[4] - pts[1], pts[3] - pts[0]) : -Math.PI / 2 });
+      }
       for (let i = 3; i < pts.length; i += 3) {
         const x0 = pts[i - 3], y0 = pts[i - 2], r0 = pts[i - 1], x1 = pts[i], y1 = pts[i + 1], r1 = pts[i + 2];
         const d = Math.hypot(x1 - x0, y1 - y0);

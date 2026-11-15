@@ -35,8 +35,11 @@ function timeline(script, instant = false) {
       const pts = s.path.pts, cum = [0];
       for (let i = 3; i < pts.length; i += 3) cum.push(cum[cum.length - 1] + Math.hypot(pts[i] - pts[i - 3], pts[i + 1] - pts[i - 2]));
       const len = cum[cum.length - 1];
-      const dur = clamp(len / 720, 0.16, 1.3);
-      items.push({ pts, ink: s.path.ink, cum, len, t0: t, dur });
+      // A piece that continues the line before it (Rainbow ink) follows straight on, at pace.
+      const cont = s.path.cont && items.length && items[items.length - 1].path === s.path.cont;
+      if (cont) t -= 0.07;
+      const dur = cont ? len / 720 : clamp(len / 720, 0.16, 1.3);
+      items.push({ path: s.path, pts, ink: s.path.ink, cum, len, t0: t, dur });
       t += dur + 0.07;
     } else {
       const chars = s.block.lay.lines.join('').length;
@@ -74,6 +77,12 @@ export class EchoScene extends BecomeScene {
   strokeStart(id, x, y, info) {
     super.strokeStart(id, x, y, info);
     this.script.push({ path: this.paths[this.paths.length - 1] });
+  }
+  strokeMove(id, x, y, info) {
+    const n = this.paths.length;
+    super.strokeMove(id, x, y, info);
+    // Rainbow ink started a new piece of the line (see become.js): it plays back too.
+    if (this.paths.length > n) this.script.push({ path: this.paths[this.paths.length - 1] });
   }
 
   onCommit(blocks) {

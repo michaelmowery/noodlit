@@ -20,6 +20,9 @@
 //                                  //   into something after a pause; the speed slider sets the pause
 //     palette: [{ name, color }],  // optional: inks that suit the material, default first. The
 //                                  //   shell shows an ink picker and calls instance.setInk(color)
+//                                  //   The picker adds Rainbow ink (Plus, lib/rainbow.js) after the
+//                                  //   palette, except on Reveal scenes; set rainbow: false to leave
+//                                  //   it off. It calls setInk with a new #rrggbb as the line goes.
 //     create: () => instance,      // returns an object with the methods below
 //   };
 //
