@@ -26,6 +26,7 @@ class Starfield extends MapFade {
   constructor() {
     super({ paint: true, brush: 2.2, soft: 0.4, edgeFirst: 0.2, seed: 101, ink: '#cfe0ff', textWeight: 400 });
     this.textLine = 0.05;
+    this.decayScale = 1.4; // dawn comes up a little sooner, so the sky clears about 30% quicker
     this.links = [];
     this.dawn = 0;
     this.twinkle = 0;
