@@ -273,3 +273,37 @@
 .about-tour-btn svg { width: 16px; height: 16px; fill: currentColor; }
 .about-tour-btn:active { filter: brightness(0.92); }
 .about-tour-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* About: Preferences and What's new side by side under the hero. */
+.about-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: -4px 0 16px; }
+.about-links .about-prefs-btn { margin: 0; }
+
+/* What's new: release notes, sharing the About sheet's look. */
+#ui.notes-open .toolbar, #ui.notes-open .scene-chip, #ui.notes-open .sound-btn, #ui.notes-open .wordmark,
+#ui.notes-open .demo-btn, #ui.notes-open .update-pill, #ui.notes-open .prompt-bubble { opacity: 0; pointer-events: none; }
+.notes-entry { margin: 0 0 14px; padding: 12px 14px 4px; border-radius: 14px; background: rgba(255, 255, 255, 0.06); }
+.notes-entry h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.notes-new { padding: 1px 7px; border-radius: 999px; background: var(--accent); color: #10161b; font-size: 10.5px; letter-spacing: 0.08em; }
+.about-panel .notes-title { margin: 0 0 6px; font-size: 15px; font-weight: 600; opacity: 0.95; }
+.notes-entry ul, .welcome-news ul { margin: 0 0 10px; padding: 0 0 0 18px; }
+.notes-entry li { margin: 0 0 6px; font-size: 14px; line-height: 1.45; opacity: 0.88; }
+.notes-entry li strong, .welcome-news li strong { font-weight: 600; opacity: 1; }
+.notes-entry li::marker, .welcome-news li::marker { color: var(--accent); }
+
+/* The update note's short list. */
+.welcome-news { margin: 0 0 18px; text-align: left; }
+.welcome-news li { margin: 0 0 6px; font-size: 14px; line-height: 1.45; opacity: 0.88; }
+.welcome-news .welcome-notes { font-size: 13.5px; }
+.notes-entry li strong, .welcome-news li strong { display: block; }
+/* A long list can't push the note's buttons off a short screen. */
+.welcome-card { max-height: calc(100% - 8px); overflow-y: auto; overscroll-behavior: contain; }

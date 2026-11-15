@@ -1,13 +1,14 @@
 // "Early preview" welcome note. Shown on the first visit, and again the first time the app
 // opens on a new version (APP_VERSION is stamped at deploy) unless the "Note after updates"
 // preference is off. The update version adds a "new version" line and a pointer to that
-// preference. Dismissal is remembered in localStorage (if storage is blocked, it simply
+// preference, and lists what's new since you last looked (releases.js, via whatsnew.js). Dismissal is remembered in localStorage (if storage is blocked, it simply
 // shows again next time).
 // noodlit.previewWelcomeSeen still marks "first visit done" (main.js keys the tour off it);
 // noodlit.previewWelcomeVersion is the version the note was last dismissed on.
 
 import { APP_VERSION } from './about.js';
 import { prefs } from './prefs.js';
+import { unseenReleases, markNotesSeen, itemEl } from './whatsnew.js';
 
 const KEY = 'noodlit.previewWelcomeSeen';
 const VERSION_KEY = 'noodlit.previewWelcomeVersion';
@@ -17,6 +18,7 @@ const note = document.getElementById('welcome');
 function read(k) { try { return localStorage.getItem(k); } catch { return null; } }
 function remember() {
   try { localStorage.setItem(KEY, '1'); localStorage.setItem(VERSION_KEY, APP_VERSION); } catch { /* private mode */ }
+  markNotesSeen();
 }
 
 function dismiss(then) {
@@ -41,7 +43,17 @@ if (newVersion && !prefs.get('updateNote')) {
       : `Noodlit has been updated to version ${APP_VERSION}.`;
     line.hidden = false;
     document.getElementById('welcome-optout').hidden = false;
-    note.setAttribute('aria-describedby', 'welcome-update welcome-body');
+    // What changed since you last looked (releases.js), up to four lines; the rest are a tap away.
+    const items = unseenReleases().flatMap((r) => r.items);
+    if (items.length) {
+      const MAX = 4;
+      document.getElementById('welcome-news-list').append(...items.slice(0, MAX).map(itemEl));
+      const more = document.querySelector('#welcome-news [data-open-notes]');
+      if (items.length > MAX) more.textContent = `And ${items.length - MAX} more in What's new`;
+      document.getElementById('welcome-news').hidden = false;
+      document.getElementById('welcome-body').hidden = true;
+    }
+    note.setAttribute('aria-describedby', items.length ? 'welcome-update welcome-news-list' : 'welcome-update welcome-body');
   }
   // A beat after load, so the scene shows first and the note feels like a greeting.
   setTimeout(() => {
@@ -55,6 +67,7 @@ note.addEventListener('click', (e) => {
   if (e.target.closest('[data-dismiss]')) dismiss();
   // "Show me everything": close the note, then the shell (main.js) runs the full tour.
   else if (e.target.closest('[data-tour]')) dismiss(() => window.dispatchEvent(new Event('noodlit:tour')));
+  else if (e.target.closest('[data-open-notes]')) dismiss(() => window.dispatchEvent(new Event('noodlit:open-notes')));
   else if (e.target.closest('[data-open-prefs]')) {
     dismiss(() => window.dispatchEvent(new Event('noodlit:open-prefs')));
   }
