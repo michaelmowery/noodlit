@@ -26,7 +26,7 @@ Every scene is defined by how strokes look, how they decay, and how they clear.
 Three newer modes:
 
 - **Reveal** (7): scratch or wipe to uncover something. Scratch card hides a prompt under foil;
-  Scratch art scrapes through black wax to colours below; Misty window wipes mist off a view
+  Scratch art scrapes through black wax to a random hidden picture; Misty window wipes mist off a view
   (the colour picker chooses the colours or the view); Bubble wrap pops, bubble by bubble, down
   to a prompt on the parcel underneath; Invisible ink warms a hidden note out of the page;
   Pencil rubbing shades up what is carved below; Beach dig brushes sand off a message.

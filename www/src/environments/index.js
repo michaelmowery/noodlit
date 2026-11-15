@@ -103,7 +103,7 @@ export const environments = [
   // Reveal
   scene('bubble-wrap', 'Bubble wrap', 'reveal', 'Pop the bubbles to see what is wrapped up', () => import('./bubble-wrap.js').then((m) => m.bubbleWrap)),
   scene('scratch-card', 'Scratch card', 'reveal', 'Scratch off the foil to find a prompt', () => import('./scratch-card.js').then((m) => m.scratchCard)),
-  scene('scratch-art', 'Scratch art', 'reveal', 'Scrape through black to the colours below', () => import('./scratch-art.js').then((m) => m.scratchArt)),
+  scene('scratch-art', 'Scratch art', 'reveal', 'Scrape through black to a hidden picture', () => import('./scratch-art.js').then((m) => m.scratchArt)),
   scene('misty-window', 'Misty window', 'reveal', 'Wipe the mist away to see the view', () => import('./misty-window.js').then((m) => m.mistyWindow)),
   scene('invisible-ink', 'Invisible ink', 'reveal', 'Warm the page to bring out a hidden note', () => import('./invisible-ink.js').then((m) => m.invisibleInk)),
   scene('pencil-rubbing', 'Pencil rubbing', 'reveal', 'Shade over the paper to raise what is carved below', () => import('./pencil-rubbing.js').then((m) => m.pencilRubbing)),
