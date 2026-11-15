@@ -99,6 +99,11 @@ export class StirScene {
       return;
     }
     if (d < 1.5) return;
+    // The ink changed mid-line (Rainbow ink): carry on as a new piece of the same line.
+    if (s.line.ink !== this.ink) {
+      s.line = s.line.next = { ink: this.ink, pts: [s.x, s.y], r: s.line.r, age: 0, cont: s.line };
+      this.lines.push(s.line);
+    }
     s.rsum += this.radiusFor(info, 0); s.n++;
     s.line.r = s.rsum / s.n;
     s.line.pts.push(x, y);
@@ -156,7 +161,8 @@ export class StirScene {
 
     const { cx, cy, R, life } = this;
     const pouring = new Set();
-    for (const s of this.strokes.values()) if (s.line) pouring.add(s.line);
+    // (every piece of a Rainbow line, so its colours all mix in together)
+    for (const s of this.strokes.values()) for (let l = s.line; l; l = l.cont) pouring.add(l);
     let count = 0;
     for (const ln of this.lines) {
       const aged = !pouring.has(ln) || this.whirl > 0 ? dt * hurry : 0;
@@ -176,7 +182,7 @@ export class StirScene {
       }
       count += p.length / 2;
     }
-    if (this.onExpire) for (const ln of this.lines) if (ln.age >= life) this.onExpire(ln);
+    if (this.onExpire) for (const ln of this.lines) if (ln.age >= life && !ln.cont) this.onExpire(ln); // once per line
     this.lines = this.lines.filter((ln) => ln.age < life);
 
     // As a line is wound up its points drift apart: add more so it stays a smooth curve.
@@ -261,6 +267,8 @@ export class StirScene {
         ctx.fill();
         continue;
       }
+      if (ln.cont) continue; // drawn with the first piece
+      if (ln.next) { this.drawChain(ctx, ln, a, spread); continue; }
       ctx.strokeStyle = ln.ink;
       ctx.beginPath();
       ctx.moveTo(p[0], p[1]);
@@ -275,6 +283,50 @@ export class StirScene {
       ctx.globalAlpha = a * this.body;
       ctx.lineWidth = ln.r * 2 * spread;
       ctx.stroke();
+    }
+  }
+
+  // A Rainbow line comes in pieces, one colour each. Drawn straight on, the round ends would
+  // overlap and, with this surface's blend and opacity, leave a bead at every join. So the pieces
+  // go onto a scratch layer at full strength first, and the layer goes on as one line.
+  drawChain(ctx, head, a, spread) {
+    const m = ctx.getTransform(), W = ctx.canvas.width, H = ctx.canvas.height;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (let l = head; l; l = l.next) {
+      const p = l.pts;
+      for (let i = 0; i < p.length; i += 2) {
+        const x = m.a * p[i] + m.c * p[i + 1] + m.e, y = m.b * p[i] + m.d * p[i + 1] + m.f;
+        if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+    const pad = Math.ceil(head.r * spread * 2 * Math.hypot(m.a, m.b)) + 2;
+    x0 = Math.max(0, Math.floor(x0 - pad)); y0 = Math.max(0, Math.floor(y0 - pad));
+    x1 = Math.min(W, Math.ceil(x1 + pad)); y1 = Math.min(H, Math.ceil(y1 + pad));
+    if (x1 <= x0 || y1 <= y0) return;
+    const c = (this.scratch ||= makeCanvas(W, H));
+    if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+    const g = c.getContext('2d');
+    const passes = this.edge ? [[this.edge, 1.9], [this.body, 1]] : [[this.body, 1]];
+    for (const [alpha, wide] of passes) {
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(x0, y0, x1 - x0, y1 - y0);
+      g.setTransform(m);
+      g.lineCap = g.lineJoin = 'round';
+      for (let l = head; l; l = l.next) {
+        const p = l.pts;
+        g.strokeStyle = l.ink;
+        g.lineWidth = l.r * 2 * spread * wide;
+        g.beginPath();
+        g.moveTo(p[0], p[1]);
+        if (p.length === 2) g.lineTo(p[0] + 0.01, p[1]);
+        for (let i = 2; i < p.length; i += 2) g.lineTo(p[i], p[i + 1]);
+        g.stroke();
+      }
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = a * alpha;
+      ctx.drawImage(c, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+      ctx.restore();
     }
   }
 

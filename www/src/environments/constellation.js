@@ -59,9 +59,18 @@ class Constellation extends BecomeScene {
   plan(paths, dots) {
     const seeds = [];
     let along = 0;
-    for (const { pts, ink } of paths) {
-      const line = [];
-      for (let i = 0; i < pts.length; i += 3) line.push({ x: pts[i], y: pts[i + 1], r: pts[i + 2] });
+    // Rainbow ink splits a line into pieces of one colour each (cont); join them back up so a
+    // star lands on the line's corners, not wherever the colour changed. Each point keeps its ink.
+    const lines = [], lineOf = new Map();
+    for (const path of paths) {
+      const { pts, ink, cont } = path;
+      let line = cont && lineOf.get(cont);
+      const from = line ? 3 : 0;
+      if (!line) lines.push((line = []));
+      lineOf.set(path, line);
+      for (let i = from; i < pts.length; i += 3) line.push({ x: pts[i], y: pts[i + 1], r: pts[i + 2], ink });
+    }
+    for (const line of lines) {
       const corners = simplify(line, CORNER);
       let prev = null, last = null;
       for (const c of corners) {
@@ -72,7 +81,7 @@ class Constellation extends BecomeScene {
           const t = k / steps;
           const at = prev ? { x: prev.x + (c.x - prev.x) * t, y: prev.y + (c.y - prev.y) * t } : c;
           along += gap / steps;
-          last = { x: at.x, y: at.y, r: c.r, ink, along, fixed: true, link: last, big: k === steps };
+          last = { x: at.x, y: at.y, r: c.r, ink: c.ink, along, fixed: true, link: last, big: k === steps };
           seeds.push(last);
         }
         prev = c;
