@@ -71,10 +71,16 @@
           <p class="about-tag">Get it out. Let it go. Noodlit!</p>
           <p class="about-sub">A fading scratchpad for getting ideas out of your head.</p>
         </header>
-        <button type="button" id="about-prefs-btn" class="about-prefs-btn">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
-          Preferences
-        </button>
+        <div class="about-links">
+          <button type="button" id="about-prefs-btn" class="about-prefs-btn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+            Preferences
+          </button>
+          <button type="button" id="about-notes-btn" class="about-prefs-btn" aria-haspopup="dialog" aria-controls="notes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6L5.5 10l4.6-1.9z"/><path d="M18.5 15.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8z"/></svg>
+            What's new
+          </button>
+        </div>
         <p>Noodlit is a place to think out loud. Scribble, sketch, or type whatever is rattling around, and let it go. There is nothing to save, sort, or judge, so the next idea always has room.</p>
         <p>It started on a foggy shower door, where the good ideas seem to show up. You write one in the steam, and the fog quietly takes it back.</p>
         <div class="about-modes">
@@ -203,6 +209,17 @@
         </form>
       </div>
     </div>
+    <div id="notes" class="about notes" role="dialog" aria-modal="true" aria-labelledby="notes-heading" hidden>
+      <div class="about-backdrop" data-close></div>
+      <div class="about-panel notes-panel">
+        <button type="button" class="about-close" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        <h2 id="notes-heading" class="prefs-title">What's new</h2>
+        <p class="prefs-note">Every update, newest first.</p>
+        <div id="notes-list" class="notes-list"></div>
+      </div>
+    </div>
     <div id="welcome" class="welcome" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-describedby="welcome-body" hidden>
       <div class="welcome-backdrop" data-dismiss></div>
       <div class="welcome-card">
@@ -210,6 +227,10 @@
         <h2 id="welcome-title">Welcome to noodlit</h2>
         <p id="welcome-update" class="welcome-update" hidden></p>
         <p id="welcome-body">Noodlit is in early preview. New scenes land often, and now and then something may wobble. Thanks for joining us. Got an idea? Noodlit.</p>
+        <div id="welcome-news" class="welcome-news" hidden>
+          <ul id="welcome-news-list"></ul>
+          <button type="button" class="welcome-prefs welcome-notes" data-open-notes>See everything in What's new</button>
+        </div>
         <p id="welcome-optout" class="welcome-optout" hidden>Don't need this after every update? Turn it off in <button type="button" class="welcome-prefs" data-open-prefs>Preferences</button>.</p>
         <div class="welcome-actions">
           <button type="button" class="welcome-ok" data-dismiss>Got it</button>
@@ -275,5 +296,6 @@
   <script type="module" src="src/boot.js"></script>
   <script type="module" src="src/about.js"></script>
   <script type="module" src="src/welcome.js"></script>
+  <script type="module" src="src/whatsnew.js"></script>
 </body>
 </html>

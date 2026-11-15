@@ -403,7 +403,7 @@ function scheduleAutoDemo(def) {
     autoDemo.timer = 0;
     if (autoDemo.id !== envDef.id) return;
     // After the note (and Preferences, which the note can open on its way out).
-    if (!welcomeNote.hidden || ui.classList.contains('prefs-open')) { autoDemo.timer = setTimeout(fire, 700); return; }
+    if (!welcomeNote.hidden || ui.classList.contains('prefs-open') || ui.classList.contains('notes-open')) { autoDemo.timer = setTimeout(fire, 700); return; }
     if (demo.running || typing) return;
     autoDemo.id = null;
     store.set('demoSeen.' + envDef.id, true);
@@ -837,7 +837,7 @@ document.addEventListener('keydown', (e) => {
   if (typing || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing) return;
   if (e.target.closest?.('textarea, input, select, [contenteditable]')) return;
   if (!scenes.hidden || !speedPop.hidden || !inkPop.hidden) return;
-  if (['about-open', 'prefs-open', 'welcome-open', 'choosing', 'typing'].some((c) => ui.classList.contains(c))) return;
+  if (['about-open', 'prefs-open', 'notes-open', 'welcome-open', 'choosing', 'typing'].some((c) => ui.classList.contains(c))) return;
   e.preventDefault();
   stepPrompt(e.key === 'ArrowLeft' ? -1 : 1);
 });

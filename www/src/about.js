@@ -51,7 +51,7 @@ updBtn.addEventListener('click', async () => {
 
 function open() {
   // Don't stack over the scene menu or an open type box.
-  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open') || ui.classList.contains('prefs-open')) return;
+  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open') || ui.classList.contains('prefs-open') || ui.classList.contains('notes-open')) return;
   lastFocus = document.activeElement;
   resetUpdateUi();
   panel.hidden = false;
@@ -73,6 +73,11 @@ btns.forEach((b) => b.addEventListener('click', open));
 document.getElementById('about-prefs-btn').addEventListener('click', () => {
   close();
   window.dispatchEvent(new Event('noodlit:open-prefs'));
+});
+// So do the release notes (whatsnew.js).
+document.getElementById('about-notes-btn').addEventListener('click', () => {
+  close();
+  window.dispatchEvent(new Event('noodlit:open-notes'));
 });
 panel.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) close(); });
 
