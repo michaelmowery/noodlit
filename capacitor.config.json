@@ -1,0 +1,19 @@
+{
+  "appId": "app.noodlit.placeholder",
+  "appName": "Noodlit",
+  "webDir": "www",
+  "backgroundColor": "#1b242b",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "backgroundColor": "#1b242b"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "backgroundColor": "#1b242b",
+      "showSpinner": false
+    }
+  }
+}

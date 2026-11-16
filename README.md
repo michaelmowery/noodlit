@@ -132,3 +132,16 @@ new files need no listing anywhere.
 `www/` is already the default Capacitor `webDir`, so the native apps will wrap this same code:
 `npm i @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android`, `npx cap init`, then
 `npx cap add ios` / `android`.
+
+## iOS app (Capacitor)
+
+The App Store build wraps `www/` unchanged with [Capacitor](https://capacitorjs.com). Native files live in `ios/`; `www/` stays the single source for the web and the app.
+
+```bash
+npm install          # once
+npx cap sync ios     # copy www/ into the iOS project after any web change
+npx cap open ios     # open in Xcode, pick a simulator, press Run
+```
+
+App icon and splash come from `www/icons/icon.svg`: run `npm run assets` after changing it.
+Service workers don't run inside the iOS app, so updates there ship through the App Store.
