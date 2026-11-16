@@ -314,7 +314,6 @@ html, body {
   opacity: 0.85;
 }
 .scene-tier-tag.tier-plus { border-color: rgba(255, 217, 168, 0.55); color: var(--accent); }
-.scene-tier-tag.tier-premium { border-color: transparent; background: rgba(255, 217, 168, 0.22); color: var(--accent); }
 .scenes-close {
   appearance: none;
   border: 0;
