@@ -10,7 +10,7 @@ import { createBrushCursor } from './cursor.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
 import { PROMPTS } from './lib/prompts.js';
 import { createRainbow, RAINBOW, RAINBOW_SWATCH } from './lib/rainbow.js';
-import { canUse, tierTag } from './plus.js';
+import { canUse, canDemo, tierTag } from './plus.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -347,6 +347,7 @@ const demo = createDemo({
 }, demoFinger);
 btnDemo.addEventListener('click', () => {
   if (demo.running) { demo.stop(); return; }
+  if (!canDemo(envDef)) return; // always true: Show me plays on every scene, Free or Plus (plus.js)
   if (typing) finishTyping();
   closeSpeed();
   closeInk();
@@ -1071,7 +1072,7 @@ const MODES = {
 const modeInfo = (mode) => MODES[mode] || { label: mode[0].toUpperCase() + mode.slice(1), hint: '' };
 
 // Two views, both with Featured on top. Groups: a section per mode (Fade, Release, …), each
-// alphabetized. All: every scene A to Z. Every tile carries its plan (Free / Plus / Premium,
+// alphabetized. All: every scene A to Z. Every tile carries its plan (Free or Plus,
 // from TIERS in environments/index.js).
 let lastFocus = null;
 function buildScenes() {
@@ -1213,8 +1214,8 @@ function buildTile(def, { tierTag = false, modeTag = false } = {}) {
   return tile;
 }
 
-// Which scenes and families people pick, and how often they reach for a Plus or Premium scene
-// (all free during the preview), to see what's worth building before the paid tiers exist.
+// Which scenes and families people pick, and how often they reach for a Plus scene
+// (all free during the preview), to see what's worth building before the paid plan exists.
 function trackPick(def) {
   const mode = modeInfo(modeOf(def)).label;
   const tier = TIERS.find((t) => t.id === tierOf(def));

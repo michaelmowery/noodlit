@@ -40,9 +40,9 @@ Three newer modes:
   write it across the sky; Music box punches and plays it as a tune; Pond ripples plays it back
   as ripples; Seismograph traces it onto a chart.
 
-The scene chip at the top right opens **Choose a scene**, with live previews. Tabs split the
-scenes into **Free**, **Plus** and **Premium**, grouped by mode and alphabetized inside each tab.
-Plus and Premium scenes will be part of Noodlit's paid plans once Noodlit is in the app stores;
+The scene chip at the top right opens **Choose a scene**, with live previews: Featured scenes on
+top, then every scene A to Z or grouped by mode. Each tile is tagged **Free** or **Plus**.
+Plus scenes will be part of Noodlit Plus once Noodlit is in the app stores;
 during the preview every scene is free and nothing is locked.
 
 ### Drawing and controls
