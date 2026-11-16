@@ -8,6 +8,12 @@
 
 export const RELEASES = [
   {
+    date: '2026-11-16',
+    items: [
+      ['Just Free and Plus', 'Simpler plans: every scene is now either Free or Plus. The scenes that were Premium are part of Plus.'],
+    ],
+  },
+  {
     date: '2026-11-15',
     items: [
       ['What\'s new', 'See what changed in each update, right here. Open About and tap What\'s new.'],

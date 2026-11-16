@@ -124,10 +124,10 @@ export const environments = [
   scene('seismograph', 'Seismograph', 'echo', 'Pause, and a recording pen traces it onto the chart', () => import('./seismograph.js').then((m) => m.seismograph)),
 ];
 
-// Tiers: which scenes are Free, Plus or Premium, by id. Each scene menu tile shows its tier.
-// Free and Premium are listed; everything else, including any new scene, is Plus. To move a
-// scene, move its id between these two lists (or out of both, for Plus). Nothing is locked yet:
-// every scene stays free while Noodlit is in preview.
+// Tiers: which scenes are Free and which are Plus, by id. Each scene menu tile shows its tier.
+// Free is listed; everything else, including any new scene, is Plus. To move a scene, add its id
+// to this list or take it out. Shower door always stays Free. Nothing is locked yet: every scene
+// stays free while Noodlit is in preview.
 export const FREE_SCENES = new Set([
   'shower-door', 'waves', 'snow', 'chalk', // Fade
   'stream', 'bottle', 'mailbox', 'whiteboard', 'paper-boat', 'balloon', // Release
@@ -135,17 +135,6 @@ export const FREE_SCENES = new Set([
   'scratch-card', 'invisible-ink', // Reveal
   'latte', 'rinse', // Stir
   'canyon', 'pond', // Echo
-]);
-// Premium (a possible tier above Plus): the showpiece scenes with the most going on. The three
-// tiers are kept about even, with every mode in each. If Premium isn't wanted, empty this list
-// and its scenes go back to Plus.
-export const PREMIUM_SCENES = new Set([
-  'starfield', 'sparkler', 'light', 'ink', // Fade
-  'lantern-flock', 'rocket', 'campfire', 'burning-page', 'rice-paper', 'dandelion', // Release
-  'constellation', // Become
-  'bubble-wrap', 'misty-window', 'beach-dig', // Reveal
-  'kaleidoscope', 'galaxy', // Stir
-  'skywriting', 'neon', // Echo
 ]);
 // Featured: shown first in the scene menu, in both views, in this order. For now, the scenes the
 // "Show me everything" tour visits (one per mode); later this can follow what people pick most.
@@ -156,10 +145,9 @@ export const featured = () => FEATURED_SCENES.map((id) => environments.find((e) 
 export const TIERS = [
   { id: 'free', label: 'Free', hint: 'Always included' },
   { id: 'plus', label: 'Plus', hint: 'Free during the preview' },
-  { id: 'premium', label: 'Premium', hint: 'Our richest scenes. Free during the preview' },
 ];
-export const tierOf = (env) => (FREE_SCENES.has(env.id) ? 'free' : PREMIUM_SCENES.has(env.id) ? 'premium' : 'plus');
-// A paid scene (Plus or Premium).
+export const tierOf = (env) => (FREE_SCENES.has(env.id) ? 'free' : 'plus');
+// A paid (Plus) scene.
 export const isPlus = (env) => tierOf(env) !== 'free';
 
 export const modeOf = (env) => env.mode || (env.fades === false ? 'release' : 'fade');
