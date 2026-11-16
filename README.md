@@ -143,5 +143,7 @@ npx cap sync ios     # copy www/ into the iOS project after any web change
 npx cap open ios     # open in Xcode, pick a simulator, press Run
 ```
 
+The iOS copy of `www/` is stamped with the Xcode version and build (e.g. `1.0 (3)`) on every sync, so after changing either in Xcode, run `npx cap sync ios` again.
+
 App icon and splash come from `www/icons/icon.svg`: run `npm run assets` after changing it.
 Service workers don't run inside the iOS app, so updates there ship through the App Store.

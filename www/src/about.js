@@ -4,7 +4,7 @@
 import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from './update.js';
 
 // Stamped at deploy time by .github/workflows/pages.yml (0.<deploy number>). Don't edit by hand;
-// running locally it shows "dev".
+// running locally it shows "dev". The iOS app's copy is stamped by scripts/stamp-native-version.mjs.
 const STAMP = '__APP_VERSION__';
 export const APP_VERSION = STAMP.startsWith('__') ? 'dev' : STAMP;
 
@@ -12,6 +12,8 @@ const ui = document.getElementById('ui');
 const btns = [document.getElementById('btn-info'), document.getElementById('btn-about')];
 const panel = document.getElementById('about');
 document.getElementById('about-version').textContent = `Version ${APP_VERSION}`;
+// In the App Store build the App Store delivers updates, so there's nothing for this button to do.
+if (window.Capacitor?.isNativePlatform?.()) document.querySelector('.about-update').hidden = true;
 document.getElementById('about-year').textContent = String(Math.max(2026, new Date().getFullYear()));
 
 let lastFocus = null;
