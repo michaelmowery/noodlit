@@ -127,7 +127,7 @@ export const environments = [
 // Tiers: which scenes are Free and which are Plus, by id. Each scene menu tile shows its tier.
 // Free is listed; everything else, including any new scene, is Plus. To move a scene, add its id
 // to this list or take it out. Shower door always stays Free. Nothing is locked yet: every scene
-// stays free while Noodlit is in preview.
+// stays free until Plus purchases arrive.
 export const FREE_SCENES = new Set([
   'shower-door', 'waves', 'snow', 'chalk', // Fade
   'stream', 'bottle', 'mailbox', 'whiteboard', 'paper-boat', 'balloon', // Release
@@ -144,7 +144,7 @@ export const featured = () => FEATURED_SCENES.map((id) => environments.find((e) 
 // The label is what each tile's tag says.
 export const TIERS = [
   { id: 'free', label: 'Free', hint: 'Always included' },
-  { id: 'plus', label: 'Plus', hint: 'Free during the preview' },
+  { id: 'plus', label: 'Plus', hint: 'Free for now' },
 ];
 export const tierOf = (env) => (FREE_SCENES.has(env.id) ? 'free' : 'plus');
 // A paid (Plus) scene.

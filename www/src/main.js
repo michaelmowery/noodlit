@@ -1216,7 +1216,7 @@ function buildTile(def, { tierTag = false, modeTag = false } = {}) {
 }
 
 // Which scenes and families people pick, and how often they reach for a Plus scene
-// (all free during the preview), to see what's worth building before the paid plan exists.
+// (all free for now), to see what's worth building before the paid plan exists.
 function trackPick(def) {
   const mode = modeInfo(modeOf(def)).label;
   const tier = TIERS.find((t) => t.id === tierOf(def));

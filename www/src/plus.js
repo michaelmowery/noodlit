@@ -4,7 +4,7 @@
 // Free and Plus mean.
 //
 // To make something a paid feature: add its id here, show tierTag(id) next to it, and ask
-// canUse(id) before turning it on. Nothing is locked yet: while Noodlit is in preview every
+// canUse(id) before turning it on. Nothing is locked yet: until purchases arrive every
 // tier is open, so canUse() is always true. When purchases arrive (RevenueCat in the app,
 // sign-in on the web), owns() is the one place that changes.
 
@@ -16,7 +16,7 @@ export const FEATURES = {
 
 export const featureTier = (id) => FEATURES[id]?.tier || 'free';
 
-// Does this person have a tier? Preview: yes, all of them.
+// Does this person have a tier? For now: yes, all of them.
 const RANK = { free: 0, plus: 1 };
 export function owns(tier) {
   return RANK[tier] != null; // later: RANK[tier] <= RANK[entitlement]

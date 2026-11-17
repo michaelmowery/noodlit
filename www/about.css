@@ -109,10 +109,10 @@
 @keyframes about-up { from { transform: translateY(40px); opacity: 0; } }
 @keyframes about-pop { from { transform: translate(-50%, -48%); opacity: 0; } }
 
-/* Early preview: a section in About and a one-time welcome note. */
-.about-preview { margin: 0 0 16px; padding: 12px 13px 13px; border-radius: 14px; background: rgba(255, 217, 168, 0.08); border: 1px solid rgba(255, 217, 168, 0.18); }
-.about-preview h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
-.about-preview p { font-size: 13.5px; line-height: 1.45; opacity: 0.82; margin-bottom: 10px; }
+/* Say hello (feedback) section in About, and the welcome / new version note. */
+.about-contact { margin: 0 0 16px; padding: 12px 13px 13px; border-radius: 14px; background: rgba(255, 217, 168, 0.08); border: 1px solid rgba(255, 217, 168, 0.18); }
+.about-contact h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+.about-contact p { font-size: 13.5px; line-height: 1.45; opacity: 0.82; margin-bottom: 10px; }
 .about-feedback {
   display: inline-block;
   padding: 7px 14px;
@@ -126,7 +126,7 @@
 .about-feedback:active { background: rgba(255, 217, 168, 0.26); }
 .about-feedback:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Privacy: a plain section under the preview note, linking to privacy.html. */
+/* Privacy: a plain section under Say hello, linking to privacy.html. */
 .about-privacy { margin: 0 0 16px; }
 .about-privacy h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
 .about-privacy p { font-size: 13.5px; line-height: 1.45; opacity: 0.82; margin-bottom: 8px; }
@@ -150,7 +150,6 @@
   box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4);
   animation: welcome-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.welcome-kicker { margin: 0 0 6px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
 .welcome-card h2 { margin: 0 0 8px; font-size: 21px; font-weight: 600; letter-spacing: 0.03em; }
 .welcome-card #welcome-body { margin: 0 0 18px; font-size: 15px; line-height: 1.5; opacity: 0.86; }
 .welcome-card .welcome-update { margin: 0 0 10px; font-size: 15px; line-height: 1.5; font-weight: 600; }
