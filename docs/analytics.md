@@ -17,20 +17,39 @@ when the user switches off **Preferences → Anonymous usage counts**.
 Counting starts as soon as the code is live on noodlit.app. To turn analytics off everywhere,
 set `GOATCOUNTER_CODE = ''`.
 
-Only `noodlit.app` sends counts. The Capacitor app runs from a different origin, so the `LIVE`
-check in `analytics.js` will need to allow it when the store build is set up.
+Only `noodlit.app` and the store app send counts.
+
+## The iOS app (Capacitor)
+
+The store app loads the same `www/` files from `capacitor://localhost`, so `analytics.js`
+recognises it by Capacitor's bridge (`window.Capacitor.isNativePlatform()`) rather than the
+hostname. It sends to the same `noodlit` GoatCounter site, with two differences:
+
+- every path starts with the platform: `ios/scene/snow`, `ios/clear/snow`, `ios/showme/snow`.
+  Titles start with "iOS app ·".
+- the launch page view is `/ios` (the website's is `/`), plus a `launch/store-app` event.
+
+Reading the dashboard: GoatCounter's filter box matches any part of the path, so
+**`ios/`** shows only the app, **`scene/`** shows web and app together, and **`ios/scene/`**
+shows which scenes app users pick. An Android build would show up as `android/` the same way.
+
+To check a new build: run it in the Simulator or on a phone (with *Anonymous usage counts* on),
+open a scene, and within a minute `/ios` and `ios/start/<scene>` appear in the dashboard.
 
 ## What is counted
 
 | Event | When |
 | --- | --- |
 | page view `/` | each launch |
-| `launch/installed-app`, `launch/browser` | each launch, by how Noodlit was opened |
+| page view `/ios` | each launch of the iOS app |
+| `launch/installed-app`, `launch/browser`, `launch/store-app` | each launch, by how Noodlit was opened |
+| `start/<id>` | the scene Noodlit opened on (last used, pinned in Preferences, or Shower door) |
 | `install` | installed to the home screen (Chrome, Edge, Android; iOS shows up as installed-app launches) |
 | `menu/open` | scene menu opened |
 | `scene/<id>` | a scene picked from the menu |
 | `mode/<fade\|release\|become>` | the family of that scene |
 | `plus/<id>` | the picked scene is a Plus scene (all free during the preview) |
+| `clear/<id>` | the clear button (Steam up, Let go, Cast it off, …) tapped on that scene; Show me's own taps aren't counted |
 | `showme/<id>` | Show me tapped |
 | `showme-auto/<id>` | Show me ran on its own on a scene's first open |
 | `showme-everything` | Show me everything started (About or welcome note) |
@@ -42,7 +61,7 @@ and OS (from the User-Agent), and country or region from the IP (the IP itself i
 
 ## App store privacy labels (draft)
 
-These apply once the Capacitor build ships with the same analytics. Re-check them if anything
+These apply to the Capacitor build, which sends the same counts as the website (marked `ios/`). Re-check them if anything
 new is sent (for example RevenueCat purchases or a sign-in).
 
 **Apple App Store, App Privacy**
@@ -51,6 +70,8 @@ new is sent (for example RevenueCat purchases or a sign-in).
 - *Usage Data → Product Interaction*: used for **Analytics**. Not linked to the user. Not used for tracking.
 - *Location → Coarse Location* (country or region derived from IP by GoatCounter): used for
   **Analytics**. Not linked to the user. Not used for tracking.
+- Tracking (App Tracking Transparency): **No**. No IDFA, no cookies, no cross-app data, so no
+  ATT prompt is needed.
 - Everything else (contact info, identifiers, user content, diagnostics, purchases): **Not collected**.
   Drawings and typed text never leave the device.
 - Privacy policy URL: `https://noodlit.app/privacy.html`.

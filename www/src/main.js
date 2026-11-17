@@ -687,6 +687,7 @@ btnSound.addEventListener('click', () => {
 for (const type of ['pointerdown', 'keydown']) document.addEventListener(type, () => sfx.unlock(), { capture: true, passive: true });
 
 btnClear.addEventListener('click', () => {
+  if (!demo.running) track('clear/' + envDef.id, `${envDef.clearLabel || 'Clear'}: ${envDef.name}`);
   env.clear();
   wake();
 });
@@ -1322,6 +1323,9 @@ sfx.enabled = store.get('sound', true) !== false;
 applySound(false);
 const startScene = prefs.get('startScene');
 useEnvironment(getEnvironment(startScene !== 'last' ? startScene : store.get('env', 'shower-door')));
+// The scene Noodlit opens on (last used, pinned in Preferences, or Shower door the first time).
+// Menu picks are counted in trackPick; this catches people who never open the menu.
+track('start/' + envDef.id, `Opened on: ${envDef.name}`);
 btnPrompt.hidden = !prefs.get('prompts');
 
 // Preferences (prefs.js) apply as soon as they change.
