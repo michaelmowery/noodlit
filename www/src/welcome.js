@@ -1,4 +1,4 @@
-// "Early preview" welcome note. Shown on the first visit, and again the first time the app
+// Welcome note. Shown on the first visit, and again the first time the app
 // opens on a new version (APP_VERSION is stamped at deploy) unless the "Note after updates"
 // preference is off. The update version adds a "new version" line and a pointer to that
 // preference, and lists what's new since you last looked (releases.js, via whatsnew.js). Dismissal is remembered in localStorage (if storage is blocked, it simply

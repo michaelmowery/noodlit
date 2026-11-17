@@ -5,8 +5,8 @@ rattling around, then let it go, so the next idea always has room. It started on
 door: you write in the steam, and the fog quietly takes it back.
 
 **Live at [noodlit.app](https://noodlit.app)** as an installable web app (PWA) that works
-offline. Noodlit is in early preview: new scenes land often, and iOS and Android app store
-releases are planned.
+offline, with an iOS app on the way to the App Store and Android to follow. New scenes land
+often.
 
 ## What's in the app
 
@@ -42,8 +42,8 @@ Three newer modes:
 
 The scene chip at the top right opens **Choose a scene**, with live previews: Featured scenes on
 top, then every scene A to Z or grouped by mode. Each tile is tagged **Free** or **Plus**.
-Plus scenes will be part of Noodlit Plus once Noodlit is in the app stores;
-during the preview every scene is free and nothing is locked.
+Plus scenes will be part of Noodlit Plus, coming soon; for now every scene is free and
+nothing is locked.
 
 ### Drawing and controls
 - **Brushes**: three per scene (listed small to large) with a Round or Flat tip; some scenes also
@@ -112,8 +112,8 @@ new files need no listing anywhere.
 - `www/src/lib/prompts.js`, `textdots.js`: the lightbulb prompts (also printed on the Scratch
   card), and typed text as points for scenes made of particles
 - `www/src/demo.js`: Show me and Show me everything
-- `www/src/about.js`, `prefs.js`, `welcome.js`, `update.js`: About, Preferences, the early
-  preview note, and update checks
+- `www/src/about.js`, `prefs.js`, `welcome.js`, `update.js`: About, Preferences, the welcome
+  and new version note, and update checks
 - `www/sw.js`: offline cache
 - `docs/`: screenshots from past changes
 

@@ -48,7 +48,7 @@ open a scene, and within a minute `/ios` and `ios/start/<scene>` appear in the d
 | `menu/open` | scene menu opened |
 | `scene/<id>` | a scene picked from the menu |
 | `mode/<fade\|release\|become>` | the family of that scene |
-| `plus/<id>` | the picked scene is a Plus scene (all free during the preview) |
+| `plus/<id>` | the picked scene is a Plus scene (all free for now) |
 | `clear/<id>` | the clear button (Steam up, Let go, Cast it off, …) tapped on that scene; Show me's own taps aren't counted |
 | `showme/<id>` | Show me tapped |
 | `showme-auto/<id>` | Show me ran on its own on a scene's first open |

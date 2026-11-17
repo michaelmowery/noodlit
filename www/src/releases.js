@@ -8,6 +8,12 @@
 
 export const RELEASES = [
   {
+    date: '2026-11-17',
+    items: [
+      ['A proper welcome', 'Noodlit is out of preview. The first-visit note now simply says welcome, and About has a Say hello section for ideas and bugs.'],
+    ],
+  },
+  {
     date: '2026-11-16',
     items: [
       ['Just Free and Plus', 'Simpler plans: every scene is now either Free or Plus. The scenes that were Premium are part of Plus.'],

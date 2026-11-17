@@ -12,7 +12,7 @@ export const DEFAULTS = {
   speed: 'last',        // 'last' (whatever you set) or 'drift' | 'flow' | 'rush' at every launch
   brush: 'last',        // 'last' (remembered per scene) or 'fine' | 'regular' | 'bold'
   prompts: true,        // show the lightbulb prompt button in the tray
-  updateNote: true,     // show the early preview note again after each new version
+  updateNote: true,     // show the note (with what's new) after each new version
   analytics: true,      // send anonymous usage counts (analytics.js); never drawings or words
   sceneView: 'list',    // scene menu: 'list' (every scene, A to Z) or 'grouped' (by type: Fade, Release, …)
 };
