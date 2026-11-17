@@ -1,2 +1,16 @@
 .DS_Store
 node_modules/
+
+# Secrets and signing files: never commit these
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+key.properties
+google-services.json
+GoogleService-Info.plist
+*.p8
+*.p12
+*.pem
+*.mobileprovision
