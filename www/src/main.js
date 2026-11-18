@@ -10,7 +10,7 @@ import { createBrushCursor } from './cursor.js';
 import { prefs, SPEED_PRESETS } from './prefs.js';
 import { PROMPTS } from './lib/prompts.js';
 import { createRainbow, RAINBOW, RAINBOW_SWATCH } from './lib/rainbow.js';
-import { canUse, canDemo, tierTag } from './plus.js';
+import { canUse, canDemo, canDraw, tierTag } from './plus.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -155,6 +155,7 @@ canvas.addEventListener('pointerdown', (e) => {
   e.preventDefault();
   sfx.unlock();
   if (typing) { typingPointerDown(e); return; }
+  if (!canDraw(envDef)) { if (e !== demoStopEvent) askForPlus(); return; }
   canvas.setPointerCapture?.(e.pointerId);
   if (!pointers.size) tap = { t: e.timeStamp, count: 0, moved: false, late: false, pushes: env.undoCount?.() ?? 0, at: new Map() };
   if (tap) {
@@ -228,6 +229,16 @@ function showToast(text, ms = 1800) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
 }
+
+// ------------------------------------------------------------------ plus
+// Drawing or typing in a Plus scene without Plus opens the Plus panel (paywall.js). Watching
+// its Show me never does (plus.js canDemo).
+function askForPlus() {
+  if (!scenes.hidden) return;
+  window.dispatchEvent(new CustomEvent('noodlit:open-plus', { detail: { scene: envDef.name } }));
+}
+// Bought, restored, renewed or lapsed: Rainbow ink comes and goes with Plus.
+window.addEventListener('noodlit:plus-changed', () => { applyInk(); wake(); });
 
 // ------------------------------------------------------------------ show me
 // A ghost finger draws a doodle on the current scene, then the scene fades or releases it.
@@ -374,9 +385,12 @@ window.addEventListener('noodlit:tour', () => {
   demo.start('tour');
 });
 // Any touch, click or key takes the surface back (the Stop button handles itself).
+// demoStopEvent: the touch that stopped a demo, so stopping Show me on a Plus scene doesn't
+// also open the Plus panel.
+let demoStopEvent = null;
 for (const type of ['pointerdown', 'keydown']) {
   document.addEventListener(type, (e) => {
-    if (demo.running && !btnDemo.contains(e.target)) demo.stop(e);
+    if (demo.running && !btnDemo.contains(e.target)) { demo.stop(e); demoStopEvent = e; }
     // Touching anything before a first-visit demo starts calls it off (it'll offer again next visit).
     if (autoDemo.timer && !welcomeNote.contains(e.target)) cancelAutoDemo();
   }, true);
@@ -404,7 +418,7 @@ function scheduleAutoDemo(def) {
     autoDemo.timer = 0;
     if (autoDemo.id !== envDef.id) return;
     // After the note (and Preferences, which the note can open on its way out).
-    if (!welcomeNote.hidden || ui.classList.contains('prefs-open') || ui.classList.contains('notes-open')) { autoDemo.timer = setTimeout(fire, 700); return; }
+    if (!welcomeNote.hidden || ui.classList.contains('prefs-open') || ui.classList.contains('notes-open') || ui.classList.contains('plus-open')) { autoDemo.timer = setTimeout(fire, 700); return; }
     if (demo.running || typing) return;
     autoDemo.id = null;
     store.set('demoSeen.' + envDef.id, true);
@@ -839,7 +853,7 @@ document.addEventListener('keydown', (e) => {
   if (typing || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey || e.isComposing) return;
   if (e.target.closest?.('textarea, input, select, [contenteditable]')) return;
   if (!scenes.hidden || !speedPop.hidden || !inkPop.hidden) return;
-  if (['about-open', 'prefs-open', 'notes-open', 'welcome-open', 'choosing', 'typing'].some((c) => ui.classList.contains(c))) return;
+  if (['about-open', 'prefs-open', 'notes-open', 'plus-open', 'welcome-open', 'choosing', 'typing'].some((c) => ui.classList.contains(c))) return;
   e.preventDefault();
   stepPrompt(e.key === 'ArrowLeft' ? -1 : 1);
 });
@@ -857,6 +871,7 @@ function spotOpts() {
 
 function startTyping(seed = '') {
   if (typing) return;
+  if (!canDraw(envDef)) { askForPlus(); return; }
   typing = { at: 0.22, held: [] }; // upper part: the keyboard covers the bottom
   ui.classList.add('typing');
   compose.hidden = false;
@@ -1216,7 +1231,7 @@ function buildTile(def, { tierTag = false, modeTag = false } = {}) {
 }
 
 // Which scenes and families people pick, and how often they reach for a Plus scene
-// (all free for now), to see what's worth building before the paid plan exists.
+// (draws need Plus; Show me is free), to see which scenes sell Plus.
 function trackPick(def) {
   const mode = modeInfo(modeOf(def)).label;
   const tier = TIERS.find((t) => t.id === tierOf(def));
