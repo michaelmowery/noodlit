@@ -20,6 +20,7 @@
 </head>
 <body>
   <canvas id="stage" aria-label="Fogged glass drawing surface"></canvas>
+  <div id="snap-flash" aria-hidden="true"></div>
   <div id="brush-cursor" class="brush-cursor" aria-hidden="true" hidden></div>
 
   <div id="ui">
@@ -31,6 +32,9 @@
     </button>
     <button id="btn-sound" class="sound-btn" type="button" aria-pressed="true" aria-label="Sound on">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path class="sound-on" d="M15.5 9.2a4 4 0 0 1 0 5.6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="sound-off" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+    </button>
+    <button id="btn-snap" class="sound-btn snap-btn" type="button" aria-label="Snapshot: save the scene as a picture" title="Snapshot">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 8.5A1.5 1.5 0 0 1 6 7h2.2l1.4-2h4.8l1.4 2H18a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 18 19H6a1.5 1.5 0 0 1-1.5-1.5z"/><circle cx="12" cy="12.8" r="3.3"/></svg>
     </button>
     <button id="btn-demo" class="demo-btn" type="button" aria-pressed="false" aria-label="Show me how this scene works">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path class="demo-play" d="M9 7.5v9l7-4.5z"/><path class="demo-stop" d="M8.5 8.5h7v7h-7z"/></svg>
@@ -126,7 +130,7 @@
         </section>
         <section class="about-privacy">
           <h3>Privacy</h3>
-          <p>Your drawings and words never leave your device. Nothing is saved or uploaded, and there's no account.</p>
+          <p>Your drawings and words never leave your device. Nothing is uploaded, and there's no account. A snapshot is saved only when you tap the camera, and only where you choose.</p>
           <p>To learn which scenes and features people use, Noodlit sends anonymous counts (like "Snow was opened") to GoatCounter. No cookies, no ads, and nothing that follows you around the web. You can turn it off in Preferences.</p>
           <a class="about-privacy-link" href="privacy.html" target="_blank" rel="noopener">Privacy policy</a>
         </section>
