@@ -51,7 +51,7 @@ updBtn.addEventListener('click', async () => {
 
 function open() {
   // Don't stack over the scene menu or an open type box.
-  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open') || ui.classList.contains('prefs-open') || ui.classList.contains('notes-open')) return;
+  if (ui.classList.contains('choosing') || ui.classList.contains('typing') || ui.classList.contains('welcome-open') || ui.classList.contains('prefs-open') || ui.classList.contains('notes-open') || ui.classList.contains('plus-open')) return;
   lastFocus = document.activeElement;
   resetUpdateUi();
   panel.hidden = false;

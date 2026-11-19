@@ -144,7 +144,7 @@ export const featured = () => FEATURED_SCENES.map((id) => environments.find((e) 
 // The label is what each tile's tag says.
 export const TIERS = [
   { id: 'free', label: 'Free', hint: 'Always included' },
-  { id: 'plus', label: 'Plus', hint: 'Free for now' },
+  { id: 'plus', label: 'Plus', hint: 'With Noodlit Plus' },
 ];
 export const tierOf = (env) => (FREE_SCENES.has(env.id) ? 'free' : 'plus');
 // A paid (Plus) scene.

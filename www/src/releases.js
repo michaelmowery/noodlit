@@ -14,6 +14,12 @@ export const RELEASES = [
     ],
   },
   {
+    date: '2026-11-18',
+    items: [
+      ['Noodlit Plus', 'Plus scenes and Rainbow ink now come with Noodlit Plus, available in the iPhone and iPad app. Free scenes stay free, and Show me still plays on every scene. Open About and tap Noodlit Plus.'],
+    ],
+  },
+  {
     date: '2026-11-17',
     items: [
       ['A proper welcome', 'Noodlit is out of preview. The first-visit note now simply says welcome, and About has a Say hello section for ideas and bugs.'],
