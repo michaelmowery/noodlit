@@ -32,7 +32,7 @@ export const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/d
 export const PRIVACY_URL = 'https://noodlit.app/privacy.html';
 // The app's App Store page. Fill in once the listing is live (App Store Connect → App
 // Information → Apple ID gives the number). While empty the web paywall just names the app.
-export const APP_STORE_URL = '';
+export const APP_STORE_URL = 'https://apps.apple.com/us/app/noodlit/id6835299931';
 
 const cap = window.Capacitor;
 const hasNativePlugin = () =>

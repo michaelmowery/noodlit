@@ -46,7 +46,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Noodlit listens while the Voice button is on, so your words can appear on the surface as you speak. Nothing is recorded or saved.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Noodlit saves a snapshot of your scene to Photos when you tap the camera button and choose Save Image. It only adds pictures and never looks at your library.</string>
+	<string>Noodlit saves a picture of your scene to Photos when you tap Share, then Save to Photos. It only adds pictures and never looks at your library.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Noodlit turns what you say into words on the surface while the Voice button is on. Recognition happens on your device whenever possible, and nothing is saved.</string>
 	<key>UILaunchStoryboardName</key>

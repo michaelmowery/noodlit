@@ -959,8 +959,8 @@ html, body {
   #ui.demoing #toast { white-space: normal; width: max-content; max-width: calc(100vw - 32px); text-align: center; border-radius: 18px; }
 }
 
-/* Snapshot: a round camera button beside the sound toggle (same look), and a soft camera flash over the scene when the picture is taken. */
-.snap-btn { right: calc(env(safe-area-inset-right) + 64px); }
+/* Share: a round button beside the sound toggle (same look), and a soft camera flash over the scene when the picture is taken. */
+.share-btn { right: calc(env(safe-area-inset-right) + 64px); }
 #snap-flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; }
 #snap-flash.flash { animation: snap-flash 0.45s ease-out; }
 @keyframes snap-flash { 0% { opacity: 0.55; } 100% { opacity: 0; } }
