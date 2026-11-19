@@ -51,7 +51,23 @@ let active = (() => {
   try { return JSON.parse(localStorage.getItem(KEY)) === true; } catch { return false; }
 })();
 
-export const hasPlus = () => active;
+// Tester unlock, website only: open noodlit.app/?plus=tester to unlock Plus in that browser,
+// ?plus=off to lock it again. It's remembered on the device. The store app ignores it, so it
+// can never get round Apple's checkout; test the app with a sandbox purchase instead.
+const TESTER_KEY = 'noodlit.plusTester';
+const tester = (() => {
+  if (NATIVE) return false;
+  try {
+    const url = new URL(location.href);
+    const flag = url.searchParams.get('plus');
+    if (flag === 'tester') localStorage.setItem(TESTER_KEY, '1');
+    if (flag === 'off') localStorage.removeItem(TESTER_KEY);
+    if (flag !== null) { url.searchParams.delete('plus'); history.replaceState(null, '', url); }
+    return localStorage.getItem(TESTER_KEY) === '1';
+  } catch { return false; }
+})();
+
+export const hasPlus = () => active || tester;
 
 function setActive(on) {
   on = !!on;
