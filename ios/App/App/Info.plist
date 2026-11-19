@@ -43,6 +43,10 @@
       </array>
     </dict>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Noodlit listens while the Voice button is on, so your words can appear on the surface as you speak. Nothing is recorded or saved.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Noodlit turns what you say into words on the surface while the Voice button is on. Recognition happens on your device whenever possible, and nothing is saved.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

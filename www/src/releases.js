@@ -8,6 +8,12 @@
 
 export const RELEASES = [
   {
+    date: '2026-11-19',
+    items: [
+      ['Say it out loud', 'Tap the new microphone button and talk. Your words appear on the surface as you speak, and each thought starts to fade when you pause. Tap to put the next one somewhere else, then tap Done.'],
+    ],
+  },
+  {
     date: '2026-11-18',
     items: [
       ['Noodlit Plus', 'Plus scenes and Rainbow ink now come with Noodlit Plus, available in the iPhone and iPad app. Free scenes stay free, and Show me still plays on every scene. Open About and tap Noodlit Plus.'],
