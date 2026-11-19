@@ -8,6 +8,8 @@
     "assets": "node scripts/make-native-assets.mjs && capacitor-assets generate --ios"
   },
   "dependencies": {
+    "@capacitor-community/media": "^9.1.0",
+    "@capacitor/clipboard": "^8.0.1",
     "@capacitor/core": "^8.6.2",
     "@capacitor/filesystem": "^8.1.5",
     "@capacitor/ios": "^8.6.2",
