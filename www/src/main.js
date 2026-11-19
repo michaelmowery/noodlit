@@ -12,6 +12,7 @@ import { PROMPTS } from './lib/prompts.js';
 import { createRainbow, RAINBOW, RAINBOW_SWATCH } from './lib/rainbow.js';
 import { canUse, canDemo, canDraw, tierTag } from './plus.js';
 import { voiceSupported, createListener } from './lib/voice.js';
+import { saveSnapshot } from './lib/snapshot.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -743,6 +744,31 @@ btnUndo.addEventListener('click', () => {
   closeInk();
   undo();
 });
+// Snapshot: save the scene (just the canvas, none of the buttons) as a picture. Free in every
+// scene, Plus or not, since it only keeps what's already on screen. See lib/snapshot.js.
+const btnSnap = document.getElementById('btn-snap');
+const snapFlash = document.getElementById('snap-flash');
+let snapping = false;
+btnSnap.addEventListener('click', async () => {
+  if (snapping) return;
+  snapping = true;
+  closeSpeed();
+  closeInk();
+  env.render(ctx); // make sure the canvas holds this exact moment
+  snapFlash.classList.remove('flash');
+  void snapFlash.offsetWidth;
+  snapFlash.classList.add('flash');
+  track('snapshot/' + envDef.id, `Snapshot: ${envDef.name}`);
+  try {
+    const how = await saveSnapshot(canvas, envDef.name);
+    if (how === 'saved') showToast(NATIVE ? 'Snapshot saved' : 'Snapshot saved to your downloads');
+  } catch {
+    showToast("Couldn't save the snapshot");
+  } finally {
+    snapping = false;
+  }
+});
+
 document.addEventListener('keydown', (e) => {
   if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== 'z') return;
   if (typing || e.target.closest?.('textarea, input') || !undoable()) return;

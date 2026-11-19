@@ -10,6 +10,7 @@ export const RELEASES = [
   {
     date: '2026-11-19',
     items: [
+      ['Snapshot', 'Tap the new camera button to save a picture of your scene, just the drawing with none of the buttons. In the iPhone and iPad app, choose Save Image to put it in Photos.'],
       ['Say it out loud', 'Tap the new microphone button and talk. Your words appear on the surface as you speak, and each thought starts to fade when you pause. Tap to put the next one somewhere else, then tap Done.'],
     ],
   },
