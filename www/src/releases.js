@@ -8,6 +8,12 @@
 
 export const RELEASES = [
   {
+    date: '2026-11-19',
+    items: [
+      ['Say it out loud', 'Tap the new microphone button and talk. Your words appear on the surface as you speak, and each thought starts to fade when you pause. Tap to put the next one somewhere else, then tap Done.'],
+    ],
+  },
+  {
     date: '2026-11-17',
     items: [
       ['A proper welcome', 'Noodlit is out of preview. The first-visit note now simply says welcome, and About has a Say hello section for ideas and bugs.'],

@@ -3,7 +3,7 @@
 
 import { environments, environmentsFor, featured, modeOf, tierOf, TIERS, modes, getEnvironment, loadEnvironment, loadedEnvironment, preloadAll } from './environments/index.js';
 import { sfx } from './lib/sound.js';
-import { track } from './analytics.js';
+import { track, NATIVE } from './analytics.js';
 import { brushesFor, brushRadius, defaultBrush } from './lib/brushes.js';
 import { createDemo } from './demo.js';
 import { createBrushCursor } from './cursor.js';
@@ -11,6 +11,7 @@ import { prefs, SPEED_PRESETS } from './prefs.js';
 import { PROMPTS } from './lib/prompts.js';
 import { createRainbow, RAINBOW, RAINBOW_SWATCH } from './lib/rainbow.js';
 import { canUse, canDemo, tierTag } from './plus.js';
+import { voiceSupported, createListener } from './lib/voice.js';
 
 // Fade speed is a continuous slider from a quick 5 s to a lingering 60 s. The slider runs on a
 // log scale so the quick end (where a few seconds matter) gets as much travel as the slow end.
@@ -75,6 +76,7 @@ const scenesPanel = scenes.querySelector('.scenes-panel');
 const scenesBody = document.getElementById('scenes-body');
 const btnPrompt = document.getElementById('btn-prompt');
 const btnType = document.getElementById('btn-type');
+const btnVoice = document.getElementById('btn-voice');
 const compose = document.getElementById('compose');
 const input = document.getElementById('compose-input');
 const typeSpot = document.getElementById('type-spot');
@@ -852,7 +854,13 @@ window.addEventListener('resize', () => { if (bubble) placeBubble(bubble); });
 let typing = null; // { x, y } or { at }, plus held: earlier blocks from this session
 
 function spotOpts() {
-  return typing.x != null ? { x: typing.x, y: typing.y } : { at: typing.at };
+  return typing.x != null ? { x: typing.x, y: typing.y } : { at: typing.at, top: !!typing.top };
+}
+
+// The compose box only takes focus when you're typing: while listening it's a read-only
+// caption, and focusing it would bring the keyboard up.
+function focusCompose() {
+  if (typing && !typing.voice) input.focus({ preventScroll: true });
 }
 
 function startTyping(seed = '') {
@@ -927,7 +935,7 @@ function typingPointerUp(e) {
   if (!typing) return;
   if (p.dragging) updateDraft();
   else moveTyping(p.x, p.y);
-  input.focus({ preventScroll: true });
+  focusCompose();
 }
 
 // Where the current block starts, in screen pixels, read back from the surface (which keeps
@@ -947,14 +955,16 @@ function moveTyping(x, y) {
     typing.held.push({ text: input.value, opts: spotOpts() });
     env.nextDraft();
     input.value = '';
+    if (typing.voice) voiceConsumed();
   }
   Object.assign(typing, { x, y });
   updateDraft();
-  input.focus({ preventScroll: true });
+  focusCompose();
 }
 
 function finishTyping() {
   if (!typing) return;
+  if (typing.voice) endVoice();
   if (placing?.raf) cancelAnimationFrame(placing.raf);
   placing = null;
   env.commitDraft();
@@ -995,6 +1005,10 @@ compose.addEventListener('submit', (e) => { e.preventDefault(); finishTyping(); 
 input.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); finishTyping(); }
 });
+// While listening the caption isn't focused, so Escape is caught here.
+document.addEventListener('keydown', (e) => {
+  if (typing?.voice && e.key === 'Escape') { e.preventDefault(); finishTyping(); }
+});
 // With a hardware keyboard, just start typing.
 document.addEventListener('keydown', (e) => {
   if (typing || !scenes.hidden || !speedPop.hidden || !inkPop.hidden || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
@@ -1002,6 +1016,135 @@ document.addEventListener('keydown', (e) => {
   e.preventDefault();
   startTyping(e.key);
 });
+
+// ------------------------------------------------------------------ voice
+// Speak and your words are written onto the surface, live, in the scene's own hand. It rides on
+// the typing session above (the compose bar becomes a read-only caption) with one difference:
+// each time you pause, that phrase is let go to fade like any stroke, and the next one flows in
+// just below it. On Release scenes the phrases stay on the sheet until you send it off, the
+// same as typed words. Tap to start the next phrase somewhere else, drag to move it.
+const VOICE_PAUSE_MS = 1400;  // this long without new words ends a phrase
+const VOICE_MAX_CHARS = 110;  // a phrase this long is let go at the next word, so it stays readable
+const VOICE_START_AT = 0.3;   // first line of the first phrase, as a fraction of the height
+const typePlaceholder = input.placeholder;
+let listener = null;
+let voice = null; // { total: words heard this session, used: words already written, timer }
+
+function words(text) { return text.split(/\s+/).filter(Boolean); }
+
+function onVoiceText(text) {
+  if (!typing?.voice) return;
+  const all = words(text);
+  voice.total = all.length;
+  if (all.length < voice.used) voice.used = 0; // the recogniser started over
+  let phrase = all.slice(voice.used).join(' ');
+  if (phrase) phrase = phrase[0].toUpperCase() + phrase.slice(1);
+  input.value = phrase;
+  autoGrow();
+  updateDraft();
+  clearTimeout(voice.timer);
+  if (phrase.length > VOICE_MAX_CHARS) letPhraseGo();
+  else if (phrase) voice.timer = setTimeout(letPhraseGo, VOICE_PAUSE_MS);
+}
+
+// Everything heard so far has been written into a block: later words start a new one.
+function voiceConsumed() {
+  voice.used = voice.total;
+  clearTimeout(voice.timer);
+}
+
+// Where the line after the current block starts, in the same terms as spotOpts().
+function spotBelow() {
+  const sheet = env.drafts?.cur; // Release surfaces keep blocks relative to their sheet
+  const d = sheet || env.draft;
+  if (!d?.lay || !d.place) return null;
+  const top = d.place.y0 + (sheet ? env.rect.y : 0);
+  let y = top + d.lay.lines.length * d.lay.lh + d.lay.lh * 0.2;
+  // Off the bottom of the sheet or past the caption bar: wrap round to the top. On Fade
+  // scenes what was written up there has had time to fade.
+  const a = env.textArea?.(), r = env.rect;
+  const floor = a && r ? r.y + a.y + a.h - d.lay.lh * 0.5 : H - 150;
+  const wrapped = y > floor;
+  if (wrapped) y = a && r ? r.y + a.y + d.lay.lh * 0.6 : H * 0.14;
+  if (typing.x != null) return { x: typing.x, y };
+  return { at: y / H };
+}
+
+// A pause: let the phrase go and move down a line for the next one.
+function letPhraseGo() {
+  if (!typing?.voice) return;
+  clearTimeout(voice.timer);
+  const text = input.value.trim();
+  if (!text) return;
+  const next = spotBelow();
+  if (env.drafts) {
+    // Release scenes: the words stay on the sheet until you send it.
+    typing.held.push({ text: input.value, opts: spotOpts() });
+    env.nextDraft();
+  } else {
+    env.commitDraft(); // starts this phrase (and any earlier tapped blocks) fading
+    typing.held = [];
+  }
+  input.value = '';
+  voiceConsumed();
+  if (next) Object.assign(typing, next);
+  updateDraft();
+}
+
+function startVoice() {
+  if (typing || !listener) return;
+  typing = { at: VOICE_START_AT, top: true, held: [], voice: true };
+  voice = { total: 0, used: 0, timer: 0 };
+  ui.classList.add('typing', 'listening');
+  compose.classList.add('voice');
+  compose.hidden = false;
+  input.readOnly = true;
+  input.value = '';
+  input.placeholder = 'Listening… say what’s on your mind';
+  btnVoice.setAttribute('aria-pressed', 'true');
+  input.blur();
+  syncKeyboard();
+  updateDraft();
+  hintPlacing();
+  track('voice/' + envDef.id, `Voice: ${envDef.name}`);
+  listener.start().catch((err) => voiceEnded(err?.reason || 'error'));
+}
+
+// Called from finishTyping(): stop listening and put the compose bar back to normal.
+function endVoice() {
+  clearTimeout(voice?.timer);
+  voice = null;
+  listener?.stop();
+  ui.classList.remove('listening');
+  compose.classList.remove('voice');
+  input.readOnly = false;
+  input.placeholder = typePlaceholder;
+  btnVoice.setAttribute('aria-pressed', 'false');
+}
+
+const VOICE_TROUBLE = {
+  denied: NATIVE
+    ? 'Noodlit needs the microphone and Speech Recognition: turn them on in Settings › Noodlit'
+    : 'Allow the microphone for noodlit.app to use your voice',
+  unavailable: 'Voice isn’t available for your language on this device yet',
+  error: 'Couldn’t hear you just now. Try again in a moment',
+};
+
+function voiceEnded(reason) {
+  if (reason === 'stopped' || !typing?.voice) return;
+  finishTyping();
+  showToast(VOICE_TROUBLE[reason] || VOICE_TROUBLE.error, 4200);
+}
+
+if (voiceSupported) {
+  listener = createListener({
+    onText: onVoiceText,
+    onRestart: () => { if (typing?.voice) { letPhraseGo(); voice.used = voice.total = 0; } },
+    onEnd: voiceEnded,
+  });
+  btnVoice.hidden = false;
+  btnVoice.addEventListener('click', () => { sfx.unlock(); startVoice(); });
+}
 
 // ------------------------------------------------------------------ environments
 // Swap the active surface live. The shell keeps speed and Hold; the new env starts blank.
