@@ -4,11 +4,12 @@
 // Free and Plus mean.
 //
 // To make something a paid feature: add its id here, show tierTag(id) next to it, and ask
-// canUse(id) before turning it on. Nothing is locked yet: until purchases arrive every
-// tier is open, so canUse() is always true. When purchases arrive (RevenueCat in the app,
-// sign-in on the web), owns() is the one place that changes.
+// canUse(id) before turning it on. Whether someone has Plus comes from purchases.js
+// (RevenueCat in the app; on the web nobody has it until web sign-in exists), and owns() is
+// the one place that asks.
 
 import { TIERS, tierOf } from './environments/index.js';
+import { LOCKED, hasPlus } from './purchases.js';
 
 export const FEATURES = {
   'rainbow-ink': { tier: 'plus', name: 'Rainbow ink' },
@@ -16,16 +17,20 @@ export const FEATURES = {
 
 export const featureTier = (id) => FEATURES[id]?.tier || 'free';
 
-// Does this person have a tier? For now: yes, all of them.
+// Does this person have a tier? Free: always. Plus: if they bought it, or if nothing is
+// locked (an app build that can't sell Plus yet, see purchases.js LOCKED).
 const RANK = { free: 0, plus: 1 };
 export function owns(tier) {
-  return RANK[tier] != null; // later: RANK[tier] <= RANK[entitlement]
+  if (RANK[tier] == null) return false;
+  if (!LOCKED) return true;
+  return RANK[tier] <= (hasPlus() ? RANK.plus : RANK.free);
 }
 export const canUse = (id) => owns(featureTier(id));
 
 // Scenes. Anyone can open any scene and watch its Show me demo (and the Show me everything
 // tour), whatever their plan: the demo is how a Free user sees what Plus offers. Only drawing
-// in a Plus scene needs Plus. So when locking arrives, gate canDraw() and leave canDemo() alone.
+// in a Plus scene needs Plus: main.js asks canDraw() before a stroke or typed words, and
+// opens the Plus panel (paywall.js) instead. Never gate canDemo().
 export const canDraw = (env) => owns(tierOf(env));
 export const canDemo = () => true;
 

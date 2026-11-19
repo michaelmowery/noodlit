@@ -1,0 +1,53 @@
+/* Noodlit Plus panel (paywall.js), sharing the About sheet's look (about.css). */
+.plus-perks { margin: 0 0 12px; padding: 0; list-style: none; }
+.plus-perks li { position: relative; margin: 0 0 8px; padding: 0 0 0 26px; font-size: 14.5px; line-height: 1.45; opacity: 0.9; }
+.plus-perks li::before {
+  content: '';
+  position: absolute; left: 4px; top: 6px;
+  width: 12px; height: 7px;
+  border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent);
+  transform: rotate(-45deg);
+}
+.about-panel .plus-free { font-size: 13.5px; opacity: 0.72; }
+
+.plus-plans { display: grid; gap: 8px; margin: 4px 0 10px; }
+.plus-plan {
+  appearance: none;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.plus-plan.plan-yearly { border-color: var(--accent); background: rgba(255, 217, 168, 0.12); }
+.plus-plan-name { font-size: 15px; font-weight: 700; }
+.plus-plan-price { font-size: 15px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+.plus-plan-note { grid-column: 1 / -1; font-size: 12.5px; opacity: 0.7; }
+.plus-plan:active { filter: brightness(0.92); }
+.plus-plan:disabled { opacity: 0.55; cursor: default; }
+.plus-plan:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.about-panel .plus-fine { font-size: 11.5px; line-height: 1.45; opacity: 0.6; }
+.plus-have { margin: 0 0 12px; padding: 12px 14px 2px; border-radius: 14px; background: rgba(255, 217, 168, 0.1); border: 1px solid rgba(255, 217, 168, 0.22); }
+.plus-web { margin: 0 0 6px; }
+.plus-store { text-decoration: none; }
+.about-panel .plus-status { min-height: 0; font-size: 13.5px; text-align: center; }
+.about-panel .plus-status:empty { display: none; }
+.plus-links { display: flex; justify-content: center; margin: 0 0 8px; }
+.plus-link-btn {
+  appearance: none; border: 0; background: none; padding: 6px 10px;
+  color: var(--accent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.plus-link-btn:disabled { opacity: 0.5; }
+.plus-link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+.about-panel .plus-legal { margin: 4px 0 0; text-align: center; font-size: 12.5px; opacity: 0.7; }
+.plus-legal a { color: var(--accent); text-decoration: none; }
+.plus [hidden] { display: none !important; }
