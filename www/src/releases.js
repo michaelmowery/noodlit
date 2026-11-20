@@ -8,6 +8,12 @@
 
 export const RELEASES = [
   {
+    date: '2026-11-20',
+    items: [
+      ['Answer a prompt', 'Tap Answer under a prompt, or just start typing or talking while it’s up. The question moves onto your scene with your answer below it, and the two fade away together.'],
+    ],
+  },
+  {
     date: '2026-11-19',
     items: [
       ['Share', 'Tap the new share button to send a picture of your scene to Instagram, WhatsApp, Messages and more, save it, or copy it. Just the drawing, none of the buttons, with a small noodlit.app tag you can turn off. You can also send a friend the link to Noodlit.'],

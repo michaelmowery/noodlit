@@ -888,8 +888,18 @@ html, body {
 .prompt-bubble button:disabled { opacity: 0.3; cursor: default; background: transparent; }
 .prompt-bubble .prompt-close { position: absolute; top: 5px; right: 5px; width: 30px; height: 30px; }
 .prompt-bubble .prompt-close svg { width: 17px; height: 17px; }
-.prompt-nav { display: flex; justify-content: center; gap: 28px; margin-top: 4px; }
+.prompt-nav { display: flex; justify-content: center; gap: 14px; align-items: center; margin-top: 4px; }
 .prompt-bubble .prompt-nav button { width: 44px; height: 32px; }
+/* Answer, between the arrows: opens the keyboard and moves the prompt onto the surface. */
+.prompt-bubble .prompt-nav .prompt-answer {
+  width: auto;
+  padding: 0 14px;
+  font: 600 14px/1 ui-rounded, system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.01em;
+  color: rgba(38, 50, 58, 0.72);
+  background: rgba(38, 50, 58, 0.07);
+}
+.prompt-bubble .prompt-nav .prompt-answer:hover { background: rgba(38, 50, 58, 0.13); }
 .prompt-bubble.popping > :not(i) { visibility: hidden; }
 /* Little bits that fly off when it pops. */
 .prompt-bubble i {
@@ -912,6 +922,7 @@ html, body {
 }
 .prompt-bubble.popping i { animation: bubble-bit 0.36s ease-out forwards; }
 .prompt-bubble.gone { animation: bubble-gone 0.18s ease-in forwards; }
+.prompt-bubble.answered.gone { animation: bubble-lift 0.2s ease-in forwards; }
 @keyframes bubble-in { from { transform: scale(0.2) translateY(14px); opacity: 0; } 60% { opacity: 1; } }
 @keyframes bubble-bob { 50% { transform: translateY(-4px); } }
 @keyframes bubble-pop { to { transform: scale(1.3); opacity: 0.9; } }
@@ -920,6 +931,7 @@ html, body {
   100% { opacity: 0; transform: rotate(var(--a)) translateX(90px) scale(0.3); }
 }
 @keyframes bubble-gone { to { transform: scale(0.85) translateY(6px); opacity: 0; } }
+@keyframes bubble-lift { to { transform: scale(0.9) translateY(-36px); opacity: 0; } }
 #ui.drawing .prompt-bubble { opacity: 0.45; pointer-events: none; }
 #ui.typing .prompt-bubble, #ui.choosing .prompt-bubble { opacity: 0; pointer-events: none; }
 /* The bubble sits where hints usually pop up, so hints move to the top while it's there. */
