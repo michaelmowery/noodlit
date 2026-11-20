@@ -6,13 +6,36 @@ import { checkForUpdates, updatesSupported, updateReady, reloadToUpdate } from '
 // Stamped at deploy time by .github/workflows/pages.yml (0.<deploy number>). Don't edit by hand;
 // running locally it shows "dev".
 const STAMP = '__APP_VERSION__';
-export const APP_VERSION = STAMP.startsWith('__') ? 'dev' : STAMP;
+
+// The store app is built on a Mac with `npx cap sync ios`, not by the Pages deploy, so its copy
+// is never stamped. There the real version and build come from the app itself (Xcode's
+// MARKETING_VERSION and CURRENT_PROJECT_VERSION, via @capacitor/app), e.g. "1.0.1 (4)".
+const cap = window.Capacitor;
+const NATIVE = !!cap?.isNativePlatform?.();
+const hasAppPlugin = () => !!(cap?.nativePromise && (cap.PluginHeaders || []).some((h) => h.name === 'App'));
+
+async function nativeVersion() {
+  if (!NATIVE || !hasAppPlugin()) return null;
+  try {
+    // Never let a slow bridge hold up the page (this module is awaited by welcome.js).
+    const info = await Promise.race([
+      cap.nativePromise('App', 'getInfo', {}),
+      new Promise((r) => setTimeout(() => r(null), 1500)),
+    ]);
+    if (!info?.version) return null;
+    return info.build ? `${info.version} (${info.build})` : info.version;
+  } catch { return null; }
+}
+
+export const APP_VERSION = (await nativeVersion()) ?? (STAMP.startsWith('__') ? 'dev' : STAMP);
 
 const ui = document.getElementById('ui');
 const btns = [document.getElementById('btn-info'), document.getElementById('btn-about')];
 const panel = document.getElementById('about');
 document.getElementById('about-version').textContent = `Version ${APP_VERSION}`;
 document.getElementById('about-year').textContent = String(Math.max(2026, new Date().getFullYear()));
+// In the store app, updates come through the App Store, so there is nothing to check here.
+if (NATIVE) document.querySelector('.about-update').hidden = true;
 
 let lastFocus = null;
 
