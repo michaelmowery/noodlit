@@ -765,7 +765,9 @@ document.addEventListener('keydown', (e) => {
 // drawing, so it never fades, washes away or gets released. The bubble has an X to pop it
 // and ‹ › to step back and forward through the prompts you've seen (forward past the last
 // one deals a new one); Left/Right arrow keys do the same. Tapping the lightbulb again
-// always deals a fresh prompt.
+// always deals a fresh prompt. Answer (or just start typing or speaking while it's up) and the
+// prompt moves out of the bubble onto the surface, with your words below it: from then on it's
+// part of the drawing and fades, washes away or gets sent off together with your answer.
 let bubble = null;
 const promptHistory = [];
 let promptAt = -1;
@@ -835,6 +837,7 @@ function showPromptBubble() {
     <button type="button" class="prompt-close" aria-label="Close prompt">${ICON.close}</button>
     <span class="prompt-nav">
       <button type="button" class="prompt-prev" aria-label="Previous prompt">${ICON.prev}</button>
+      <button type="button" class="prompt-answer">Answer</button>
       <button type="button" class="prompt-next" aria-label="Next prompt">${ICON.next}</button>
     </span>`;
   for (let i = 0; i < 8; i++) {
@@ -845,6 +848,7 @@ function showPromptBubble() {
   el.querySelector('.prompt-close').addEventListener('click', () => { if (bubble === el) { track('prompt/close', 'Prompt: closed'); popBubble(); } });
   el.querySelector('.prompt-prev').addEventListener('click', () => { if (bubble === el) stepPrompt(-1); });
   el.querySelector('.prompt-next').addEventListener('click', () => { if (bubble === el) stepPrompt(1); });
+  el.querySelector('.prompt-answer').addEventListener('click', () => { if (bubble === el) startTyping(); });
   setBubbleText(el, false);
   ui.append(el);
   placeBubble(el);
@@ -872,6 +876,30 @@ document.addEventListener('keydown', (e) => {
 });
 window.addEventListener('resize', () => { if (bubble) placeBubble(bubble); });
 
+// Starting to type or speak while a prompt is up answers it: the prompt is written onto the
+// surface in the scene's own hand, a little smaller, as the first block of the session (held
+// crisp like typed words), and the answer starts on the line below. Returns true if it did.
+const PROMPT_AT = 0.2;     // first line of the prompt, as a fraction of the height (clear of the top buttons)
+const PROMPT_SCALE = 0.7;  // prompt size relative to typed words
+function answerPrompt() {
+  if (!bubble || !typing) return false;
+  const text = promptHistory[promptAt];
+  bubble.classList.add('answered');
+  popBubble({ quiet: true });
+  const opts = { at: PROMPT_AT, top: true, scale: PROMPT_SCALE };
+  env.setDraft(text, opts);
+  const next = spotBelow();
+  typing.held.push({ text, opts });
+  env.nextDraft();
+  // A little breathing room between the question and the answer.
+  if (next?.y != null) next.y += 14;
+  else if (next) next.at += 14 / H;
+  if (next) Object.assign(typing, next, { top: true });
+  input.placeholder = 'Your answer · tap to place';
+  track('prompt/answer', 'Prompt: answered');
+  return true;
+}
+
 // ------------------------------------------------------------------ typing
 // Keyboard entry: words are written onto the surface in its own style as you type. They
 // stay at full strength while the keyboard is open (tap the surface to start another line
@@ -894,6 +922,7 @@ function startTyping(seed = '') {
   typing = { at: 0.22, held: [] }; // upper part: the keyboard covers the bottom
   ui.classList.add('typing');
   compose.hidden = false;
+  answerPrompt();
   input.value = seed;
   input.focus({ preventScroll: true });
   if (seed) input.setSelectionRange(seed.length, seed.length);
@@ -997,6 +1026,7 @@ function finishTyping() {
   typing = null;
   ui.classList.remove('typing');
   compose.hidden = true;
+  input.placeholder = typePlaceholder;
   typeSpot.classList.remove('show');
   input.value = '';
   input.blur();
@@ -1128,6 +1158,7 @@ function startVoice() {
   input.readOnly = true;
   input.value = '';
   input.placeholder = 'Listening… say what’s on your mind';
+  if (answerPrompt()) input.placeholder = 'Listening… say your answer';
   btnVoice.setAttribute('aria-pressed', 'true');
   input.blur();
   syncKeyboard();
