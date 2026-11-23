@@ -45,6 +45,13 @@ export const canSell = NATIVE && PLATFORM === 'ios' && !!RC_API_KEY_IOS && hasNa
 // only once it can actually sell Plus, so a build without the key never strands anyone.
 export const LOCKED = NATIVE ? canSell : true;
 
+// Does Noodlit Plus show up at all? Apple doesn't allow an app to mention paid content it
+// can't sell through In-App Purchase (Guideline 3.1.1). So until the app can sell Plus, the
+// store app hides every trace of it: no Free/Plus tags, no Plus panel or About button, no
+// Plus release notes. Everything is simply open. The website always shows it.
+export const SHOW_PLUS = !NATIVE || canSell;
+if (!SHOW_PLUS) document.documentElement.classList.add('no-plus');
+
 const KEY = 'noodlit.plus';
 let active = (() => {
   if (!canSell) return false;

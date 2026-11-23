@@ -6,7 +6,7 @@
 // On the website, where Plus can't be bought yet, it points to the app instead.
 
 import { environments, isPlus } from './environments/index.js';
-import { canSell, hasPlus, startPurchases, getPlans, buy, restore, TERMS_URL, PRIVACY_URL, APP_STORE_URL } from './purchases.js';
+import { SHOW_PLUS, canSell, hasPlus, startPurchases, getPlans, buy, restore, TERMS_URL, PRIVACY_URL, APP_STORE_URL } from './purchases.js';
 import { track } from './analytics.js';
 
 const ui = document.getElementById('ui');
@@ -107,7 +107,7 @@ function render() {
 }
 
 function open(e) {
-  if (!panel.hidden) return;
+  if (!panel.hidden || !SHOW_PLUS) return;
   // Don't stack over another panel or the type box; About hands over by closing itself first.
   if (['choosing', 'typing', 'welcome-open', 'prefs-open', 'notes-open', 'about-open'].some((c) => ui.classList.contains(c))) return;
   const scene = e?.detail?.scene;
