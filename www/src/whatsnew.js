@@ -3,7 +3,14 @@
 // Notes live in releases.js. "Seen" is the date of the newest entry you've been shown, kept in
 // localStorage, so the update note only lists entries newer than that.
 
-import { RELEASES } from './releases.js';
+import { RELEASES as ALL_RELEASES } from './releases.js';
+import { SHOW_PLUS } from './purchases.js';
+
+// In the store app before it can sell Plus, notes about Plus are left out (Apple 3.1.1, see
+// purchases.js SHOW_PLUS), and so is any day left with nothing to say.
+const mentionsPlus = (item) => /\bPlus\b/.test(Array.isArray(item) ? item.join(' ') : item);
+const RELEASES = SHOW_PLUS ? ALL_RELEASES
+  : ALL_RELEASES.map((r) => ({ ...r, items: r.items.filter((i) => !mentionsPlus(i)) })).filter((r) => r.items.length);
 
 const SEEN_KEY = 'noodlit.notesSeen';
 const newest = RELEASES[0]?.date || '';

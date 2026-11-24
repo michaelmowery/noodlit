@@ -11,6 +11,7 @@ import { prefs, SPEED_PRESETS } from './prefs.js';
 import { PROMPTS } from './lib/prompts.js';
 import { createRainbow, RAINBOW, RAINBOW_SWATCH } from './lib/rainbow.js';
 import { canUse, canDemo, canDraw, tierTag } from './plus.js';
+import { SHOW_PLUS } from './purchases.js';
 import { voiceSupported, createListener } from './lib/voice.js';
 import { openShare } from './share.js';
 
@@ -237,6 +238,7 @@ function showToast(text, ms = 1800) {
 // Drawing or typing in a Plus scene without Plus opens the Plus panel (paywall.js). Watching
 // its Show me never does (plus.js canDemo).
 function askForPlus() {
+  if (!SHOW_PLUS) return;
   if (!scenes.hidden) return;
   window.dispatchEvent(new CustomEvent('noodlit:open-plus', { detail: { scene: envDef.name } }));
 }
@@ -633,7 +635,7 @@ function applyBrushAndInk() {
   inkSwatches.textContent = '';
   if (!hasInk) return;
   inkValue.textContent = cur.name;
-  if (rainbowOn) inkValue.append(' ', tierTag('rainbow-ink'));
+  if (rainbowOn && SHOW_PLUS) inkValue.append(' ', tierTag('rainbow-ink'));
   const swatches = rainbowFits(envDef) ? [...pal, RAINBOW_INK] : pal;
   for (const p of swatches) {
     const b = document.createElement('button');
@@ -641,10 +643,11 @@ function applyBrushAndInk() {
     b.className = 'ink-swatch';
     b.setAttribute('role', 'radio');
     b.setAttribute('aria-checked', String(p === cur));
-    b.setAttribute('aria-label', p.rainbow ? 'Rainbow (Plus)' : p.name);
-    b.title = p.rainbow ? 'Rainbow (Plus): changes colour as you draw' : p.name;
+    const plusNote = SHOW_PLUS ? ' (Plus)' : '';
+    b.setAttribute('aria-label', p.rainbow ? `Rainbow${plusNote}` : p.name);
+    b.title = p.rainbow ? `Rainbow${plusNote}: changes colour as you draw` : p.name;
     b.style.setProperty('--ink-color', p.rainbow ? RAINBOW_SWATCH : p.color);
-    if (p.rainbow) b.classList.add('plus');
+    if (p.rainbow && SHOW_PLUS) b.classList.add('plus');
     b.addEventListener('click', () => {
       if (p.rainbow && !rainbowOn) track('plus/rainbow-ink/' + envDef.id, `Plus feature: Rainbow ink (${envDef.name})`);
       store.set('ink.' + envDef.id, p.color);
@@ -1387,7 +1390,7 @@ function buildTile(def, { tierTag = false, modeTag = false } = {}) {
   const name = document.createElement('span');
   name.className = 'scene-name';
   name.textContent = def.name;
-  if (tierTag) {
+  if (tierTag && SHOW_PLUS) {
     const tier = TIERS.find((t) => t.id === tierOf(def));
     const tag = document.createElement('span');
     tag.className = `scene-tier-tag tier-${tier.id}`;
