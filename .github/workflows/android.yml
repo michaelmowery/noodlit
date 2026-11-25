@@ -1,0 +1,67 @@
+name: Android build
+# Builds the Google Play app bundle (.aab) from www/ and android/.
+#   - On every pull request that touches the app: a debug build, to prove it still compiles.
+#   - Run by hand (Actions → Android build → Run workflow): a signed release bundle to upload to
+#     Google Play, kept as the run's "noodlit-release" artifact for 30 days.
+# Signing uses the upload key from these repository secrets (Settings → Secrets → Actions):
+#   ANDROID_KEYSTORE_BASE64   the .jks file, base64-encoded
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+# The version name is package.json's "version"; the version code is this workflow's run number,
+# so every run is higher than the last and Google Play accepts it.
+on:
+  pull_request:
+    paths: ['www/**', 'android/**', 'package*.json', 'capacitor.config.json', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx cap sync android
+      - name: Version
+        run: |
+          echo "ANDROID_VERSION_NAME=$(node -p "require('./package.json').version")" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_CODE=${{ github.run_number }}" >> "$GITHUB_ENV"
+      - name: Debug build
+        if: github.event_name == 'pull_request'
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+      - name: Signed release bundle
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: android
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then echo "::error::Add the ANDROID_KEYSTORE_* secrets first (see the top of this file)."; exit 1; fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/upload.jks"
+          ./gradlew --no-daemon bundleRelease
+          echo "Built Noodlit ${ANDROID_VERSION_NAME} (${ANDROID_VERSION_CODE}) for Google Play" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
+        with:
+          name: noodlit-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: noodlit-release
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 30

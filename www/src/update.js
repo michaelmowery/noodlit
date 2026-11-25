@@ -6,7 +6,11 @@
 //  - powers the "Check for updates" button in About (checkForUpdates).
 // The page never reloads on its own: a reload would wipe whatever is on the canvas.
 
-const supported = 'serviceWorker' in navigator && window.isSecureContext;
+// The store apps ship their files and update through the store. Android's web view would
+// otherwise run sw.js too (iOS's doesn't), and an unstamped worker could keep serving the
+// previous version's files after a Play update.
+const NATIVE = !!window.Capacitor?.isNativePlatform?.();
+const supported = !NATIVE && 'serviceWorker' in navigator && window.isSecureContext;
 const RECHECK_MS = 30 * 60 * 1000; // foreground re-check, at most this often
 const INSTALL_TIMEOUT_MS = 25000;
 
