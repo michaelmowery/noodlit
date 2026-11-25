@@ -1,14 +1,18 @@
 {
   "name": "noodlit",
   "private": true,
-  "description": "Native wrappers (Capacitor) for the Noodlit PWA in www/.",
+  "version": "1.0.1",
+  "description": "Native wrappers (Capacitor) for the Noodlit PWA in www/. `version` is the Android app's version name.",
   "scripts": {
     "ios:sync": "cap sync ios",
     "ios:open": "cap open ios",
-    "assets": "node scripts/make-native-assets.mjs && capacitor-assets generate --ios"
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "assets": "node scripts/make-native-assets.mjs && capacitor-assets generate --ios --android"
   },
   "dependencies": {
     "@capacitor-community/media": "^9.1.0",
+    "@capacitor/android": "^8.6.2",
     "@capacitor/app": "^8.1.2",
     "@capacitor/clipboard": "^8.0.1",
     "@capacitor/core": "^8.6.2",

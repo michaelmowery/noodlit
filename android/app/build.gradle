@@ -1,0 +1,77 @@
+apply plugin: 'com.android.application'
+
+// Release signing and version numbers come from the environment, so no key or password is ever
+// in the repo. The GitHub Actions workflow (.github/workflows/android.yml) sets them from the
+// repository secrets; on a Mac, export the same variables before ./gradlew bundleRelease.
+//   ANDROID_KEYSTORE_FILE       path to the upload keystore (.jks)
+//   ANDROID_KEYSTORE_PASSWORD   its password
+//   ANDROID_KEY_ALIAS           the key's alias (upload)
+//   ANDROID_KEY_PASSWORD        the key's password (often the same as the keystore's)
+//   ANDROID_VERSION_CODE        whole number, higher for every upload to Google Play
+//   ANDROID_VERSION_NAME        the version people see, e.g. 1.0.3
+def env = System.getenv()
+def releaseKeystore = env['ANDROID_KEYSTORE_FILE']
+
+android {
+    namespace = "com.mountmtech.noodlit"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.mountmtech.noodlit"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode((env['ANDROID_VERSION_CODE'] ?: '1') as int)
+        versionName(env['ANDROID_VERSION_NAME'] ?: '1.0')
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (releaseKeystore) {
+            release {
+                storeFile file(releaseKeystore)
+                storePassword env['ANDROID_KEYSTORE_PASSWORD']
+                keyAlias env['ANDROID_KEY_ALIAS']
+                keyPassword env['ANDROID_KEY_PASSWORD'] ?: env['ANDROID_KEYSTORE_PASSWORD']
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (releaseKeystore) signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

@@ -2,7 +2,7 @@
 // captured, never the toolbar, menus or prompt bubble, because those are HTML laid over it.
 //
 // What each action does where:
-//                  iOS app                                   website
+//                  iOS / Android app                         website
 //   Share…         Apple's share sheet (Instagram, WhatsApp,  the browser's share sheet when it can
 //                  Messages, Threads, Mail, AirDrop…)         share files (Safari, Chrome on phones,
 //                  via the Filesystem + Share plugins         Mac and Windows); hidden otherwise
@@ -13,7 +13,8 @@
 //
 // The plugins are called through Capacitor's native bridge, like voice.js and purchases.js,
 // because the web code has no bundler for their JS wrappers. Saving to Photos needs
-// NSPhotoLibraryAddUsageDescription in Info.plist.
+// NSPhotoLibraryAddUsageDescription in Info.plist. On Android, Save goes to a Noodlit album
+// (see androidAlbum below) and Share uses Android's share sheet.
 
 const cap = window.Capacitor;
 const NATIVE = !!cap?.isNativePlatform?.();
@@ -106,10 +107,20 @@ export async function shareImage(blob, name, text = '') {
   }
 }
 
-// Resolves 'photos' (iOS app) or 'downloaded' (website).
+// On Android the Media plugin saves into a named album, a folder in the app's own media
+// directory that the Gallery and Google Photos pick up. That needs no storage permission.
+// The folder is made the first time (createAlbum fails harmlessly once it exists).
+async function androidAlbum() {
+  const { path } = await call('Media', 'getAlbumsPath');
+  await call('Media', 'createAlbum', { name: 'Noodlit' }).catch(() => {});
+  return { albumIdentifier: `${path}/Noodlit` };
+}
+
+// Resolves 'photos' (iOS and Android apps) or 'downloaded' (website).
 export async function saveImage(blob, name) {
   if (NATIVE) {
-    await withCacheFile(blob, name, (uri) => call('Media', 'savePhoto', { path: uri }));
+    const options = cap.getPlatform?.() === 'android' ? await androidAlbum() : {};
+    await withCacheFile(blob, name, (uri) => call('Media', 'savePhoto', { path: uri, ...options }));
     return 'photos';
   }
   const url = URL.createObjectURL(blob);

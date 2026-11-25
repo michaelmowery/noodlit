@@ -145,3 +145,23 @@ npx cap open ios     # open in Xcode, pick a simulator, press Run
 
 App icon and splash come from `www/icons/icon.svg`: run `npm run assets` after changing it.
 Service workers don't run inside the iOS app, so updates there ship through the App Store.
+
+## Android app (Capacitor)
+
+The Google Play build wraps the same `www/` with Capacitor. Native files live in `android/`.
+Nothing about the website changes.
+
+- **Build in the cloud (easiest):** GitHub → Actions → **Android build** → *Run workflow*. It
+  makes a signed `.aab` (artifact `noodlit-release`) ready to upload to Google Play. It needs the
+  four `ANDROID_KEY*` secrets listed at the top of `.github/workflows/android.yml`. Every pull
+  request that touches the app also runs a debug build to prove it still compiles.
+- **Version:** the name people see is `version` in `package.json`; the version code is the
+  workflow's run number, so it always goes up.
+- **On a computer with Android Studio:** `npm install`, `npx cap sync android`, `npx cap open android`,
+  then Run on an emulator or a phone.
+- **Icon and splash:** `npm run assets` makes both platforms' icons from `www/icons/icon.svg`
+  (Android gets an adaptive icon: `assets/icon-background.png` + `assets/icon-foreground.png`).
+
+How the Android app differs from the website: no service worker or update check (updates come
+from Google Play), Save puts the picture in a *Noodlit* album in the Gallery, and voice uses the
+phone's speech recognition. Noodlit Plus stays hidden, as on iOS, until purchases are set up.

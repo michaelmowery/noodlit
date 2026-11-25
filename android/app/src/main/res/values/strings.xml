@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Noodlit</string>
+    <string name="title_activity_main">Noodlit</string>
+    <string name="package_name">com.mountmtech.noodlit</string>
+    <string name="custom_url_scheme">com.mountmtech.noodlit</string>
+</resources>
