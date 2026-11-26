@@ -7,6 +7,7 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: read
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -40,5 +41,18 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: www
+      # Since Nov 24 the deploy step has looked for the artifact a split second after upload and
+      # found none ("No artifacts named github-pages were found"), though the upload succeeded.
+      # Wait until the run's artifact list shows it, then deploy.
+      - name: Wait for the artifact to be listed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 24); do
+            n=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?name=github-pages" --jq '.total_count' || echo 0)
+            if [ "$n" -ge 1 ]; then echo "Artifact listed after $((i*5 - 5))s"; sleep 5; exit 0; fi
+            sleep 5
+          done
+          echo "Artifact still not listed after 2 minutes; trying the deploy anyway"
       - id: deployment
         uses: actions/deploy-pages@v4
